@@ -1,0 +1,125 @@
+{
+  "tasks": 128,
+  "steady_seconds": 180,
+  "http2": true,
+  "control_requests": 1023,
+  "upload_requests": 277,
+  "connection_aborts": 95,
+  "http_503": 116,
+  "node_journal_bytes": 44,
+  "controller_state_bytes": 82,
+  "samples": [
+    {
+      "at": "2026-10-23T06:39:02.411836345Z",
+      "heap_bytes_after_gc": 2777768,
+      "heap_objects_after_gc": 4876,
+      "rss_bytes": 24973312,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:39:17.415820315Z",
+      "heap_bytes_after_gc": 2781688,
+      "heap_objects_after_gc": 4910,
+      "rss_bytes": 22781952,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:39:32.419414317Z",
+      "heap_bytes_after_gc": 2750344,
+      "heap_objects_after_gc": 4754,
+      "rss_bytes": 22646784,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:39:47.423140286Z",
+      "heap_bytes_after_gc": 2751544,
+      "heap_objects_after_gc": 4781,
+      "rss_bytes": 21565440,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:40:02.426804907Z",
+      "heap_bytes_after_gc": 2759704,
+      "heap_objects_after_gc": 4823,
+      "rss_bytes": 22548480,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:40:17.42970188Z",
+      "heap_bytes_after_gc": 2760200,
+      "heap_objects_after_gc": 4830,
+      "rss_bytes": 22794240,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:40:32.433163778Z",
+      "heap_bytes_after_gc": 2700896,
+      "heap_objects_after_gc": 4669,
+      "rss_bytes": 22732800,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:40:47.437415792Z",
+      "heap_bytes_after_gc": 2702528,
+      "heap_objects_after_gc": 4673,
+      "rss_bytes": 23011328,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:41:02.441352381Z",
+      "heap_bytes_after_gc": 2702528,
+      "heap_objects_after_gc": 4673,
+      "rss_bytes": 21381120,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:41:17.445448113Z",
+      "heap_bytes_after_gc": 2705216,
+      "heap_objects_after_gc": 4688,
+      "rss_bytes": 21966848,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:41:32.448041643Z",
+      "heap_bytes_after_gc": 2707232,
+      "heap_objects_after_gc": 4706,
+      "rss_bytes": 21954560,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:41:47.451258929Z",
+      "heap_bytes_after_gc": 2709440,
+      "heap_objects_after_gc": 4726,
+      "rss_bytes": 22548480,
+      "goroutines": 11,
+      "file_descriptors": 14
+    },
+    {
+      "at": "2026-10-23T06:42:02.415761155Z",
+      "heap_bytes_after_gc": 2709968,
+      "heap_objects_after_gc": 4732,
+      "rss_bytes": 23113728,
+      "goroutines": 11,
+      "file_descriptors": 14
+    }
+  ],
+  "after_close": {
+    "at": "2026-10-23T06:42:02.41802859Z",
+    "heap_bytes_after_gc": 2608456,
+    "heap_objects_after_gc": 4206,
+    "rss_bytes": 23121920,
+    "goroutines": 2,
+    "file_descriptors": 7
+  }
+}

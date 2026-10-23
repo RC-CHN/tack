@@ -27,7 +27,7 @@ An example NAS layout may place binaries/config on a persistent data volume, run
 
 On routers, avoid frequent journal writes to a tiny flash overlay when a suitable persistent external volume exists. If only tmpfs is practical, set `state_persistence` to `volatile`, explain that power loss removes task replay records, and do not automatically replay old work after rediscovery. Firmware upgrade preservation requires device-specific configuration and cannot be inferred from ordinary reboot behavior.
 
-The first-stage journal rewrites a JSON snapshot on state transitions. It is not a high-volume flash-optimized database. Measure workload and capacity before choosing a constrained overlay. Low task concurrency and bounded output do not by themselves bound lifetime journal growth.
+The first-stage journal rewrites a JSON snapshot on state transitions. It is not a high-volume flash-optimized database. Measure workload and capacity before choosing a constrained overlay. Protocol v3 compacts receipt-confirmed task entries behind a durable replay watermark; unconfirmed results remain protected. Set pending-result and Controller retention budgets for the target volume. Use rotating diagnostic files or bounded supervisor capture. Node-owned temporary workspaces are recovered independently of deployment paths; command-created files still require filesystem/container quotas if their disk usage must be forcibly capped.
 
 ## Startup artifact shape
 

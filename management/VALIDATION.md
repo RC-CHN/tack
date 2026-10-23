@@ -117,3 +117,78 @@ Two non-race Go 1.26.3 HTTPS tests subsequently passed: each executed 128 real t
 Transient reconnect samples returned to baseline counts; there was no sustained goroutine/FD accumulation. HTTP/2 RSS did not reproduce the earlier race-enabled growth. This supports treating the earlier RSS observation separately from retained Go heap, but does not prove the instrumentation was its sole cause. Figures still include both Node and Controller in one process and are not individual production memory requirements or a 24–72 hour guarantee.
 
 A local end-to-end run after the port-fixture change returned a failure with truncated diagnostics; a captured rerun and a subsequent three-repetition race run passed (47.979 s for the three repetitions). The unexplained intermittent local failure remains recorded; native CI and tag gates must also pass before publication.
+
+
+## Rolling retention and low-footprint refinements — rc.2, 2026-10-23
+
+This section supersedes the fixed 10,000-entry Node journal and stop-at-full
+confirmed-history limits. Protocol v3 receipts separate results still awaiting
+final acknowledgement from reclaimable history. Sequence checkpoints suppress
+replay after per-task records are removed. The Controller's storage version is
+now 2 and the Node's retained journal wrapper is version 3; binary-only downgrade
+is rejected. Upgrade and backup requirements are in [retention design](../docs/tack-retention.md).
+
+Local Go 1.26.3 race/vet checks passed in protocol, control, Node and integration.
+Protocol and Node tests also passed with Go 1.23.12 on this Linux host. Subsequent
+recovery ordering, receipt-batching and legacy-cancellation migration changes
+passed the affected module race/vet checks and Node legacy tests. Native Windows,
+macOS and all 13 Node cross-build targets remain the required exact-commit CI
+gates, not inferred from local compilation.
+
+| Regression | What it verifies |
+| --- | --- |
+| `TestReceiptRequiredBeforeEvictionAndRestart` | 30 tasks with a two-entry history budget; one unconfirmed result survives repeated reclamation, TTL expiry and restart, then returns its lost final ack |
+| `TestBytePressureReclaimsOnlyConfirmedOutput` | Byte pressure, independently of the count limit, repeatedly reclaims confirmed output while retaining an unconfirmed result |
+| `TestRetentionChurnLostAcksAndControllerRollback` | HTTP/1.1 and HTTP/2 each execute 24 real tasks through a four-entry history budget, lose both final and receipt replies, restart the Node and restore an old Controller snapshot; execution-marker count stays exactly 24 |
+| `TestCompactedReplayWatermarkAcrossRestart` | Old sequences remain refused after journal compaction/restart; a checkpoint-before-intent crash cannot cause execution; downgrade is rejected |
+| `TestFullLegacyJournalMigratesAndKeepsAccepting` | A full 10,000-entry old journal drains, the next task runs once, and an old identity cannot run again; retained-journal writes are capped at 15 during migration |
+| Recovery tests | Complete pending output survives an injected ENOSPC; all named recovery sources are read before any recovery destination is reused, including directories with 260 old temporary files; result persistence retries without reexecution |
+| Controller startup tests | Durable archives win over a restored active snapshot; never-dispatched legacy cancellations become reclaimable without duplicate archives; unknown staging is preserved and charged to capacity |
+| Ring/log/workspace tests | Exact head/tail output across variable write sizes, lazy allocation, bounded log files across rotation/restart/limit reduction, and cleanup restricted to the Node's owned workspace |
+
+The initial full-journal race run hit its 30-second fixture deadline after
+repeatedly rewriting the entire journal for each 128-receipt batch. Optional
+receipt deletion now shares the next necessary journal write or flushes when
+receipts finish draining. Intent, result, checkpoint and final-ack persistence
+remain synchronous. The full Node race suite then passed in 43.645 seconds;
+the legacy non-race suite passed in 9.646 seconds. No timeout increase was used.
+
+Same-host Go microbenchmarks (`go test -run '^$' -bench ... -benchmem -benchtime=1s`),
+Linux amd64 / Intel Xeon CPU Max 9470C, observed:
+
+| Operation | Before | After |
+| --- | --- | --- |
+| 12-byte output with a 64 KiB cap, including snapshot | 65,632 B/op; 15,869 ns/op | 160 B/op; 157 ns/op |
+| 1 MiB input with a 64 KiB cap, including snapshot | 131,152 B/op; 36,607 ns/op | 131,152 B/op; 37,524 ns/op |
+| Receipt owner lookup, 2 MiB total raw output | 10,501,492 B/op; 21,936,714 ns/op | 1,733 B/op; 7,021 ns/op |
+
+These are one-run allocation/microbenchmark observations, not a device throughput
+or network-latency guarantee. Large-output bounded storage is unchanged; the main
+wins are avoiding full preallocation for short output and decoding no confirmed
+payload merely to validate a receipt. The eviction regression completes 270
+admissions with three directory scans, preserves oldest-first order with late
+receipts, and checks idle TTL cleanup. The cache holds at most 128 metadata entries.
+
+The non-race HTTPS resource runs each completed 128 tasks, then 180 seconds of
+connection abortions/HTTP 503s. Total durations were 209.44 s (HTTP/1.1) and
+207.01 s (HTTP/2). Both ended with a 44-byte empty Node journal and an 82-byte
+Controller active snapshot. Raw reports: [HTTP/1.1](validation/2026-10-23-rc2-http1.json),
+[HTTP/2](validation/2026-10-23-rc2-http2.json). These runs preceded the final
+recovery batching and legacy-cancellation migration refinements; those changes
+have targeted regressions, and tagged CI repeats both resource tests.
+
+| Measurement | HTTP/1.1 | HTTP/2 |
+| --- | --- | --- |
+| Post-GC heap, MiB | 2.45–2.47 | 2.58–2.65 |
+| RSS, MiB | 20.21–22.95 | 20.39–23.82 |
+| Live goroutines | 8–8 | 11–11 |
+| Linux FDs | 12–12 | 14–14 |
+| Goroutines / FDs after closing fixture | 2 / 7 | 2 / 7 |
+
+All resource figures include Node, Controller, TLS and the test harness in one
+process, not per-agent production memory. There was no sampled goroutine/FD
+accumulation. This is not 24–72 hour validation, real disk exhaustion or physical
+power-loss testing. Actual CentOS 6, ARM/MIPS, NAS/overlay and flash endurance
+remain device-specific validation work. Finite disk cannot keep an unlimited
+unconfirmed backlog: backpressure protects accepted results; only confirmed
+history and diagnostics are lossy/expirable.
