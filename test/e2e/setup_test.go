@@ -161,6 +161,7 @@ func post(url, body string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
@@ -169,14 +170,28 @@ func post(url, body string) (string, error) {
 }
 
 func availablePort() string {
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		log.Panic(err)
+	// The SOCKS relay needs the same port in both protocols. Windows can
+	// exclude a UDP range while still allowing TCP there, so a TCP-only
+	// ephemeral probe is insufficient. Let UDP select first, then verify TCP.
+	for attempt := 0; attempt < 100; attempt++ {
+		u, err := net.ListenPacket("udp4", "127.0.0.1:0")
+		if err != nil {
+			log.Panic(err)
+		}
+		address := u.LocalAddr().String()
+		l, err := net.Listen("tcp4", address)
+		if err != nil {
+			u.Close()
+			continue
+		}
+		_, port, err := net.SplitHostPort(address)
+		l.Close()
+		u.Close()
+		if err != nil {
+			log.Panic(err)
+		}
+		return port
 	}
-	l.Close()
-	_, port, err := net.SplitHostPort(l.Addr().String())
-	if err != nil {
-		log.Panic(err)
-	}
-	return port
+	log.Panic("cannot find a port available for both TCP and UDP")
+	return ""
 }
