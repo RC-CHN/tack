@@ -1,0 +1,70 @@
+package protocol
+
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+)
+
+func RandomID() (string, error) {
+	var b [24]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b[:]), nil
+}
+
+func Decode(r io.Reader, dst any) error {
+	d := json.NewDecoder(r)
+	d.DisallowUnknownFields()
+	if err := d.Decode(dst); err != nil {
+		return err
+	}
+	var extra any
+	if err := d.Decode(&extra); err != io.EOF {
+		return fmt.Errorf("expected exactly one JSON object")
+	}
+	return nil
+}
+
+func ReadJSON(path string, dst any) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return Decode(f, dst)
+}
+
+// WriteJSON commits through a same-directory rename. The caller serializes writes.
+func WriteJSON(path string, value any) error {
+	b, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return err
+	}
+	f, err := os.CreateTemp(filepath.Dir(path), ".state-*")
+	if err != nil {
+		return err
+	}
+	name := f.Name()
+	defer os.Remove(name)
+	if _, err = f.Write(append(b, '\n')); err != nil {
+		f.Close()
+		return err
+	}
+	if err = f.Sync(); err != nil {
+		f.Close()
+		return err
+	}
+	if err = f.Close(); err != nil {
+		return err
+	}
+	if err := os.Rename(name, path); err != nil {
+		return err
+	}
+	return syncDirectory(filepath.Dir(path))
+}
