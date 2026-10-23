@@ -44,6 +44,9 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	if !logs.Enabled() {
+		a.Logf = nil
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	log.Printf("tack-node %s starting in foreground", config.NodeID)

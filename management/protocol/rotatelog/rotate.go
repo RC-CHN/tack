@@ -141,17 +141,30 @@ func (w *Writer) Close() error {
 }
 
 type Options struct {
-	path  *string
-	max   *int64
-	files *int
+	path   *string
+	max    *int64
+	files  *int
+	stderr *bool
 }
 
 func Flags(f *flag.FlagSet) Options {
-	return Options{f.String("log-file", "", "optional externally selected rotating log path (default stderr)"), f.Int64("log-max-bytes", 4*1024*1024, "maximum bytes per diagnostic log file"), f.Int("log-files", 4, "total diagnostic log files, including current")}
+	return Options{path: f.String("log-file", "", "enable rotating diagnostic logs at this path (default disabled)"), max: f.Int64("log-max-bytes", 4*1024*1024, "maximum bytes per diagnostic log file"), files: f.Int("log-files", 4, "total diagnostic log files, including current"), stderr: f.Bool("log-stderr", false, "enable diagnostic logging to stderr")}
 }
+
+func (o Options) Enabled() bool { return *o.path != "" || *o.stderr }
+
 func (o Options) Install() (func(), error) {
+	if *o.path != "" && *o.stderr {
+		return nil, errors.New("choose -log-file or -log-stderr")
+	}
 	if *o.path == "" {
-		return func() {}, nil
+		previous := log.Writer()
+		if *o.stderr {
+			log.SetOutput(os.Stderr)
+		} else {
+			log.SetOutput(io.Discard)
+		}
+		return func() { log.SetOutput(previous) }, nil
 	}
 	w, err := Open(*o.path, *o.max, *o.files)
 	if err != nil {
