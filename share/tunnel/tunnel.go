@@ -73,13 +73,16 @@ func New(c Config) *Tunnel {
 
 // BindSSH provides an active SSH for use for tunnelling
 func (t *Tunnel) BindSSH(ctx context.Context, c ssh.Conn, reqs <-chan *ssh.Request, chans <-chan ssh.NewChannel) error {
+	ctx, cancel := context.WithCancel(ctx)
+	watcherDone := make(chan struct{})
+	defer func() { cancel(); <-watcherDone }()
 	//link ctx to ssh-conn
 	go func() {
+		defer close(watcherDone)
 		<-ctx.Done()
 		if c.Close() == nil {
 			t.Debugf("SSH cancelled")
 		}
-		t.activatingConn.DoneAll()
 	}()
 	//mark active and unblock
 	t.activeConnMut.Lock()
