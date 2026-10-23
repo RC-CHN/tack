@@ -11,11 +11,13 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync"
 	"syscall"
 	"time"
 
 	"tack.local/management/control"
 	p "tack.local/management/protocol"
+	"tack.local/management/protocol/rotatelog"
 )
 
 func main() {
@@ -31,11 +33,17 @@ func run() error {
 	adminListen := flag.String("admin-listen", "127.0.0.1:8081", "administrator listener (literal loopback only)")
 	cert := flag.String("tls-cert", "", "TLS certificate file")
 	key := flag.String("tls-key", "", "TLS key file")
+	logs := rotatelog.Flags(flag.CommandLine)
 	flag.Parse()
 	if *version {
 		fmt.Println(p.BuildVersion)
 		return nil
 	}
+	closeLog, logErr := logs.Install()
+	if logErr != nil {
+		return logErr
+	}
+	defer closeLog()
 	if *configPath == "" || *statePath == "" {
 		return fmt.Errorf("-config and -state are required")
 	}
@@ -78,6 +86,24 @@ func run() error {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	var maintenance sync.WaitGroup
+	maintenance.Add(1)
+	go func() {
+		defer maintenance.Done()
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if err := api.Maintain(); err != nil {
+					log.Printf("history maintenance: %v", err)
+				}
+			}
+		}
+	}()
+	defer func() { stop(); maintenance.Wait() }()
 	srv := &http.Server{BaseContext: func(net.Listener) context.Context { return ctx }, Addr: *listen, Handler: api.NodeHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 60 * time.Second, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
 	admin := &http.Server{BaseContext: func(net.Listener) context.Context { return ctx }, Addr: *adminListen, Handler: api.AdminHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 60 * time.Second}
 	errorsCh := make(chan error, 2)

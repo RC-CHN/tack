@@ -11,6 +11,7 @@ import (
 
 	"tack.local/management/node"
 	p "tack.local/management/protocol"
+	"tack.local/management/protocol/rotatelog"
 )
 
 func main() {
@@ -21,11 +22,17 @@ func main() {
 func run() error {
 	configPath := flag.String("config", "", "Node JSON configuration (required)")
 	version := flag.Bool("version", false, "print release version")
+	logs := rotatelog.Flags(flag.CommandLine)
 	flag.Parse()
 	if *version {
 		fmt.Println(p.BuildVersion)
 		return nil
 	}
+	closeLog, err := logs.Install()
+	if err != nil {
+		return err
+	}
+	defer closeLog()
 	if *configPath == "" {
 		return fmt.Errorf("-config is required; deployment and startup registration are external")
 	}
