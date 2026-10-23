@@ -4,6 +4,7 @@ package telemetry
 import (
 	"encoding/json"
 	"runtime"
+	"runtime/metrics"
 	"sync"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 type Meter struct {
 	mu   sync.Mutex
 	data p.RuntimeMetrics
+	heap [1]metrics.Sample
 }
 
 func New() *Meter { return &Meter{data: p.RuntimeMetrics{StartedAt: time.Now().UTC()}} }
@@ -65,13 +67,16 @@ func (m *Meter) WriteJSON(path string, value any) error {
 	return err
 }
 func (m *Meter) Snapshot() p.RuntimeMetrics {
-	var mem runtime.MemStats
-	runtime.ReadMemStats(&mem)
 	m.mu.Lock()
+	// Read only the heap gauge we publish, without ReadMemStats' global pause.
+	// Reuse the sample under the same lock: metrics.Read mutates its values.
+	m.heap[0].Name = "/memory/classes/heap/objects:bytes"
+	metrics.Read(m.heap[:])
 	v := m.data
+	v.GoAllocBytes = m.heap[0].Value.Uint64()
 	m.mu.Unlock()
 	v.UptimeSeconds = int64(time.Since(v.StartedAt).Seconds())
-	v.GoAllocBytes, v.Goroutines = mem.Alloc, runtime.NumGoroutine()
+	v.Goroutines = runtime.NumGoroutine()
 	v.CPUTimeMS, v.CPUAvailable = cpuTime()
 	return v
 }

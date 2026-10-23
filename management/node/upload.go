@@ -29,7 +29,13 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 		input := p.ResultChunk{Version: p.TransferVersion, NodeID: a.config.NodeID, InstanceID: a.instance, TaskID: job.Task.ID, SHA256: manifest.SHA256, Probe: true}
 		var ack p.ChunkAck
 		var err error
-		if job.Spool != nil && body == nil {
+		// Probe before touching the output. An unavailable controller must not
+		// make every retry read/hash the whole spool or allocate a chunk buffer.
+		ack, err = a.chunk(ctx, input, total)
+		if err == nil {
+			err = ctx.Err()
+		}
+		if err == nil && job.Spool != nil && body == nil {
 			var header spoolHeader
 			body, header, bodyOffset, err = readSpool(a.spoolPath(job.Task.ID), true)
 			if err == nil && (header.TaskID != job.Task.ID || header.NodeID != job.Task.NodeID || header.Sequence != job.Task.Sequence || header.State != job.Report.State || header.Manifest != manifest) {
@@ -37,12 +43,9 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 				body = nil
 				err = errors.New("result file changed; preserving unconfirmed result")
 			}
-			if err == nil {
-				buffer = make([]byte, p.MaxChunk)
+			if err == nil && !ack.Complete {
+				buffer = make([]byte, min(total, p.MaxChunk))
 			}
-		}
-		if err == nil {
-			ack, err = a.chunk(ctx, input, total)
 		}
 		for err == nil && !ack.Complete {
 			if err = delay(ctx, time.Until(nextSend)); err != nil {
