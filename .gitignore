@@ -32,3 +32,5 @@ _testmain.go
 *.exe
 *.test
 *.prof
+.rcoder/
+__pycache__/
