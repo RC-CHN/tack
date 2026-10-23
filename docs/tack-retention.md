@@ -82,7 +82,8 @@ Upgrade the Controller and CLI before Nodes. Drain queued work first. The first
 Controller storage upgrade scans existing archives one at a time to release
 old cancellations that were never dispatched and therefore need no Node receipt. A legacy
 Node's first v3 handshake fences all already allocated sequences before retiring
-legacy IDs. Old tasks without sufficient evidence become `unknown`; inspect
+legacy IDs. As large legacy maps drain, the Node shrinks their bucket storage
+geometrically; small normal-workload maps are reused. Old tasks without sufficient evidence become `unknown`; inspect
 their side effects before deciding to submit another task. Protocol v1/v2 keeps
 its old tombstone limits until that Node is upgraded.
 

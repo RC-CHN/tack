@@ -150,8 +150,12 @@ The initial full-journal race run hit its 30-second fixture deadline after
 repeatedly rewriting the entire journal for each 128-receipt batch. Optional
 receipt deletion now shares the next necessary journal write or flushes when
 receipts finish draining. Intent, result, checkpoint and final-ack persistence
-remain synchronous. The full Node race suite then passed in 43.645 seconds;
-the legacy non-race suite passed in 9.646 seconds. No timeout increase was used.
+remain synchronous. Large legacy journal maps also shrink geometrically as
+receipts drain, releasing bucket storage instead of retaining the original
+10,000-entry allocation; small maps remain reusable. The full Node race suite then passed in 43.645 seconds;
+the legacy non-race suite passed in 9.646 seconds. After map shrinking, these
+checks passed again in 41.687 s and 9.294 s respectively. No timeout increase
+was used.
 
 Same-host Go microbenchmarks (`go test -run '^$' -bench ... -benchmem -benchtime=1s`),
 Linux amd64 / Intel Xeon CPU Max 9470C, observed:

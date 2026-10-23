@@ -238,6 +238,7 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 			return err
 		}
 	}
+	recordPeak := len(records)
 	type completed struct {
 		id, state string
 		result    *p.Result
@@ -405,6 +406,16 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 				delete(allowed, id)
 				removedReceipts = true
 			}
+			// Deleting map entries does not release their bucket storage. Shrink
+			// large legacy journals geometrically, without rebuilding the small
+			// normal-workload map on every completed task.
+			if removedReceipts && recordPeak > 128 && len(records) <= recordPeak/4 {
+				compact := make(map[string]journal, len(records))
+				for id, rec := range records {
+					compact[id] = rec
+				}
+				records, recordPeak = compact, len(compact)
+			}
 			if report != nil && response.Acknowledged == report.TaskID {
 				rec := records[report.TaskID]
 				if p.Terminal(rec.Report.State) && p.Terminal(report.State) {
@@ -452,6 +463,9 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 						rec.Report.Result = &p.Result{FinishedAt: time.Now().UTC()}
 					}
 					records[task.ID] = rec
+					if len(records) > recordPeak {
+						recordPeak = len(records)
+					}
 					if err := persist(); err != nil {
 						return err
 					}
