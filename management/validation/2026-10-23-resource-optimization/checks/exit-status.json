@@ -1,0 +1,15 @@
+{
+  "node-legacy-race-vet": 0,
+  "protocol-legacy-race-vet": 0,
+  "control-race-and-vet": 0,
+  "integration-race-and-vet": 0,
+  "management-recovery-repeat-3": 0,
+  "tunnel-recovery-repeat-3": 0,
+  "fixtures-race-vet": 0,
+  "coverage-and-validator-tests": 0,
+  "netem-h1-h2": 0,
+  "windows-amd64-node-test-crosscompile": 0,
+  "actionlint": 0,
+  "shell-syntax": 0,
+  "diff-check": 0
+}

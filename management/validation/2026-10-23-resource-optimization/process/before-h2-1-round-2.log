@@ -1,0 +1,8 @@
+=== RUN   TestNodeLowFootprint
+    footprint_linux_test.go:275: idle: RSS=12008..12008 KiB peak=12008 KiB CPU=0.000s fds=8..8 written=0 state=163
+    footprint_linux_test.go:287: upload_blocked: RSS=15368..13204 KiB peak=13632 KiB CPU=0.020s fds=8..8 written=0 state=4197031
+    footprint_linux_test.go:293: offline: RSS=13208..13528 KiB peak=13632 KiB CPU=0.010s fds=6..6 written=0 state=4197031
+    footprint_linux_test.go:322: recovered_idle: RSS=15192..15192 KiB peak=15192 KiB CPU=0.000s fds=8..8 written=0 state=163
+    footprint_linux_test.go:344: shutdown=3.110ms recovery_to_three_results=14857.622ms attempts during outage=4 HTTP/2 requests=128
+--- PASS: TestNodeLowFootprint (55.63s)
+PASS

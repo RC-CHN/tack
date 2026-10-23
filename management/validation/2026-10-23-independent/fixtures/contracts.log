@@ -1,0 +1,5 @@
+ok  	github.com/jpillora/chisel/client	1.057s
+ok  	github.com/jpillora/chisel/share/tunnel	2.449s
+ok  	github.com/jpillora/chisel/test/campaign	1.065s
+ok  	github.com/jpillora/chisel/test/cmd/bench-origin	1.020s
+ok  	github.com/jpillora/chisel/test/cmd/fieldbench	1.160s

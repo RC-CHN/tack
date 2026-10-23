@@ -1,0 +1,15 @@
+goos: linux
+goarch: amd64
+pkg: tack.local/management/protocol/telemetry
+cpu: Intel(R) Xeon(R) CPU Max 9470C
+BenchmarkSnapshot-2         	   86752	      7027 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSnapshot-2         	   81542	      7130 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSnapshot-2         	   86449	      6588 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSnapshot-2         	   91009	      6592 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSnapshot-2         	   90428	      6529 ns/op	       0 B/op	       0 allocs/op
+BenchmarkOutageCounters-2   	 5860144	       113.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkOutageCounters-2   	 5085949	       107.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkOutageCounters-2   	 6126013	       103.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkOutageCounters-2   	 6064370	        97.87 ns/op	       0 B/op	       0 allocs/op
+BenchmarkOutageCounters-2   	 5973949	       100.9 ns/op	       0 B/op	       0 allocs/op
+PASS

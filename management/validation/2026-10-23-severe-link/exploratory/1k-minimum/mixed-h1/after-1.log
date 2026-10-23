@@ -1,0 +1,5 @@
+=== RUN   TestNodeSevereLink
+2026/10/23 21:46:56 http: TLS handshake error from 127.0.0.1:60908: EOF
+    severe_link_linux_test.go:258: completed=true progress=32783/32783 elapsed=35.889s requests=27 outages=8 stream=126235B maxRSS=12.33MiB shutdown=2.18ms
+--- PASS: TestNodeSevereLink (40.16s)
+PASS

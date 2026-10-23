@@ -1,0 +1,43 @@
+{
+  "format": "tack-resource-microbench-v1",
+  "node_go": "go1.23.12",
+  "fixture_go": "go version go1.27.0 linux/amd64",
+  "gomaxprocs": 2,
+  "benchtime": "500ms",
+  "repetitions": 5,
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+  "cpu": "Intel(R) Xeon(R) CPU Max 9470C",
+  "gogc": "default",
+  "gomemlimit": "default",
+  "order": "before block then after block; serial, no other task tests during timed blocks",
+  "binaries": {
+    "before/node.test": {
+      "sha256": "2cf542dfb3a68185d2e02597bdceec4cce2f8282bedb6adef78f5114b713c584",
+      "size": 10760559
+    },
+    "before/telemetry.test": {
+      "sha256": "228a14869f672bd8b2e22730126022cbd3bef6872468951037b8f589c4f87c3e",
+      "size": 5803491
+    },
+    "before/tack-node": {
+      "sha256": "c4ce29d318adec4a96003cca34e826efc55792fb3a988f0855a26f6fb1b6425f",
+      "size": 8945609
+    },
+    "before/runner.test": {
+      "sha256": "09dcec4184269f05377607106cafb6bb94718953542919e6951a7dbe7bb2dd2a",
+      "size": 5732078
+    },
+    "after/node.test": {
+      "sha256": "a30889259a6fb8b8f7f527da7b7a086913e58d48c58b8e171bfc72ea0eec07c5",
+      "size": 10793381
+    },
+    "after/telemetry.test": {
+      "sha256": "d4cbef3524cfa23a00523563693b3c3ef403bce3fb2928a7b7f8486166a66be7",
+      "size": 5830000
+    },
+    "after/tack-node": {
+      "sha256": "11b12a0e03fa7fecd41aaf47e08b3a80970043b64ae12bd94f547fd435f3e3d5",
+      "size": 8963131
+    }
+  }
+}

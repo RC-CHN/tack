@@ -1,0 +1,85 @@
+--- a/management/node/network.go
++++ b/management/node/network.go
+@@ -166,6 +166,12 @@
+ 	return base
+ }
+ func delay(ctx context.Context, d time.Duration) error {
++	if err := ctx.Err(); err != nil {
++		return err
++	}
++	if d <= 0 {
++		return nil
++	}
+ 	timer := time.NewTimer(d)
+ 	defer timer.Stop()
+ 	select {
+--- a/management/node/upload.go
++++ b/management/node/upload.go
+@@ -29,7 +29,13 @@
+ 		input := p.ResultChunk{Version: p.TransferVersion, NodeID: a.config.NodeID, InstanceID: a.instance, TaskID: job.Task.ID, SHA256: manifest.SHA256, Probe: true}
+ 		var ack p.ChunkAck
+ 		var err error
+-		if job.Spool != nil && body == nil {
++		// Probe before touching the output. An unavailable controller must not
++		// make every retry read/hash the whole spool or allocate a chunk buffer.
++		ack, err = a.chunk(ctx, input, total)
++		if err == nil {
++			err = ctx.Err()
++		}
++		if err == nil && job.Spool != nil && body == nil {
+ 			var header spoolHeader
+ 			body, header, bodyOffset, err = readSpool(a.spoolPath(job.Task.ID), true)
+ 			if err == nil && (header.TaskID != job.Task.ID || header.NodeID != job.Task.NodeID || header.Sequence != job.Task.Sequence || header.State != job.Report.State || header.Manifest != manifest) {
+@@ -37,12 +43,9 @@
+ 				body = nil
+ 				err = errors.New("result file changed; preserving unconfirmed result")
+ 			}
+-			if err == nil {
+-				buffer = make([]byte, p.MaxChunk)
++			if err == nil && !ack.Complete {
++				buffer = make([]byte, min(total, p.MaxChunk))
+ 			}
+-		}
+-		if err == nil {
+-			ack, err = a.chunk(ctx, input, total)
+ 		}
+ 		for err == nil && !ack.Complete {
+ 			if err = delay(ctx, time.Until(nextSend)); err != nil {
+--- a/management/protocol/telemetry/meter.go
++++ b/management/protocol/telemetry/meter.go
+@@ -4,6 +4,7 @@
+ import (
+ 	"encoding/json"
+ 	"runtime"
++	"runtime/metrics"
+ 	"sync"
+ 	"time"
+ 
+@@ -13,6 +14,7 @@
+ type Meter struct {
+ 	mu   sync.Mutex
+ 	data p.RuntimeMetrics
++	heap [1]metrics.Sample
+ }
+ 
+ func New() *Meter { return &Meter{data: p.RuntimeMetrics{StartedAt: time.Now().UTC()}} }
+@@ -65,13 +67,16 @@
+ 	return err
+ }
+ func (m *Meter) Snapshot() p.RuntimeMetrics {
+-	var mem runtime.MemStats
+-	runtime.ReadMemStats(&mem)
+ 	m.mu.Lock()
++	// Read only the heap gauge we publish, without ReadMemStats' global pause.
++	// Reuse the sample under the same lock: metrics.Read mutates its values.
++	m.heap[0].Name = "/memory/classes/heap/objects:bytes"
++	metrics.Read(m.heap[:])
+ 	v := m.data
++	v.GoAllocBytes = m.heap[0].Value.Uint64()
+ 	m.mu.Unlock()
+ 	v.UptimeSeconds = int64(time.Since(v.StartedAt).Seconds())
+-	v.GoAllocBytes, v.Goroutines = mem.Alloc, runtime.NumGoroutine()
++	v.Goroutines = runtime.NumGoroutine()
+ 	v.CPUTimeMS, v.CPUAvailable = cpuTime()
+ 	return v
+ }

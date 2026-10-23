@@ -1,0 +1,7 @@
+format=tack-fixture-run-v1
+commit=369594e978e4c0446e7a3d5bb8691a4adc727b38
+seconds_per_phase=10
+repeats=3
+go version go1.27.0 linux/amd64
+linux
+amd64

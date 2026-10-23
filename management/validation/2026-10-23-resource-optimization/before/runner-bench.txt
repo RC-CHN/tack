@@ -1,0 +1,25 @@
+goos: linux
+goarch: amd64
+pkg: tack.local/management/node/runner
+cpu: Intel(R) Xeon(R) CPU Max 9470C
+BenchmarkBoundedOutput/short-2         	 6793899	        86.49 ns/op	     144 B/op	       2 allocs/op
+BenchmarkBoundedOutput/short-2         	 6946152	        86.01 ns/op	     144 B/op	       2 allocs/op
+BenchmarkBoundedOutput/short-2         	 6253989	        87.20 ns/op	     144 B/op	       2 allocs/op
+BenchmarkBoundedOutput/short-2         	 6697039	        85.81 ns/op	     144 B/op	       2 allocs/op
+BenchmarkBoundedOutput/short-2         	 6915024	        87.09 ns/op	     144 B/op	       2 allocs/op
+BenchmarkBoundedOutput/large-2         	   52136	     10931 ns/op	   65616 B/op	       2 allocs/op
+BenchmarkBoundedOutput/large-2         	   51046	     11613 ns/op	   65616 B/op	       2 allocs/op
+BenchmarkBoundedOutput/large-2         	   51818	     11564 ns/op	   65616 B/op	       2 allocs/op
+BenchmarkBoundedOutput/large-2         	   55245	     11554 ns/op	   65616 B/op	       2 allocs/op
+BenchmarkBoundedOutput/large-2         	   49357	     12089 ns/op	   65616 B/op	       2 allocs/op
+BenchmarkOutputChurn/16384-2           	  106489	      5458 ns/op	6003.28 MB/s	     16384 retained-B/result	   28752 B/op	       4 allocs/op
+BenchmarkOutputChurn/16384-2           	  109710	      5605 ns/op	5846.08 MB/s	     16384 retained-B/result	   28752 B/op	       4 allocs/op
+BenchmarkOutputChurn/16384-2           	  109639	      5507 ns/op	5950.01 MB/s	     16384 retained-B/result	   28752 B/op	       4 allocs/op
+BenchmarkOutputChurn/16384-2           	  109347	      5437 ns/op	6026.79 MB/s	     16384 retained-B/result	   28752 B/op	       4 allocs/op
+BenchmarkOutputChurn/16384-2           	  111667	      5390 ns/op	6079.25 MB/s	     16384 retained-B/result	   28752 B/op	       4 allocs/op
+BenchmarkOutputChurn/2097152-2         	     752	    706514 ns/op	5936.62 MB/s	   2097152 retained-B/result	 4190288 B/op	      11 allocs/op
+BenchmarkOutputChurn/2097152-2         	     765	    681181 ns/op	6157.40 MB/s	   2097152 retained-B/result	 4190288 B/op	      11 allocs/op
+BenchmarkOutputChurn/2097152-2         	     808	    695664 ns/op	6029.21 MB/s	   2097152 retained-B/result	 4190288 B/op	      11 allocs/op
+BenchmarkOutputChurn/2097152-2         	     804	    733555 ns/op	5717.78 MB/s	   2097152 retained-B/result	 4190288 B/op	      11 allocs/op
+BenchmarkOutputChurn/2097152-2         	     846	    731276 ns/op	5735.60 MB/s	   2097152 retained-B/result	 4190288 B/op	      11 allocs/op
+PASS

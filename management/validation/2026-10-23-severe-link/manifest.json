@@ -1,0 +1,82 @@
+{
+  "format": "tack-severe-link-comparison-v1",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+  "gomaxprocs": 2,
+  "godebug": "randautoseed=0",
+  "gogc": "default",
+  "gomemlimit": "default",
+  "node_toolchain": "go1.23.12",
+  "harness_toolchain": "go1.27.0",
+  "binaries": {
+    "before": {
+      "path": "/tmp/tack-severe-link/before/tack-node",
+      "sha256": "11b12a0e03fa7fecd41aaf47e08b3a80970043b64ae12bd94f547fd435f3e3d5",
+      "bytes": 8963131,
+      "build": "/tmp/tack-severe-link/before/tack-node: go1.23.12\n\tpath\ttack.local/management/node/cmd/tack-node\n\tmod\ttack.local/management/node\t(devel)\t\n\tdep\ttack.local/management/protocol\tv0.0.0\n\t=>\t../protocol\t(devel)\t\n\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=369594e978e4c0446e7a3d5bb8691a4adc727b38\n\tbuild\tvcs.time=2026-10-23T08:49:23Z\n\tbuild\tvcs.modified=true\n"
+    },
+    "after": {
+      "path": "/tmp/tack-severe-link/after-v2/tack-node",
+      "sha256": "77fc6b8298e401407ef4131914893c7ccb930e5ab17536bec5f788627ecc6534",
+      "bytes": 8963423,
+      "build": "/tmp/tack-severe-link/after-v2/tack-node: go1.23.12\n\tpath\ttack.local/management/node/cmd/tack-node\n\tmod\ttack.local/management/node\t(devel)\t\n\tdep\ttack.local/management/protocol\tv0.0.0\n\t=>\t../protocol\t(devel)\t\n\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=369594e978e4c0446e7a3d5bb8691a4adc727b38\n\tbuild\tvcs.time=2026-10-23T08:49:23Z\n\tbuild\tvcs.modified=true\n"
+    },
+    "harness": {
+      "path": "/tmp/tack-severe-link/severe.test",
+      "sha256": "484463a7f1b35d97e33cdfea286f51f0c998d8f3317887f1a92b66b696f46fac",
+      "bytes": 12743637,
+      "build": "/tmp/tack-severe-link/severe.test: go1.26.3\n\tpath\ttack.local/management/integration.test\n\tmod\ttack.local/management/integration\t(devel)\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\tDefaultGODEBUG=cryptocustomrand=1,tlssecpmlkem=0,urlstrictcolons=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tCGO_CFLAGS=\n\tbuild\tCGO_CPPFLAGS=\n\tbuild\tCGO_CXXFLAGS=\n\tbuild\tCGO_LDFLAGS=\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n"
+    },
+    "before_handshake": {
+      "path": "/tmp/tack-severe-link/before/client.test",
+      "sha256": "94286a3e4ef052cb49feba40677cb384e3ef530b5e121b8674047c08f8ed7b0c",
+      "bytes": 18410426,
+      "build": "/tmp/tack-severe-link/before/client.test: go1.27.0\n\tpath\tgithub.com/jpillora/chisel/client.test\n\tmod\tgithub.com/jpillora/chisel\t(devel)\t\n\tdep\tgithub.com/andrew-d/go-termutil\tv0.0.0-20150726205930-009166a695a2\th1:axBiC50cNZOs7ygH5BgQp4N+aYrZ2DNpWZ1KG3VOSOM=\n\tdep\tgithub.com/armon/go-socks5\tv0.0.0-20160902184237-e75332964ef5\th1:0CwZNZbxp69SHPdPJAN/hZIm0C4OItdklCFmMRWYpio=\n\tdep\tgithub.com/fsnotify/fsnotify\tv1.10.1\th1:b0/UzAf9yR5rhf3RPm9gf3ehBPpf0oZKIjtpKrx59Ho=\n\tdep\tgithub.com/gorilla/websocket\tv1.5.3\th1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=\n\tdep\tgithub.com/jpillora/ansi\tv1.0.3\th1:nn4Jzti0EmRfDxm7JtEs5LzCbNwd5sv+0aE+LdS9/ZQ=\n\tdep\tgithub.com/jpillora/backoff\tv1.0.0\th1:uvFg412JmmHBHw7iwprIxkPMI+sGQ4kzOWsMeHnm2EA=\n\tdep\tgithub.com/jpillora/requestlog\tv1.0.0\th1:bg++eJ74T7DYL3DlIpiwknrtfdUA9oP/M4fL+PpqnyA=\n\tdep\tgithub.com/jpillora/sizestr\tv1.0.0\th1:4tr0FLxs1Mtq3TnsLDV+GYUWG7Q26a6s+tV5Zfw2ygw=\n\tdep\tgithub.com/tomasen/realip\tv0.0.0-20180522021738-f0c99a92ddce\th1:fb190+cK2Xz/dvi9Hv8eCYJYvIGUTN2/KLq1pT6CjEc=\n\tdep\tgolang.org/x/crypto\tv0.55.0\th1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=\n\tdep\tgolang.org/x/net\tv0.57.0\th1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE=\n\tdep\tgolang.org/x/sync\tv0.22.0\th1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek=\n\tdep\tgolang.org/x/sys\tv0.47.0\th1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=\n\tdep\tgolang.org/x/text\tv0.41.0\th1:vz/seA0lnX87Othu2f/0L24RcgrXD9/YFTSuGjj3rH8=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\tDefaultGODEBUG=cryptocustomrand=1,tlssecpmlkem=0,tracebacklabels=0,urlstrictcolons=0,x509sslcertoverrideplatform=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tCGO_CFLAGS=\n\tbuild\tCGO_CPPFLAGS=\n\tbuild\tCGO_CXXFLAGS=\n\tbuild\tCGO_LDFLAGS=\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n"
+    },
+    "after_handshake": {
+      "path": "/tmp/tack-severe-link/after/client.test",
+      "sha256": "34cdf87772d44551e0cffdecefd519e296f089fdfcaa1e0713ae8c9ead3a14ed",
+      "bytes": 18410401,
+      "build": "/tmp/tack-severe-link/after/client.test: go1.27.0\n\tpath\tgithub.com/jpillora/chisel/client.test\n\tmod\tgithub.com/jpillora/chisel\t(devel)\t\n\tdep\tgithub.com/andrew-d/go-termutil\tv0.0.0-20150726205930-009166a695a2\th1:axBiC50cNZOs7ygH5BgQp4N+aYrZ2DNpWZ1KG3VOSOM=\n\tdep\tgithub.com/armon/go-socks5\tv0.0.0-20160902184237-e75332964ef5\th1:0CwZNZbxp69SHPdPJAN/hZIm0C4OItdklCFmMRWYpio=\n\tdep\tgithub.com/fsnotify/fsnotify\tv1.10.1\th1:b0/UzAf9yR5rhf3RPm9gf3ehBPpf0oZKIjtpKrx59Ho=\n\tdep\tgithub.com/gorilla/websocket\tv1.5.3\th1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=\n\tdep\tgithub.com/jpillora/ansi\tv1.0.3\th1:nn4Jzti0EmRfDxm7JtEs5LzCbNwd5sv+0aE+LdS9/ZQ=\n\tdep\tgithub.com/jpillora/backoff\tv1.0.0\th1:uvFg412JmmHBHw7iwprIxkPMI+sGQ4kzOWsMeHnm2EA=\n\tdep\tgithub.com/jpillora/requestlog\tv1.0.0\th1:bg++eJ74T7DYL3DlIpiwknrtfdUA9oP/M4fL+PpqnyA=\n\tdep\tgithub.com/jpillora/sizestr\tv1.0.0\th1:4tr0FLxs1Mtq3TnsLDV+GYUWG7Q26a6s+tV5Zfw2ygw=\n\tdep\tgithub.com/tomasen/realip\tv0.0.0-20180522021738-f0c99a92ddce\th1:fb190+cK2Xz/dvi9Hv8eCYJYvIGUTN2/KLq1pT6CjEc=\n\tdep\tgolang.org/x/crypto\tv0.55.0\th1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=\n\tdep\tgolang.org/x/net\tv0.57.0\th1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE=\n\tdep\tgolang.org/x/sync\tv0.22.0\th1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek=\n\tdep\tgolang.org/x/sys\tv0.47.0\th1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=\n\tdep\tgolang.org/x/text\tv0.41.0\th1:vz/seA0lnX87Othu2f/0L24RcgrXD9/YFTSuGjj3rH8=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\tDefaultGODEBUG=cryptocustomrand=1,tlssecpmlkem=0,tracebacklabels=0,urlstrictcolons=0,x509sslcertoverrideplatform=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tCGO_CFLAGS=\n\tbuild\tCGO_CPPFLAGS=\n\tbuild\tCGO_CXXFLAGS=\n\tbuild\tCGO_LDFLAGS=\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n"
+    },
+    "quarter_only": {
+      "path": "/tmp/tack-severe-link/after/tack-node",
+      "sha256": "76f8c1a72521ed331412a0c50d09cafd2137c2f12d0e6a8476ca9f5ff73575d9",
+      "bytes": 8963543,
+      "build": "/tmp/tack-severe-link/after/tack-node: go1.23.12\n\tpath\ttack.local/management/node/cmd/tack-node\n\tmod\ttack.local/management/node\t(devel)\t\n\tdep\ttack.local/management/protocol\tv0.0.0\n\t=>\t../protocol\t(devel)\t\n\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=369594e978e4c0446e7a3d5bb8691a4adc727b38\n\tbuild\tvcs.time=2026-10-23T08:49:23Z\n\tbuild\tvcs.modified=true\n"
+    },
+    "halving": {
+      "path": "/tmp/tack-severe-link/after/tack-node-halving",
+      "sha256": "8f1330a592c9036d15cd26d5ce5a038dbc340cee380f6b076adc2bd52c6a5789",
+      "bytes": 8963535,
+      "build": "/tmp/tack-severe-link/after/tack-node-halving: go1.23.12\n\tpath\ttack.local/management/node/cmd/tack-node\n\tmod\ttack.local/management/node\t(devel)\t\n\tdep\ttack.local/management/protocol\tv0.0.0\n\t=>\t../protocol\t(devel)\t\n\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=369594e978e4c0446e7a3d5bb8691a4adc727b38\n\tbuild\tvcs.time=2026-10-23T08:49:23Z\n\tbuild\tvcs.modified=true\n"
+    },
+    "one_kib_floor": {
+      "path": "/tmp/tack-severe-link/after-v3/tack-node",
+      "sha256": "6100ce5b492fecec2771825c77524487beda0043dbb6e7a310ba7dbc707b28cf",
+      "bytes": 8963423,
+      "build": "/tmp/tack-severe-link/after-v3/tack-node: go1.23.12\n\tpath\ttack.local/management/node/cmd/tack-node\n\tmod\ttack.local/management/node\t(devel)\t\n\tdep\ttack.local/management/protocol\tv0.0.0\n\t=>\t../protocol\t(devel)\t\n\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=369594e978e4c0446e7a3d5bb8691a4adc727b38\n\tbuild\tvcs.time=2026-10-23T08:49:23Z\n\tbuild\tvcs.modified=true\n"
+    }
+  },
+  "output_bytes": 32783,
+  "one_way_delay_ms": 300,
+  "rate_per_connection_direction_bytes_per_second": 8192,
+  "outage_interval_ms": 4000,
+  "outage_duration_ms": 500,
+  "mixed_budget_seconds": 75,
+  "mixed_repeats_per_side_http_version": 3,
+  "loss_budget_seconds": 120,
+  "loss_repeats_per_side_http_version": 1,
+  "loss_netem": {
+    "delay_ms": 2,
+    "loss_percent": 5,
+    "rate_kbit": 4096,
+    "seed": 7
+  },
+  "diagnostic_h2_loss_budget_seconds": 180,
+  "diagnostic_repeats_per_side": 1,
+  "execution_order": "Independent H1/H2/packet-loss campaigns ran concurrently. Baselines predate final candidates; H2 rounds 2 and 3 run before then after. Baselines are reused unchanged across candidate evaluations. Extended H2 before/after ran concurrently in separate namespaces. No host interface was changed.",
+  "sampling_caveat": "A fixed PRNG seed does not fix goroutine scheduling, TCP timing or random-number call order. Repeats are observations, not confidence intervals.",
+  "final_candidate": "quarter chunk on probe-confirmed no progress, 4 KiB floor, reset backoff on probe-confirmed progress; SSH/config handshake timeout",
+  "baseline": "previous low-footprint optimization; reverse optimization.patch in an isolated copy to reconstruct production source",
+  "binary_match": "Final production sources rebuilt to an identical after Node SHA256 after rejecting the 1 KiB candidate."
+}

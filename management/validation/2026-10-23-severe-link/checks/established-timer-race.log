@@ -1,0 +1,22 @@
+=== RUN   TestHandshakeTimerDoesNotExpireEstablishedTunnel
+2026/10/23 21:28:32 server: session#1: Open (user=- addr=127.0.0.1:36376 remotes=)
+--- PASS: TestHandshakeTimerDoesNotExpireEstablishedTunnel (0.36s)
+2026/10/23 21:28:32 server: session#1: Close (user=- addr=127.0.0.1:36376 duration=351.192044ms)
+=== RUN   TestHandshakeTimerDoesNotExpireEstablishedTunnel
+2026/10/23 21:28:32 server: session#1: Open (user=- addr=127.0.0.1:52804 remotes=)
+--- PASS: TestHandshakeTimerDoesNotExpireEstablishedTunnel (0.36s)
+2026/10/23 21:28:33 server: session#1: Close (user=- addr=127.0.0.1:52804 duration=351.083478ms)
+=== RUN   TestHandshakeTimerDoesNotExpireEstablishedTunnel
+2026/10/23 21:28:33 server: session#1: Open (user=- addr=127.0.0.1:48232 remotes=)
+--- PASS: TestHandshakeTimerDoesNotExpireEstablishedTunnel (0.36s)
+2026/10/23 21:28:33 server: session#1: Close (user=- addr=127.0.0.1:48232 duration=351.355714ms)
+=== RUN   TestHandshakeTimerDoesNotExpireEstablishedTunnel
+2026/10/23 21:28:33 server: session#1: Open (user=- addr=127.0.0.1:41830 remotes=)
+--- PASS: TestHandshakeTimerDoesNotExpireEstablishedTunnel (0.36s)
+2026/10/23 21:28:34 server: session#1: Close (user=- addr=127.0.0.1:41830 duration=351.092243ms)
+=== RUN   TestHandshakeTimerDoesNotExpireEstablishedTunnel
+2026/10/23 21:28:34 server: session#1: Open (user=- addr=127.0.0.1:54356 remotes=)
+--- PASS: TestHandshakeTimerDoesNotExpireEstablishedTunnel (0.36s)
+2026/10/23 21:28:34 server: session#1: Close (user=- addr=127.0.0.1:54356 duration=351.102333ms)
+PASS
+ok  	github.com/jpillora/chisel/client	2.828s

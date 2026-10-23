@@ -1,0 +1,7 @@
+[
+  {
+    "name": "tack-node",
+    "sha256": "c4ce29d318adec4a96003cca34e826efc55792fb3a988f0855a26f6fb1b6425f",
+    "reason": "Generated non-race executable omitted; rebuild with the recorded source/toolchain."
+  }
+]

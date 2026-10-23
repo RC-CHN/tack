@@ -16,6 +16,7 @@
 - [Build and operation guide](management/README.md): build the three Tack commands, provision a node, host the control plane and submit a task.
 - [Deployment skill](skills/tack-deploy/SKILL.md): choose paths and startup persistence for Linux, Windows, NAS and embedded systems.
 - [Validation record](management/VALIDATION.md): checks actually run and platforms still requiring native tests.
+- [Network and footprint fixtures](test/fixtures/README.md): reusable weak-link simulation, recovery tests and independent Node resource gates.
 
 ## Current scope
 

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "linklab-windows.test.exe",
+    "sha256": "09399778fccb8cfc0dbc0e614d1c0cd07ee332834fda3f62270cc8c765171ce3",
+    "result": "compiled, not executed on native Windows"
+  },
+  {
+    "name": "faultnet-windows.test.exe",
+    "sha256": "e6b1398508bee6a3d5e213a3cbce38b4998812b08b3d029e11dae66dc803dc0f",
+    "result": "compiled, not executed on native Windows"
+  },
+  {
+    "name": "fieldbench.exe",
+    "sha256": "3add6fe3def067107803c43bc2f2765983ac831c3702e83865fd3468f5aeecfd",
+    "result": "compiled, not executed on native Windows"
+  },
+  {
+    "name": "bench-origin.exe",
+    "sha256": "6c1dccbd8c175a12bd8f43626956658c570b262db9c32ed59b0360043a104b88",
+    "result": "compiled, not executed on native Windows"
+  }
+]

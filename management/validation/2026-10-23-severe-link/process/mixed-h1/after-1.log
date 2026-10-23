@@ -1,0 +1,4 @@
+=== RUN   TestNodeSevereLink
+    severe_link_linux_test.go:258: completed=true progress=32783/32783 elapsed=23.850s requests=15 outages=5 stream=105925B maxRSS=11.26MiB shutdown=1.96ms
+--- PASS: TestNodeSevereLink (27.89s)
+PASS

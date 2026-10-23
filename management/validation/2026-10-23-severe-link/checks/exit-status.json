@@ -1,0 +1,16 @@
+{
+  "root_race_vet": 0,
+  "node_go123_race_vet": 0,
+  "integration_race_vet": 0,
+  "footprint_h1_h2": 0,
+  "mixed_h1_final_3_repeats": 0,
+  "mixed_h2_final_3_repeats": 0,
+  "loss_h1_final": 0,
+  "loss_h2_final_120_seconds": 1,
+  "loss_h2_extended_180_seconds": 0,
+  "fixture_coverage": 0,
+  "fixture_coverage_negative_cases": 0,
+  "git_diff_check": 0,
+  "final_node_binary_rebuild_cmp": 0,
+  "note": "The H2 120-second packet-loss completion gate failed and is intentionally retained; no overall all-tests-pass claim."
+}

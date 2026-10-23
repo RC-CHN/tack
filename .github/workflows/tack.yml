@@ -25,6 +25,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 scripts/check-fixture-coverage.py --require-complete
+          python3 -B -m unittest discover -s scripts -p test_fixture_coverage.py
+          (cd test/fixtures && go test -race -short ./... && go vet ./...)
           for module in protocol control node integration; do
             (cd "management/$module" && go test -race ./... && go vet ./...)
           done
@@ -51,6 +54,7 @@ jobs:
           set -eu
           (cd management/protocol && go test ./...)
           (cd management/node && go test ./...)
+          (cd test/fixtures && go test -short ./...)
       - name: Cross-compile Node targets (not native device validation)
         working-directory: management/node
         run: |
@@ -92,9 +96,46 @@ jobs:
         with:
           name: resource-http2-${{ matrix.http2 }}
           path: management/integration/resource-report.json
+      - name: Build a separate Node without race instrumentation
+        working-directory: management/node
+        run: |
+          mkdir -p ../../build
+          go build -trimpath -o ../../build/tack-resource-node ./cmd/tack-node
+      - name: Gate idle, blocked upload, outage and recovered Node footprint
+        working-directory: management/integration
+        env:
+          TACK_NODE_BINARY: ../../build/tack-resource-node
+          TACK_RESOURCE_SECONDS: "30"
+          TACK_RESOURCE_MAX_OUTPUT: "1"
+          TACK_RESOURCE_HTTP2: ${{ matrix.http2 }}
+          TACK_RESOURCE_REPORT: footprint-report.json
+        run: go test -run '^TestNodeLowFootprint$' -count=1 -timeout=8m -v .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: footprint-http2-${{ matrix.http2 }}
+          path: management/integration/footprint-report.json
+  benchmarks:
+    if: startsWith(github.ref, 'refs/tags/tack-v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.26.3
+          cache: false
+      - name: Record verified transfers, tail latency and allocations
+        env:
+          GOTOOLCHAIN: local
+        run: ./scripts/benchmark-fixtures.sh "$RUNNER_TEMP/tack-benchmarks" 250ms 3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tack-benchmarks
+          path: ${{ runner.temp }}/tack-benchmarks
   release:
     if: startsWith(github.ref, 'refs/tags/tack-v')
-    needs: [test, legacy, soak]
+    needs: [test, legacy, soak, benchmarks]
     runs-on: ubuntu-latest
     permissions:
       contents: write

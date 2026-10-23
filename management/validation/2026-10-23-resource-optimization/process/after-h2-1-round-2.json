@@ -1,0 +1,1090 @@
+{
+  "format": "tack-footprint-v1",
+  "passed": true,
+  "http2": true,
+  "seconds_per_phase": 10,
+  "clock_ticks_per_second": 100,
+  "rss_limit_bytes": 33554432,
+  "node_go_version": "go1.23.12",
+  "output_bytes_per_task": 2097152,
+  "recovery_to_three_results_ms": 18246.143051,
+  "shutdown_ms": 2.993246,
+  "phases": [
+    {
+      "name": "idle",
+      "samples": [
+        {
+          "process": {
+            "at": "2026-10-23T11:54:25.193177583Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:26.19411352Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:27.194947721Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:28.195577799Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:29.196256764Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:30.196898577Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:31.197551434Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:32.198187792Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:33.198861842Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:34.19947032Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:35.194262803Z",
+            "rss_bytes": 11915264,
+            "peak_rss_bytes": 11915264,
+            "cpu_ticks": 1,
+            "storage_write_bytes": 212992,
+            "write_syscall_bytes": 562687,
+            "read_syscall_bytes": 516943,
+            "file_descriptors": 8,
+            "threads": 7,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 231376,
+            "downstream_stream_bytes": 5626
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 0
+        }
+      ]
+    },
+    {
+      "name": "upload_blocked",
+      "samples": [
+        {
+          "process": {
+            "at": "2026-10-23T11:54:35.453842962Z",
+            "rss_bytes": 15978496,
+            "peak_rss_bytes": 15978496,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8965530,
+            "read_syscall_bytes": 4734074,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 238844,
+            "downstream_stream_bytes": 7931
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 1
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:36.454989431Z",
+            "rss_bytes": 15978496,
+            "peak_rss_bytes": 15978496,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8965859,
+            "read_syscall_bytes": 4734164,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239173,
+            "downstream_stream_bytes": 8021
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 2
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:37.455619295Z",
+            "rss_bytes": 15978496,
+            "peak_rss_bytes": 15978496,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8965859,
+            "read_syscall_bytes": 4734164,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239173,
+            "downstream_stream_bytes": 8021
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 2
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:38.456432665Z",
+            "rss_bytes": 15982592,
+            "peak_rss_bytes": 15982592,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8966188,
+            "read_syscall_bytes": 4734277,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239502,
+            "downstream_stream_bytes": 8134
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 3
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:39.45722454Z",
+            "rss_bytes": 15982592,
+            "peak_rss_bytes": 15982592,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8966188,
+            "read_syscall_bytes": 4734277,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239502,
+            "downstream_stream_bytes": 8134
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 3
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:40.458043535Z",
+            "rss_bytes": 15982592,
+            "peak_rss_bytes": 15982592,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8966188,
+            "read_syscall_bytes": 4734277,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239502,
+            "downstream_stream_bytes": 8134
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 3
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:41.458616543Z",
+            "rss_bytes": 15982592,
+            "peak_rss_bytes": 15982592,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8966188,
+            "read_syscall_bytes": 4734277,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239502,
+            "downstream_stream_bytes": 8134
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 3
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:42.459401123Z",
+            "rss_bytes": 15982592,
+            "peak_rss_bytes": 15982592,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8966188,
+            "read_syscall_bytes": 4734277,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239502,
+            "downstream_stream_bytes": 8134
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 3
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:43.460028792Z",
+            "rss_bytes": 15982592,
+            "peak_rss_bytes": 15982592,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8966188,
+            "read_syscall_bytes": 4734277,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239502,
+            "downstream_stream_bytes": 8134
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 3
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:44.461388262Z",
+            "rss_bytes": 15982592,
+            "peak_rss_bytes": 15982592,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8966525,
+            "read_syscall_bytes": 4734398,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:45.455009121Z",
+            "rss_bytes": 15982592,
+            "peak_rss_bytes": 15982592,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8966525,
+            "read_syscall_bytes": 4734398,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 2,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        }
+      ]
+    },
+    {
+      "name": "offline",
+      "samples": [
+        {
+          "process": {
+            "at": "2026-10-23T11:54:45.48155301Z",
+            "rss_bytes": 15986688,
+            "peak_rss_bytes": 15986688,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8966581,
+            "read_syscall_bytes": 4734406,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 2,
+            "rejected_connections": 0,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:46.482468494Z",
+            "rss_bytes": 16019456,
+            "peak_rss_bytes": 16019456,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8968060,
+            "read_syscall_bytes": 4734414,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 3,
+            "rejected_connections": 1,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:47.48299344Z",
+            "rss_bytes": 16019456,
+            "peak_rss_bytes": 16019456,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8968060,
+            "read_syscall_bytes": 4734414,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 3,
+            "rejected_connections": 1,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:48.484016771Z",
+            "rss_bytes": 16019456,
+            "peak_rss_bytes": 16019456,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8968060,
+            "read_syscall_bytes": 4734414,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 3,
+            "rejected_connections": 1,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:49.485476548Z",
+            "rss_bytes": 16064512,
+            "peak_rss_bytes": 16064512,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8969531,
+            "read_syscall_bytes": 4734414,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 4,
+            "rejected_connections": 2,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:50.486260894Z",
+            "rss_bytes": 16064512,
+            "peak_rss_bytes": 16064512,
+            "cpu_ticks": 3,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8969531,
+            "read_syscall_bytes": 4734414,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 4,
+            "rejected_connections": 2,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:51.487525538Z",
+            "rss_bytes": 16117760,
+            "peak_rss_bytes": 16117760,
+            "cpu_ticks": 4,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8971002,
+            "read_syscall_bytes": 4734414,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 5,
+            "rejected_connections": 3,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:52.488187835Z",
+            "rss_bytes": 16117760,
+            "peak_rss_bytes": 16117760,
+            "cpu_ticks": 4,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8971002,
+            "read_syscall_bytes": 4734414,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 5,
+            "rejected_connections": 3,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:53.489320906Z",
+            "rss_bytes": 16158720,
+            "peak_rss_bytes": 16158720,
+            "cpu_ticks": 4,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8972489,
+            "read_syscall_bytes": 4734430,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 6,
+            "rejected_connections": 4,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:54.48998176Z",
+            "rss_bytes": 16158720,
+            "peak_rss_bytes": 16158720,
+            "cpu_ticks": 4,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8972489,
+            "read_syscall_bytes": 4734430,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 6,
+            "rejected_connections": 4,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:54:55.482569618Z",
+            "rss_bytes": 16158720,
+            "peak_rss_bytes": 16158720,
+            "cpu_ticks": 4,
+            "storage_write_bytes": 4448256,
+            "write_syscall_bytes": 8972489,
+            "read_syscall_bytes": 4734430,
+            "file_descriptors": 6,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 6,
+            "rejected_connections": 4,
+            "active_connections": 0,
+            "upstream_stream_bytes": 239831,
+            "downstream_stream_bytes": 8247
+          },
+          "state_logical_bytes": 4197032,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        }
+      ]
+    },
+    {
+      "name": "recovered_idle",
+      "samples": [
+        {
+          "process": {
+            "at": "2026-10-23T11:55:13.929947803Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:14.930511154Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:15.931061988Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:16.931684817Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:17.932317361Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:18.932897781Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:19.933433543Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:20.934069125Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:21.934687524Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:22.935317288Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        },
+        {
+          "process": {
+            "at": "2026-10-23T11:55:23.930968444Z",
+            "rss_bytes": 14737408,
+            "peak_rss_bytes": 14737408,
+            "cpu_ticks": 10,
+            "storage_write_bytes": 6590464,
+            "write_syscall_bytes": 21624170,
+            "read_syscall_bytes": 19460789,
+            "file_descriptors": 8,
+            "threads": 8,
+            "main_thread_voluntary_context_switches": 5
+          },
+          "network": {
+            "accepted_connections": 8,
+            "rejected_connections": 4,
+            "active_connections": 2,
+            "upstream_stream_bytes": 8687399,
+            "downstream_stream_bytes": 42768
+          },
+          "state_logical_bytes": 163,
+          "diagnostic_bytes": 0,
+          "upload_failures": 4
+        }
+      ]
+    }
+  ]
+}

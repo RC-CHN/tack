@@ -1,0 +1,24 @@
+{"Time":"2026-10-23T19:22:48.00720334+08:00","Action":"start","Package":"tack.local/testfixtures/linklab"}
+{"Time":"2026-10-23T19:22:48.015820792+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Output":"goos: linux\n"}
+{"Time":"2026-10-23T19:22:48.015899569+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Output":"goarch: amd64\n"}
+{"Time":"2026-10-23T19:22:48.015903353+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Output":"pkg: tack.local/testfixtures/linklab\n"}
+{"Time":"2026-10-23T19:22:48.015908384+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Output":"cpu: Intel(R) Xeon(R) CPU Max 9470C\n"}
+{"Time":"2026-10-23T19:22:48.01591278+08:00","Action":"run","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign"}
+{"Time":"2026-10-23T19:22:48.015915285+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign","Output":"=== RUN   BenchmarkPacketCampaign\n"}
+{"Time":"2026-10-23T19:22:48.015918256+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign","Output":"BenchmarkPacketCampaign\n"}
+{"Time":"2026-10-23T19:22:48.017511514+08:00","Action":"run","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/64"}
+{"Time":"2026-10-23T19:22:48.017514878+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/64","Output":"=== RUN   BenchmarkPacketCampaign/64\n"}
+{"Time":"2026-10-23T19:22:48.017517608+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/64","Output":"BenchmarkPacketCampaign/64\n"}
+{"Time":"2026-10-23T19:22:48.020059711+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/64","Output":"BenchmarkPacketCampaign/64-104  \t      16\t       959.2 ns/op\t  66.72 MB/s\t        64.00 peak-queued-B\t     266 B/op\t       4 allocs/op\n"}
+{"Time":"2026-10-23T19:22:48.020101012+08:00","Action":"run","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/1200"}
+{"Time":"2026-10-23T19:22:48.020105346+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/1200","Output":"=== RUN   BenchmarkPacketCampaign/1200\n"}
+{"Time":"2026-10-23T19:22:48.02010914+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/1200","Output":"BenchmarkPacketCampaign/1200\n"}
+{"Time":"2026-10-23T19:22:48.022247268+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/1200","Output":"BenchmarkPacketCampaign/1200-104         \t"}
+{"Time":"2026-10-23T19:22:48.022252589+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/1200","Output":"      16\t      1919 ns/op\t 625.31 MB/s\t      1200 peak-queued-B\t    1482 B/op\t       4 allocs/op\n"}
+{"Time":"2026-10-23T19:22:48.022276251+08:00","Action":"run","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/8192"}
+{"Time":"2026-10-23T19:22:48.022278812+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/8192","Output":"=== RUN   BenchmarkPacketCampaign/8192\n"}
+{"Time":"2026-10-23T19:22:48.022281413+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/8192","Output":"BenchmarkPacketCampaign/8192\n"}
+{"Time":"2026-10-23T19:22:48.024261242+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Test":"BenchmarkPacketCampaign/8192","Output":"BenchmarkPacketCampaign/8192-104         \t      16\t      4585 ns/op\t1786.65 MB/s\t      8192 peak-queued-B\t    8395 B/op\t       4 allocs/op\n"}
+{"Time":"2026-10-23T19:22:48.024388372+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Output":"PASS\n"}
+{"Time":"2026-10-23T19:22:48.024978553+08:00","Action":"output","Package":"tack.local/testfixtures/linklab","Output":"ok  \ttack.local/testfixtures/linklab\t0.017s\n"}
+{"Time":"2026-10-23T19:22:48.025022371+08:00","Action":"pass","Package":"tack.local/testfixtures/linklab","Elapsed":0.018}

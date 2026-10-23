@@ -1,0 +1,19 @@
+{"Time":"2026-10-23T19:22:49.238315012+08:00","Action":"start","Package":"tack.local/management/control"}
+{"Time":"2026-10-23T19:22:49.245930932+08:00","Action":"output","Package":"tack.local/management/control","Output":"goos: linux\n"}
+{"Time":"2026-10-23T19:22:49.24606317+08:00","Action":"output","Package":"tack.local/management/control","Output":"goarch: amd64\n"}
+{"Time":"2026-10-23T19:22:49.24607459+08:00","Action":"output","Package":"tack.local/management/control","Output":"pkg: tack.local/management/control\n"}
+{"Time":"2026-10-23T19:22:49.246084009+08:00","Action":"output","Package":"tack.local/management/control","Output":"cpu: Intel(R) Xeon(R) CPU Max 9470C\n"}
+{"Time":"2026-10-23T19:22:49.246097125+08:00","Action":"run","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner"}
+{"Time":"2026-10-23T19:22:49.246104079+08:00","Action":"output","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner","Output":"=== RUN   BenchmarkHistoryReceiptOwner\n"}
+{"Time":"2026-10-23T19:22:49.246113009+08:00","Action":"output","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner","Output":"BenchmarkHistoryReceiptOwner\n"}
+{"Time":"2026-10-23T19:22:49.247584574+08:00","Action":"run","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner/empty"}
+{"Time":"2026-10-23T19:22:49.247631164+08:00","Action":"output","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner/empty","Output":"=== RUN   BenchmarkHistoryReceiptOwner/empty\n"}
+{"Time":"2026-10-23T19:22:49.247654128+08:00","Action":"output","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner/empty","Output":"BenchmarkHistoryReceiptOwner/empty\n"}
+{"Time":"2026-10-23T19:22:49.254280421+08:00","Action":"output","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner/empty","Output":"BenchmarkHistoryReceiptOwner/empty-104         \t      16\t      8123 ns/op\t    2582 B/op\t      36 allocs/op\n"}
+{"Time":"2026-10-23T19:22:49.254306518+08:00","Action":"run","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner/2MiB"}
+{"Time":"2026-10-23T19:22:49.254309807+08:00","Action":"output","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner/2MiB","Output":"=== RUN   BenchmarkHistoryReceiptOwner/2MiB\n"}
+{"Time":"2026-10-23T19:22:49.254312753+08:00","Action":"output","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner/2MiB","Output":"BenchmarkHistoryReceiptOwner/2MiB\n"}
+{"Time":"2026-10-23T19:22:49.313645208+08:00","Action":"output","Package":"tack.local/management/control","Test":"BenchmarkHistoryReceiptOwner/2MiB","Output":"BenchmarkHistoryReceiptOwner/2MiB-104          \t      16\t      7884 ns/op\t    2583 B/op\t      36 allocs/op\n"}
+{"Time":"2026-10-23T19:22:49.313732887+08:00","Action":"output","Package":"tack.local/management/control","Output":"PASS\n"}
+{"Time":"2026-10-23T19:22:49.31662398+08:00","Action":"output","Package":"tack.local/management/control","Output":"ok  \ttack.local/management/control\t0.078s\n"}
+{"Time":"2026-10-23T19:22:49.316681649+08:00","Action":"pass","Package":"tack.local/management/control","Elapsed":0.078}

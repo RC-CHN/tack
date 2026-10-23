@@ -1,0 +1,8 @@
+goos: linux
+goarch: amd64
+pkg: github.com/jpillora/chisel/client
+cpu: Intel(R) Xeon(R) CPU Max 9470C
+BenchmarkStalledHandshake-2   	       5	 100934886 ns/op	         0 watchdog-expirations	   34852 B/op	     190 allocs/op
+BenchmarkStalledHandshake-2   	       5	 100866597 ns/op	         0 watchdog-expirations	   35216 B/op	     190 allocs/op
+BenchmarkStalledHandshake-2   	       5	 100955637 ns/op	         0 watchdog-expirations	   34496 B/op	     187 allocs/op
+PASS

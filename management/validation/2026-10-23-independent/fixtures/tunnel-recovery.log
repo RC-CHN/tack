@@ -1,0 +1,444 @@
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false
+2026/10/23 19:19:10 client: tun: proxy#10828=>35157: Listening
+2026/10/23 19:19:10 server: session#1: Open (user=- addr=127.0.0.1:38052 remotes=0.0.0.0:10828:127.0.0.1:35157)
+2026/10/23 19:19:10 server: session#1: Close (user=- addr=127.0.0.1:38052 duration=6.025946ms)
+2026/10/23 19:19:10 server: session#2: Open (user=- addr=127.0.0.1:38054 remotes=0.0.0.0:10828:127.0.0.1:35157)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true
+2026/10/23 19:19:10 server: session#2: Close (user=- addr=127.0.0.1:38054 duration=50.100223ms)
+2026/10/23 19:19:10 server: Reverse tunnelling enabled
+2026/10/23 19:19:10 server: session#1: Open (user=- addr=127.0.0.1:43026 remotes=R:0.0.0.0:53441:127.0.0.1:44311)
+2026/10/23 19:19:10 server: session#1: tun: proxy#R:53441=>44311: Listening
+2026/10/23 19:19:10 server: session#1: Close (user=- addr=127.0.0.1:43026 duration=3.458899ms)
+2026/10/23 19:19:11 server: session#2: Open (user=- addr=127.0.0.1:43042 remotes=R:0.0.0.0:53441:127.0.0.1:44311)
+2026/10/23 19:19:11 server: session#2: tun: proxy#R:53441=>44311: Listening
+2026/10/23 19:19:11 server: session#2: Close (user=- addr=127.0.0.1:43042 duration=40.253407ms)
+--- PASS: TestSharedCarrierRecoveryWithConcurrentFlows (0.76s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false (0.39s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true (0.37s)
+=== RUN   TestSOCKSMethodAndCommandRejections
+2026/10/23 19:19:11 server: Fingerprint YDKKWOWjRIlLDive4QabjqTgchmFJoWAug0AVQ5kEBk=
+2026/10/23 19:19:11 server: Listening on http://127.0.0.1:43893
+2026/10/23 19:19:11 client: Connecting to ws://127.0.0.1:43893
+2026/10/23 19:19:11 client: tun: proxy#127.0.0.1:49538=>udpsocks: Listening
+2026/10/23 19:19:11 client: tun: proxy#127.0.0.1:49538=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:49538
+2026/10/23 19:19:11 client: tun: Bound proxies
+2026/10/23 19:19:11 server: session#1: Handshaking with 127.0.0.1:39700...
+2026/10/23 19:19:11 client: Handshaking...
+2026/10/23 19:19:11 client: Fingerprint YDKKWOWjRIlLDive4QabjqTgchmFJoWAug0AVQ5kEBk=
+2026/10/23 19:19:11 server: session#1: Verifying configuration
+2026/10/23 19:19:11 client: Sending config
+2026/10/23 19:19:11 server: session#1: Open (user=- addr=127.0.0.1:39700 remotes=127.0.0.1:49538:udpsocks)
+2026/10/23 19:19:11 client: Connected (Latency 346.656µs)
+2026/10/23 19:19:11 server: session#1: tun: Created (SOCKS enabled)
+2026/10/23 19:19:11 client: tun: SSH connected
+2026/10/23 19:19:11 server: session#1: tun: SSH connected
+2026/10/23 19:19:11 client: tun: proxy#127.0.0.1:49538=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:19:11 client: tun: proxy#127.0.0.1:49538=>udpsocks: SOCKS connection: no supported SOCKS authentication method
+2026/10/23 19:19:11 client: tun: proxy#127.0.0.1:49538=>udpsocks: SOCKS connection: no supported SOCKS authentication method
+2026/10/23 19:19:11 client: tun: SSH cancelled
+2026/10/23 19:19:11 client: tun: SSH disconnected
+2026/10/23 19:19:11 server: Closed
+2026/10/23 19:19:11 client: tun: Unbound proxies
+2026/10/23 19:19:11 client: Disconnected
+2026/10/23 19:19:11 client: Cancelled
+2026/10/23 19:19:11 client: Closed
+--- PASS: TestSOCKSMethodAndCommandRejections (0.02s)
+2026/10/23 19:19:11 server: session#1: tun: SSH disconnected
+=== RUN   TestSOCKSAssociationSurvivesUnreachableDestination
+=== RUN   TestSOCKSAssociationSurvivesUnreachableDestination/false
+2026/10/23 19:19:11 server: session#1: Close (user=- addr=127.0.0.1:39700 duration=2.130876ms)
+2026/10/23 19:19:11.193 GET / 200 14ms
+2026/10/23 19:19:11 server: Fingerprint ECu+vzwLXq/2pkmQEjlz9C1zHORVHsBe4YpUWHsKqSE=
+2026/10/23 19:19:11 server: Listening on http://127.0.0.1:21648
+2026/10/23 19:19:11 client: Connecting to ws://127.0.0.1:21648
+2026/10/23 19:19:11 client: tun: proxy#127.0.0.1:54409=>udpsocks: Listening
+2026/10/23 19:19:11 client: tun: proxy#127.0.0.1:54409=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:54409
+2026/10/23 19:19:11 client: tun: Bound proxies
+2026/10/23 19:19:11 server: session#1: Handshaking with 127.0.0.1:55080...
+2026/10/23 19:19:11 client: Handshaking...
+2026/10/23 19:19:11 client: Fingerprint ECu+vzwLXq/2pkmQEjlz9C1zHORVHsBe4YpUWHsKqSE=
+2026/10/23 19:19:11 client: Sending config
+2026/10/23 19:19:11 server: session#1: Verifying configuration
+2026/10/23 19:19:11 server: session#1: Open (user=- addr=127.0.0.1:55080 remotes=127.0.0.1:54409:udpsocks)
+2026/10/23 19:19:11 client: Connected (Latency 278.263µs)
+2026/10/23 19:19:11 server: session#1: tun: Created (SOCKS enabled)
+2026/10/23 19:19:11 client: tun: SSH connected
+2026/10/23 19:19:11 server: session#1: tun: SSH connected
+2026/10/23 19:19:11 client: tun: proxy#127.0.0.1:54409=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:19:11 server: session#1: tun: conn#1: Open [1/1]
+2026/10/23 19:19:11 server: Closed
+2026/10/23 19:19:11 server: session#1: tun: conn#1: Close [0/1]
+2026/10/23 19:19:11 server: session#1: tun: SSH disconnected
+2026/10/23 19:19:11 client: tun: SSH disconnected
+2026/10/23 19:19:11 client: tun: Unbound proxies
+2026/10/23 19:19:11 client: Disconnected
+2026/10/23 19:19:11 server: session#1: Close (user=- addr=127.0.0.1:55080 duration=86.199045ms)
+2026/10/23 19:19:11 client: Cancelled
+2026/10/23 19:19:11 client: Closed
+=== RUN   TestSOCKSAssociationSurvivesUnreachableDestination/true
+2026/10/23 19:19:11.209 GET / 200 94ms
+2026/10/23 19:19:11 server: Reverse tunnelling enabled
+2026/10/23 19:19:11 server: Fingerprint 7JiFqhwfDX7RrS2RONu/RrjfqbRMtqBksxAkrFvDkR8=
+2026/10/23 19:19:11 server: Listening on http://127.0.0.1:47488
+2026/10/23 19:19:11 client: Connecting to ws://127.0.0.1:47488
+2026/10/23 19:19:11 server: session#1: Handshaking with 127.0.0.1:60878...
+2026/10/23 19:19:11 client: Handshaking...
+2026/10/23 19:19:11 client: Fingerprint 7JiFqhwfDX7RrS2RONu/RrjfqbRMtqBksxAkrFvDkR8=
+2026/10/23 19:19:11 server: session#1: Verifying configuration
+2026/10/23 19:19:11 client: Sending config
+2026/10/23 19:19:11 server: session#1: Open (user=- addr=127.0.0.1:60878 remotes=R:127.0.0.1:37683:udpsocks)
+2026/10/23 19:19:11 server: session#1: tun: Created
+2026/10/23 19:19:11 client: Connected (Latency 459.727µs)
+2026/10/23 19:19:11 server: session#1: tun: proxy#R:127.0.0.1:37683=>udpsocks: Listening
+2026/10/23 19:19:11 client: tun: SSH connected
+2026/10/23 19:19:11 server: session#1: tun: SSH connected
+2026/10/23 19:19:11 server: session#1: tun: proxy#R:127.0.0.1:37683=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:37683
+2026/10/23 19:19:11 server: session#1: tun: Bound proxies
+2026/10/23 19:19:11 server: session#1: tun: proxy#R:127.0.0.1:37683=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:19:11 client: tun: conn#1: Open [1/1]
+2026/10/23 19:19:11 client: tun: SSH disconnected
+2026/10/23 19:19:11 client: Disconnected
+2026/10/23 19:19:11 client: Cancelled
+2026/10/23 19:19:11 client: tun: conn#1: Close [0/1]
+2026/10/23 19:19:11 server: Closed
+2026/10/23 19:19:11 client: Closed
+2026/10/23 19:19:11 server: session#1: tun: SSH disconnected
+--- PASS: TestSOCKSAssociationSurvivesUnreachableDestination (0.19s)
+    --- PASS: TestSOCKSAssociationSurvivesUnreachableDestination/false (0.10s)
+    --- PASS: TestSOCKSAssociationSurvivesUnreachableDestination/true (0.09s)
+2026/10/23 19:19:11 server: session#1: tun: Unbound proxies
+2026/10/23 19:19:11 server: session#1: Close (user=- addr=127.0.0.1:60878 duration=84.63209ms)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/forward
+2026/10/23 19:19:11.306 GET / 200 92ms
+2026/10/23 19:19:11 client: tun: proxy#41958=>44763: Listening
+2026/10/23 19:19:11 server: session#1: Open (user=- addr=127.0.0.1:46956 remotes=0.0.0.0:41958:127.0.0.1:44763)
+2026/10/23 19:19:11 server: session#1: Close (user=- addr=127.0.0.1:46956 duration=132.325377ms)
+2026/10/23 19:19:12 server: session#2: Open (user=- addr=127.0.0.1:46970 remotes=0.0.0.0:41958:127.0.0.1:44763)
+2026/10/23 19:19:12 server: session#2: Close (user=- addr=127.0.0.1:46970 duration=131.595923ms)
+2026/10/23 19:19:13 server: session#3: Open (user=- addr=127.0.0.1:46974 remotes=0.0.0.0:41958:127.0.0.1:44763)
+2026/10/23 19:19:13 server: session#3: Close (user=- addr=127.0.0.1:46974 duration=131.980658ms)
+2026/10/23 19:19:13 server: session#4: Open (user=- addr=127.0.0.1:46986 remotes=0.0.0.0:41958:127.0.0.1:44763)
+2026/10/23 19:19:13 server: session#4: Close (user=- addr=127.0.0.1:46986 duration=131.790215ms)
+2026/10/23 19:19:14 server: session#5: Open (user=- addr=127.0.0.1:47002 remotes=0.0.0.0:41958:127.0.0.1:44763)
+2026/10/23 19:19:14 client: tun: proxy#41958=>44763: conn#6: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 19:19:14 server: session#5: Close (user=- addr=127.0.0.1:47002 duration=131.452845ms)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/reverse
+2026/10/23 19:19:14 server: Reverse tunnelling enabled
+2026/10/23 19:19:14 server: session#1: Open (user=- addr=127.0.0.1:52268 remotes=R:0.0.0.0:52337:127.0.0.1:44667)
+2026/10/23 19:19:14 server: session#1: tun: proxy#R:52337=>44667: Listening
+2026/10/23 19:19:15 server: session#1: Close (user=- addr=127.0.0.1:52268 duration=109.56729ms)
+2026/10/23 19:19:15 server: session#2: Open (user=- addr=127.0.0.1:52278 remotes=R:0.0.0.0:52337:127.0.0.1:44667)
+2026/10/23 19:19:15 server: session#2: tun: proxy#R:52337=>44667: Listening
+2026/10/23 19:19:15 server: session#2: Close (user=- addr=127.0.0.1:52278 duration=124.058115ms)
+2026/10/23 19:19:16 server: session#3: Open (user=- addr=127.0.0.1:52280 remotes=R:0.0.0.0:52337:127.0.0.1:44667)
+2026/10/23 19:19:16 server: session#3: tun: proxy#R:52337=>44667: Listening
+2026/10/23 19:19:16 server: session#3: Close (user=- addr=127.0.0.1:52280 duration=115.149039ms)
+2026/10/23 19:19:16 server: session#4: Open (user=- addr=127.0.0.1:52290 remotes=R:0.0.0.0:52337:127.0.0.1:44667)
+2026/10/23 19:19:16 server: session#4: tun: proxy#R:52337=>44667: Listening
+2026/10/23 19:19:16 server: session#4: Close (user=- addr=127.0.0.1:52290 duration=119.934438ms)
+2026/10/23 19:19:17 server: session#5: Open (user=- addr=127.0.0.1:52302 remotes=R:0.0.0.0:52337:127.0.0.1:44667)
+2026/10/23 19:19:17 server: session#5: tun: proxy#R:52337=>44667: Listening
+2026/10/23 19:19:17 server: session#5: tun: proxy#R:52337=>44667: conn#2: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 19:19:17 server: session#5: Close (user=- addr=127.0.0.1:52302 duration=115.989179ms)
+--- PASS: TestTunnelRecoversAcrossImpairedTransport (6.26s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/forward (3.16s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/reverse (3.10s)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false
+2026/10/23 19:19:17 client: tun: proxy#48068=>42751: Listening
+2026/10/23 19:19:17 server: session#1: Open (user=- addr=127.0.0.1:60744 remotes=0.0.0.0:48068:127.0.0.1:42751)
+2026/10/23 19:19:17 server: session#1: Close (user=- addr=127.0.0.1:60744 duration=4.485712ms)
+2026/10/23 19:19:18 server: session#2: Open (user=- addr=127.0.0.1:60752 remotes=0.0.0.0:48068:127.0.0.1:42751)
+2026/10/23 19:19:18 server: session#2: Close (user=- addr=127.0.0.1:60752 duration=35.168968ms)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true
+2026/10/23 19:19:18 server: Reverse tunnelling enabled
+2026/10/23 19:19:18 server: session#1: Open (user=- addr=127.0.0.1:34410 remotes=R:0.0.0.0:27152:127.0.0.1:32769)
+2026/10/23 19:19:18 server: session#1: tun: proxy#R:27152=>32769: Listening
+2026/10/23 19:19:18 server: session#1: Close (user=- addr=127.0.0.1:34410 duration=7.336538ms)
+2026/10/23 19:19:18 server: session#2: Open (user=- addr=127.0.0.1:48018 remotes=R:0.0.0.0:27152:127.0.0.1:32769)
+2026/10/23 19:19:18 server: session#2: tun: proxy#R:27152=>32769: Listening
+2026/10/23 19:19:18 server: session#2: Close (user=- addr=127.0.0.1:48018 duration=39.156008ms)
+--- PASS: TestSharedCarrierRecoveryWithConcurrentFlows (0.75s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false (0.38s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true (0.38s)
+=== RUN   TestSOCKSMethodAndCommandRejections
+2026/10/23 19:19:18 server: Fingerprint vwfKO/DTkwI/7Jyzo/jdPzrIkkh3e7iiQKU1R8Ihab0=
+2026/10/23 19:19:18 server: Listening on http://127.0.0.1:23380
+2026/10/23 19:19:18 client: Connecting to ws://127.0.0.1:23380
+2026/10/23 19:19:18 client: tun: proxy#127.0.0.1:7531=>udpsocks: Listening
+2026/10/23 19:19:18 client: tun: proxy#127.0.0.1:7531=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:7531
+2026/10/23 19:19:18 client: tun: Bound proxies
+2026/10/23 19:19:18 server: session#1: Handshaking with 127.0.0.1:60968...
+2026/10/23 19:19:18 client: Handshaking...
+2026/10/23 19:19:18 client: Fingerprint vwfKO/DTkwI/7Jyzo/jdPzrIkkh3e7iiQKU1R8Ihab0=
+2026/10/23 19:19:18 server: session#1: Verifying configuration
+2026/10/23 19:19:18 client: Sending config
+2026/10/23 19:19:18 server: session#1: Open (user=- addr=127.0.0.1:60968 remotes=127.0.0.1:7531:udpsocks)
+2026/10/23 19:19:18 client: Connected (Latency 438.405µs)
+2026/10/23 19:19:18 client: tun: SSH connected
+2026/10/23 19:19:18 server: session#1: tun: Created (SOCKS enabled)
+2026/10/23 19:19:18 server: session#1: tun: SSH connected
+2026/10/23 19:19:18 client: tun: proxy#127.0.0.1:7531=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:19:18 client: tun: proxy#127.0.0.1:7531=>udpsocks: SOCKS connection: no supported SOCKS authentication method
+2026/10/23 19:19:18 client: tun: proxy#127.0.0.1:7531=>udpsocks: SOCKS connection: no supported SOCKS authentication method
+2026/10/23 19:19:18 client: tun: SSH disconnected
+2026/10/23 19:19:18 client: tun: Unbound proxies
+2026/10/23 19:19:18 client: Disconnected
+2026/10/23 19:19:18 server: Closed
+2026/10/23 19:19:18 server: session#1: tun: SSH disconnected
+2026/10/23 19:19:18 client: Cancelled
+2026/10/23 19:19:18 client: Closed
+2026/10/23 19:19:18 server: session#1: Close (user=- addr=127.0.0.1:60968 duration=4.403762ms)
+--- PASS: TestSOCKSMethodAndCommandRejections (0.01s)
+=== RUN   TestSOCKSAssociationSurvivesUnreachableDestination
+2026/10/23 19:19:18.414 GET / 200 13ms
+=== RUN   TestSOCKSAssociationSurvivesUnreachableDestination/false
+2026/10/23 19:19:18 server: Fingerprint UHAtfC3dS2PbIresCnmLvadfw/h4QempEKLYM+QFVwI=
+2026/10/23 19:19:18 server: Listening on http://127.0.0.1:28233
+2026/10/23 19:19:18 client: Connecting to ws://127.0.0.1:28233
+2026/10/23 19:19:18 client: tun: proxy#127.0.0.1:20620=>udpsocks: Listening
+2026/10/23 19:19:18 client: tun: proxy#127.0.0.1:20620=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:20620
+2026/10/23 19:19:18 client: tun: Bound proxies
+2026/10/23 19:19:18 server: session#1: Handshaking with 127.0.0.1:36796...
+2026/10/23 19:19:18 client: Handshaking...
+2026/10/23 19:19:18 client: Fingerprint UHAtfC3dS2PbIresCnmLvadfw/h4QempEKLYM+QFVwI=
+2026/10/23 19:19:18 server: session#1: Verifying configuration
+2026/10/23 19:19:18 client: Sending config
+2026/10/23 19:19:18 server: session#1: Open (user=- addr=127.0.0.1:36796 remotes=127.0.0.1:20620:udpsocks)
+2026/10/23 19:19:18 client: Connected (Latency 249.947µs)
+2026/10/23 19:19:18 server: session#1: tun: Created (SOCKS enabled)
+2026/10/23 19:19:18 client: tun: SSH connected
+2026/10/23 19:19:18 server: session#1: tun: SSH connected
+2026/10/23 19:19:18 client: tun: proxy#127.0.0.1:20620=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:19:18 server: session#1: tun: conn#1: Open [1/1]
+2026/10/23 19:19:18 server: Closed
+2026/10/23 19:19:18 client: tun: SSH disconnected
+2026/10/23 19:19:18 client: tun: Unbound proxies
+2026/10/23 19:19:18 client: Disconnected
+2026/10/23 19:19:18 server: session#1: tun: SSH disconnected
+2026/10/23 19:19:18 client: Cancelled
+2026/10/23 19:19:18 server: session#1: Close (user=- addr=127.0.0.1:36796 duration=84.957634ms)
+2026/10/23 19:19:18 server: session#1: tun: conn#1: Close [0/1]
+2026/10/23 19:19:18 client: Closed
+=== RUN   TestSOCKSAssociationSurvivesUnreachableDestination/true
+2026/10/23 19:19:18.429 GET / 200 92ms
+2026/10/23 19:19:18 server: Reverse tunnelling enabled
+2026/10/23 19:19:18 server: Fingerprint kR2tVUtzOX4tKjqIYYNFci/sl8mGJfct1wuC8PvZCAI=
+2026/10/23 19:19:18 server: Listening on http://127.0.0.1:1570
+2026/10/23 19:19:18 client: Connecting to ws://127.0.0.1:1570
+2026/10/23 19:19:18 server: session#1: Handshaking with 127.0.0.1:33642...
+2026/10/23 19:19:18 client: Handshaking...
+2026/10/23 19:19:18 client: Fingerprint kR2tVUtzOX4tKjqIYYNFci/sl8mGJfct1wuC8PvZCAI=
+2026/10/23 19:19:18 server: session#1: Verifying configuration
+2026/10/23 19:19:18 client: Sending config
+2026/10/23 19:19:18 server: session#1: Open (user=- addr=127.0.0.1:33642 remotes=R:127.0.0.1:18516:udpsocks)
+2026/10/23 19:19:18 server: session#1: tun: Created
+2026/10/23 19:19:18 server: session#1: tun: SSH connected
+2026/10/23 19:19:18 client: Connected (Latency 654.842µs)
+2026/10/23 19:19:18 server: session#1: tun: proxy#R:127.0.0.1:18516=>udpsocks: Listening
+2026/10/23 19:19:18 server: session#1: tun: proxy#R:127.0.0.1:18516=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:18516
+2026/10/23 19:19:18 server: session#1: tun: Bound proxies
+2026/10/23 19:19:18 client: tun: SSH connected
+2026/10/23 19:19:18 server: session#1: tun: proxy#R:127.0.0.1:18516=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:19:18 client: tun: conn#1: Open [1/1]
+2026/10/23 19:19:18 client: tun: SSH cancelled
+2026/10/23 19:19:18 server: Closed
+2026/10/23 19:19:18 client: tun: SSH disconnected
+2026/10/23 19:19:18 server: session#1: tun: SSH disconnected
+2026/10/23 19:19:18 client: tun: conn#1: Close [0/1]
+2026/10/23 19:19:18 client: Disconnected
+2026/10/23 19:19:18 client: Cancelled
+2026/10/23 19:19:18 client: Closed
+--- PASS: TestSOCKSAssociationSurvivesUnreachableDestination (0.19s)
+    --- PASS: TestSOCKSAssociationSurvivesUnreachableDestination/false (0.09s)
+    --- PASS: TestSOCKSAssociationSurvivesUnreachableDestination/true (0.10s)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport
+2026/10/23 19:19:18 server: session#1: tun: Unbound proxies
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/forward
+2026/10/23 19:19:18 server: session#1: Close (user=- addr=127.0.0.1:33642 duration=85.106252ms)
+2026/10/23 19:19:18.523 GET / 200 94ms
+2026/10/23 19:19:18 client: tun: proxy#8605=>41653: Listening
+2026/10/23 19:19:18 server: session#1: Open (user=- addr=127.0.0.1:33850 remotes=0.0.0.0:8605:127.0.0.1:41653)
+2026/10/23 19:19:19 server: session#1: Close (user=- addr=127.0.0.1:33850 duration=131.406056ms)
+2026/10/23 19:19:19 server: session#2: Open (user=- addr=127.0.0.1:33854 remotes=0.0.0.0:8605:127.0.0.1:41653)
+2026/10/23 19:19:19 server: session#2: Close (user=- addr=127.0.0.1:33854 duration=131.665507ms)
+2026/10/23 19:19:20 server: session#3: Open (user=- addr=127.0.0.1:33866 remotes=0.0.0.0:8605:127.0.0.1:41653)
+2026/10/23 19:19:20 server: session#3: Close (user=- addr=127.0.0.1:33866 duration=130.915419ms)
+2026/10/23 19:19:20 server: session#4: Open (user=- addr=127.0.0.1:33880 remotes=0.0.0.0:8605:127.0.0.1:41653)
+2026/10/23 19:19:21 server: session#4: Close (user=- addr=127.0.0.1:33880 duration=131.399849ms)
+2026/10/23 19:19:21 server: session#5: Open (user=- addr=127.0.0.1:33896 remotes=0.0.0.0:8605:127.0.0.1:41653)
+2026/10/23 19:19:21 client: tun: proxy#8605=>41653: conn#6: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 19:19:21 server: session#5: Close (user=- addr=127.0.0.1:33896 duration=132.015092ms)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/reverse
+2026/10/23 19:19:21 server: Reverse tunnelling enabled
+2026/10/23 19:19:22 server: session#1: Open (user=- addr=127.0.0.1:56586 remotes=R:0.0.0.0:32053:127.0.0.1:45875)
+2026/10/23 19:19:22 server: session#1: tun: proxy#R:32053=>45875: Listening
+2026/10/23 19:19:22 server: session#1: Close (user=- addr=127.0.0.1:56586 duration=110.529056ms)
+2026/10/23 19:19:22 server: session#2: Open (user=- addr=127.0.0.1:56590 remotes=R:0.0.0.0:32053:127.0.0.1:45875)
+2026/10/23 19:19:22 server: session#2: tun: proxy#R:32053=>45875: Listening
+2026/10/23 19:19:22 server: session#2: Close (user=- addr=127.0.0.1:56590 duration=121.258388ms)
+2026/10/23 19:19:23 server: session#3: Open (user=- addr=127.0.0.1:56602 remotes=R:0.0.0.0:32053:127.0.0.1:45875)
+2026/10/23 19:19:23 server: session#3: tun: proxy#R:32053=>45875: Listening
+2026/10/23 19:19:23 server: session#3: Close (user=- addr=127.0.0.1:56602 duration=116.588905ms)
+2026/10/23 19:19:24 server: session#4: Open (user=- addr=127.0.0.1:56612 remotes=R:0.0.0.0:32053:127.0.0.1:45875)
+2026/10/23 19:19:24 server: session#4: tun: proxy#R:32053=>45875: Listening
+2026/10/23 19:19:24 server: session#4: Close (user=- addr=127.0.0.1:56612 duration=117.385729ms)
+2026/10/23 19:19:24 server: session#5: Open (user=- addr=127.0.0.1:56620 remotes=R:0.0.0.0:32053:127.0.0.1:45875)
+2026/10/23 19:19:24 server: session#5: tun: proxy#R:32053=>45875: Listening
+2026/10/23 19:19:24 server: session#5: tun: proxy#R:32053=>45875: conn#2: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 19:19:24 server: session#5: Close (user=- addr=127.0.0.1:56620 duration=115.7024ms)
+--- PASS: TestTunnelRecoversAcrossImpairedTransport (6.25s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/forward (3.15s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/reverse (3.10s)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false
+2026/10/23 19:19:24 client: tun: proxy#60374=>44711: Listening
+2026/10/23 19:19:24 server: session#1: Open (user=- addr=127.0.0.1:40964 remotes=0.0.0.0:60374:127.0.0.1:44711)
+2026/10/23 19:19:24 server: session#1: Close (user=- addr=127.0.0.1:40964 duration=5.925228ms)
+2026/10/23 19:19:25 server: session#2: Open (user=- addr=127.0.0.1:40980 remotes=0.0.0.0:60374:127.0.0.1:44711)
+2026/10/23 19:19:25 server: session#2: Close (user=- addr=127.0.0.1:40980 duration=32.115805ms)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true
+2026/10/23 19:19:25 server: Reverse tunnelling enabled
+2026/10/23 19:19:25 server: session#1: Open (user=- addr=127.0.0.1:39928 remotes=R:0.0.0.0:23998:127.0.0.1:38907)
+2026/10/23 19:19:25 server: session#1: tun: proxy#R:23998=>38907: Listening
+2026/10/23 19:19:25 server: session#1: Close (user=- addr=127.0.0.1:39928 duration=8.030071ms) (error read tcp 127.0.0.1:16387->127.0.0.1:39928: read: connection reset by peer)
+2026/10/23 19:19:25 server: session#2: Open (user=- addr=127.0.0.1:39930 remotes=R:0.0.0.0:23998:127.0.0.1:38907)
+2026/10/23 19:19:25 server: session#2: tun: proxy#R:23998=>38907: Listening
+2026/10/23 19:19:25 server: session#2: Close (user=- addr=127.0.0.1:39930 duration=43.937975ms)
+--- PASS: TestSharedCarrierRecoveryWithConcurrentFlows (0.74s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false (0.36s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true (0.38s)
+=== RUN   TestSOCKSMethodAndCommandRejections
+2026/10/23 19:19:25 server: Fingerprint DviL74u7VMJfwZzh6CTZXtI335MQHVumvU/GZPjjivg=
+2026/10/23 19:19:25 server: Listening on http://127.0.0.1:55489
+2026/10/23 19:19:25 client: Connecting to ws://127.0.0.1:55489
+2026/10/23 19:19:25 client: tun: proxy#127.0.0.1:22801=>udpsocks: Listening
+2026/10/23 19:19:25 client: tun: proxy#127.0.0.1:22801=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:22801
+2026/10/23 19:19:25 client: tun: Bound proxies
+2026/10/23 19:19:25 server: session#1: Handshaking with 127.0.0.1:35806...
+2026/10/23 19:19:25 client: Handshaking...
+2026/10/23 19:19:25 client: Fingerprint DviL74u7VMJfwZzh6CTZXtI335MQHVumvU/GZPjjivg=
+2026/10/23 19:19:25 server: session#1: Verifying configuration
+2026/10/23 19:19:25 client: Sending config
+2026/10/23 19:19:25 server: session#1: Open (user=- addr=127.0.0.1:35806 remotes=127.0.0.1:22801:udpsocks)
+2026/10/23 19:19:25 server: session#1: tun: Created (SOCKS enabled)
+2026/10/23 19:19:25 server: session#1: tun: SSH connected
+2026/10/23 19:19:25 client: Connected (Latency 382.803µs)
+2026/10/23 19:19:25 client: tun: SSH connected
+2026/10/23 19:19:25 client: tun: proxy#127.0.0.1:22801=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:19:25 client: tun: proxy#127.0.0.1:22801=>udpsocks: SOCKS connection: no supported SOCKS authentication method
+2026/10/23 19:19:25 client: tun: proxy#127.0.0.1:22801=>udpsocks: SOCKS connection: no supported SOCKS authentication method
+2026/10/23 19:19:25 client: tun: SSH cancelled
+2026/10/23 19:19:25 client: tun: Unbound proxies
+2026/10/23 19:19:25 client: tun: SSH disconnected
+2026/10/23 19:19:25 server: session#1: tun: SSH disconnected
+2026/10/23 19:19:25 client: Disconnected
+2026/10/23 19:19:25 server: Closed
+2026/10/23 19:19:25 client: Cancelled
+2026/10/23 19:19:25 client: Closed
+2026/10/23 19:19:25 server: session#1: Close (user=- addr=127.0.0.1:35806 duration=1.598392ms)
+--- PASS: TestSOCKSMethodAndCommandRejections (0.01s)
+=== RUN   TestSOCKSAssociationSurvivesUnreachableDestination
+=== RUN   TestSOCKSAssociationSurvivesUnreachableDestination/false
+2026/10/23 19:19:25.614 GET / 200 9ms
+2026/10/23 19:19:25 server: Fingerprint YwRMKxD67CDkJTN2BE7evxs8Ot754nD8f8UqM+rCWqI=
+2026/10/23 19:19:25 server: Listening on http://127.0.0.1:38426
+2026/10/23 19:19:25 client: Connecting to ws://127.0.0.1:38426
+2026/10/23 19:19:25 client: tun: proxy#127.0.0.1:60213=>udpsocks: Listening
+2026/10/23 19:19:25 client: tun: proxy#127.0.0.1:60213=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:60213
+2026/10/23 19:19:25 client: tun: Bound proxies
+2026/10/23 19:19:25 server: session#1: Handshaking with 127.0.0.1:35856...
+2026/10/23 19:19:25 client: Handshaking...
+2026/10/23 19:19:25 client: Fingerprint YwRMKxD67CDkJTN2BE7evxs8Ot754nD8f8UqM+rCWqI=
+2026/10/23 19:19:25 server: session#1: Verifying configuration
+2026/10/23 19:19:25 client: Sending config
+2026/10/23 19:19:25 server: session#1: Open (user=- addr=127.0.0.1:35856 remotes=127.0.0.1:60213:udpsocks)
+2026/10/23 19:19:25 server: session#1: tun: Created (SOCKS enabled)
+2026/10/23 19:19:25 client: Connected (Latency 313.397µs)
+2026/10/23 19:19:25 server: session#1: tun: SSH connected
+2026/10/23 19:19:25 client: tun: SSH connected
+2026/10/23 19:19:25 client: tun: proxy#127.0.0.1:60213=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:19:25 server: session#1: tun: conn#1: Open [1/1]
+2026/10/23 19:19:25 server: Closed
+2026/10/23 19:19:25 client: tun: Unbound proxies
+2026/10/23 19:19:25 client: tun: SSH disconnected
+2026/10/23 19:19:25 server: session#1: tun: SSH disconnected
+2026/10/23 19:19:25 client: Disconnected
+2026/10/23 19:19:25 client: Cancelled
+2026/10/23 19:19:25 server: session#1: tun: conn#1: Close [0/1]
+2026/10/23 19:19:25 client: Closed
+2026/10/23 19:19:25 server: session#1: Close (user=- addr=127.0.0.1:35856 duration=84.877916ms)
+=== RUN   TestSOCKSAssociationSurvivesUnreachableDestination/true
+2026/10/23 19:19:25.626 GET / 200 91ms
+2026/10/23 19:19:25 server: Reverse tunnelling enabled
+2026/10/23 19:19:25 server: Fingerprint pViNmCCDTsQZtIttwaMrVDu2hZzIkxICqWGkIlfCYlI=
+2026/10/23 19:19:25 server: Listening on http://127.0.0.1:19626
+2026/10/23 19:19:25 client: Connecting to ws://127.0.0.1:19626
+2026/10/23 19:19:25 server: session#1: Handshaking with 127.0.0.1:49390...
+2026/10/23 19:19:25 client: Handshaking...
+2026/10/23 19:19:25 client: Fingerprint pViNmCCDTsQZtIttwaMrVDu2hZzIkxICqWGkIlfCYlI=
+2026/10/23 19:19:25 server: session#1: Verifying configuration
+2026/10/23 19:19:25 client: Sending config
+2026/10/23 19:19:25 server: session#1: Open (user=- addr=127.0.0.1:49390 remotes=R:127.0.0.1:14515:udpsocks)
+2026/10/23 19:19:25 server: session#1: tun: Created
+2026/10/23 19:19:25 client: Connected (Latency 299.878µs)
+2026/10/23 19:19:25 client: tun: SSH connected
+2026/10/23 19:19:25 server: session#1: tun: SSH connected
+2026/10/23 19:19:25 server: session#1: tun: proxy#R:127.0.0.1:14515=>udpsocks: Listening
+2026/10/23 19:19:25 server: session#1: tun: proxy#R:127.0.0.1:14515=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:14515
+2026/10/23 19:19:25 server: session#1: tun: Bound proxies
+2026/10/23 19:19:25 server: session#1: tun: proxy#R:127.0.0.1:14515=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:19:25 client: tun: conn#1: Open [1/1]
+2026/10/23 19:19:25 client: tun: SSH cancelled
+2026/10/23 19:19:25 client: tun: SSH disconnected
+2026/10/23 19:19:25 server: session#1: tun: SSH disconnected
+2026/10/23 19:19:25 client: Disconnected
+2026/10/23 19:19:25 client: Cancelled
+2026/10/23 19:19:25 client: Closed
+2026/10/23 19:19:25 server: Closed
+2026/10/23 19:19:25 server: session#1: tun: Unbound proxies
+2026/10/23 19:19:25 client: tun: conn#1: Close [0/1]
+2026/10/23 19:19:25 server: session#1: Close (user=- addr=127.0.0.1:49390 duration=104.523896ms) (error read tcp 127.0.0.1:19626->127.0.0.1:49390: read: connection reset by peer)
+--- PASS: TestSOCKSAssociationSurvivesUnreachableDestination (0.21s)
+    --- PASS: TestSOCKSAssociationSurvivesUnreachableDestination/false (0.09s)
+    --- PASS: TestSOCKSAssociationSurvivesUnreachableDestination/true (0.11s)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport
+2026/10/23 19:19:25.719 GET / 200 112ms
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/forward
+2026/10/23 19:19:25 client: tun: proxy#24454=>42941: Listening
+2026/10/23 19:19:26 server: session#1: Open (user=- addr=127.0.0.1:50656 remotes=0.0.0.0:24454:127.0.0.1:42941)
+2026/10/23 19:19:26 server: session#1: Close (user=- addr=127.0.0.1:50656 duration=131.629838ms)
+2026/10/23 19:19:26 server: session#2: Open (user=- addr=127.0.0.1:50660 remotes=0.0.0.0:24454:127.0.0.1:42941)
+2026/10/23 19:19:26 server: session#2: Close (user=- addr=127.0.0.1:50660 duration=132.39718ms)
+2026/10/23 19:19:27 server: session#3: Open (user=- addr=127.0.0.1:50676 remotes=0.0.0.0:24454:127.0.0.1:42941)
+2026/10/23 19:19:27 server: session#3: Close (user=- addr=127.0.0.1:50676 duration=130.166568ms)
+2026/10/23 19:19:28 server: session#4: Open (user=- addr=127.0.0.1:50680 remotes=0.0.0.0:24454:127.0.0.1:42941)
+2026/10/23 19:19:28 server: session#4: Close (user=- addr=127.0.0.1:50680 duration=130.893011ms)
+2026/10/23 19:19:28 server: session#5: Open (user=- addr=127.0.0.1:56580 remotes=0.0.0.0:24454:127.0.0.1:42941)
+2026/10/23 19:19:28 client: tun: proxy#24454=>42941: conn#6: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 19:19:28 server: session#5: Close (user=- addr=127.0.0.1:56580 duration=130.896897ms)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/reverse
+2026/10/23 19:19:28 server: Reverse tunnelling enabled
+2026/10/23 19:19:29 server: session#1: Open (user=- addr=127.0.0.1:56104 remotes=R:0.0.0.0:63158:127.0.0.1:36169)
+2026/10/23 19:19:29 server: session#1: tun: proxy#R:63158=>36169: Listening
+2026/10/23 19:19:29 server: session#1: Close (user=- addr=127.0.0.1:56104 duration=112.527174ms)
+2026/10/23 19:19:29 server: session#2: Open (user=- addr=127.0.0.1:56116 remotes=R:0.0.0.0:63158:127.0.0.1:36169)
+2026/10/23 19:19:29 server: session#2: tun: proxy#R:63158=>36169: Listening
+2026/10/23 19:19:30 server: session#2: Close (user=- addr=127.0.0.1:56116 duration=122.162602ms)
+2026/10/23 19:19:30 server: session#3: Open (user=- addr=127.0.0.1:56130 remotes=R:0.0.0.0:63158:127.0.0.1:36169)
+2026/10/23 19:19:30 server: session#3: tun: proxy#R:63158=>36169: Listening
+2026/10/23 19:19:30 server: session#3: Close (user=- addr=127.0.0.1:56130 duration=116.681925ms)
+2026/10/23 19:19:31 server: session#4: Open (user=- addr=127.0.0.1:56132 remotes=R:0.0.0.0:63158:127.0.0.1:36169)
+2026/10/23 19:19:31 server: session#4: tun: proxy#R:63158=>36169: Listening
+2026/10/23 19:19:31 server: session#4: Close (user=- addr=127.0.0.1:56132 duration=115.962705ms)
+2026/10/23 19:19:31 server: session#5: Open (user=- addr=127.0.0.1:56148 remotes=R:0.0.0.0:63158:127.0.0.1:36169)
+2026/10/23 19:19:31 server: session#5: tun: proxy#R:63158=>36169: Listening
+2026/10/23 19:19:32 server: session#5: tun: proxy#R:63158=>36169: conn#2: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 19:19:32 server: session#5: Close (user=- addr=127.0.0.1:56148 duration=116.13978ms)
+--- PASS: TestTunnelRecoversAcrossImpairedTransport (6.25s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/forward (3.15s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/reverse (3.10s)
+PASS
+ok  	github.com/jpillora/chisel/test/e2e	22.676s

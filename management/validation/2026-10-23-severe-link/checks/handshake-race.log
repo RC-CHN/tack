@@ -1,0 +1,65 @@
+=== RUN   TestCancellationAfterConnectionWinsOverRetryExhaustion
+2026/10/23 21:24:41 server: Fingerprint tVAnW/hnZkJAsWECKUHc6s9YaP/fGbl3CXxDxjJhTGg=
+2026/10/23 21:24:41 server: Listening on http://127.0.0.1:42127
+2026/10/23 21:24:41 client: Connecting to ws://127.0.0.1:42127
+2026/10/23 21:24:41 client: Fingerprint tVAnW/hnZkJAsWECKUHc6s9YaP/fGbl3CXxDxjJhTGg=
+2026/10/23 21:24:41 server: session#1: Open (user=- addr=127.0.0.1:52454 remotes=)
+2026/10/23 21:24:41 client: Connected (Latency 274.038µs)
+2026/10/23 21:24:41 client: Disconnected
+2026/10/23 21:24:41 client: Cancelled
+2026/10/23 21:24:41 server: session#1: Close (user=- addr=127.0.0.1:52454 duration=298.803µs)
+--- PASS: TestCancellationAfterConnectionWinsOverRetryExhaustion (0.01s)
+=== RUN   TestCancellationClosesSilentSSHHandshake
+--- PASS: TestCancellationClosesSilentSSHHandshake (0.00s)
+=== RUN   TestHandshakeTimeoutRetriesSilentPeer
+=== RUN   TestHandshakeTimeoutRetriesSilentPeer/ssh_banner
+    handshake_timeout_test.go:80: stage=ssh_banner attempts=2 elapsed=223.326789ms
+=== RUN   TestHandshakeTimeoutRetriesSilentPeer/config_ack
+    handshake_timeout_test.go:80: stage=config_ack attempts=2 elapsed=223.734446ms
+--- PASS: TestHandshakeTimeoutRetriesSilentPeer (0.45s)
+    --- PASS: TestHandshakeTimeoutRetriesSilentPeer/ssh_banner (0.23s)
+    --- PASS: TestHandshakeTimeoutRetriesSilentPeer/config_ack (0.23s)
+=== RUN   TestCancellationAfterConnectionWinsOverRetryExhaustion
+2026/10/23 21:24:42 server: Fingerprint tVAnW/hnZkJAsWECKUHc6s9YaP/fGbl3CXxDxjJhTGg=
+2026/10/23 21:24:42 server: Listening on http://127.0.0.1:42149
+2026/10/23 21:24:42 client: Connecting to ws://127.0.0.1:42149
+2026/10/23 21:24:42 client: Fingerprint tVAnW/hnZkJAsWECKUHc6s9YaP/fGbl3CXxDxjJhTGg=
+2026/10/23 21:24:42 server: session#1: Open (user=- addr=127.0.0.1:43854 remotes=)
+2026/10/23 21:24:42 client: Connected (Latency 196.452µs)
+2026/10/23 21:24:42 client: Disconnected
+2026/10/23 21:24:42 client: Cancelled
+2026/10/23 21:24:42 server: session#1: Close (user=- addr=127.0.0.1:43854 duration=251.475µs)
+--- PASS: TestCancellationAfterConnectionWinsOverRetryExhaustion (0.01s)
+=== RUN   TestCancellationClosesSilentSSHHandshake
+--- PASS: TestCancellationClosesSilentSSHHandshake (0.00s)
+=== RUN   TestHandshakeTimeoutRetriesSilentPeer
+=== RUN   TestHandshakeTimeoutRetriesSilentPeer/ssh_banner
+    handshake_timeout_test.go:80: stage=ssh_banner attempts=2 elapsed=222.705156ms
+=== RUN   TestHandshakeTimeoutRetriesSilentPeer/config_ack
+    handshake_timeout_test.go:80: stage=config_ack attempts=2 elapsed=224.680812ms
+--- PASS: TestHandshakeTimeoutRetriesSilentPeer (0.45s)
+    --- PASS: TestHandshakeTimeoutRetriesSilentPeer/ssh_banner (0.22s)
+    --- PASS: TestHandshakeTimeoutRetriesSilentPeer/config_ack (0.23s)
+=== RUN   TestCancellationAfterConnectionWinsOverRetryExhaustion
+2026/10/23 21:24:42 server: Fingerprint tVAnW/hnZkJAsWECKUHc6s9YaP/fGbl3CXxDxjJhTGg=
+2026/10/23 21:24:42 server: Listening on http://127.0.0.1:45893
+2026/10/23 21:24:42 client: Connecting to ws://127.0.0.1:45893
+2026/10/23 21:24:42 client: Fingerprint tVAnW/hnZkJAsWECKUHc6s9YaP/fGbl3CXxDxjJhTGg=
+2026/10/23 21:24:42 server: session#1: Open (user=- addr=127.0.0.1:39344 remotes=)
+2026/10/23 21:24:42 client: Connected (Latency 154.448µs)
+2026/10/23 21:24:42 client: Disconnected
+2026/10/23 21:24:42 client: Cancelled
+--- PASS: TestCancellationAfterConnectionWinsOverRetryExhaustion (0.01s)
+2026/10/23 21:24:42 server: session#1: Close (user=- addr=127.0.0.1:39344 duration=314.748µs)
+=== RUN   TestCancellationClosesSilentSSHHandshake
+--- PASS: TestCancellationClosesSilentSSHHandshake (0.00s)
+=== RUN   TestHandshakeTimeoutRetriesSilentPeer
+=== RUN   TestHandshakeTimeoutRetriesSilentPeer/ssh_banner
+    handshake_timeout_test.go:80: stage=ssh_banner attempts=2 elapsed=222.902943ms
+=== RUN   TestHandshakeTimeoutRetriesSilentPeer/config_ack
+    handshake_timeout_test.go:80: stage=config_ack attempts=2 elapsed=224.262301ms
+--- PASS: TestHandshakeTimeoutRetriesSilentPeer (0.45s)
+    --- PASS: TestHandshakeTimeoutRetriesSilentPeer/ssh_banner (0.22s)
+    --- PASS: TestHandshakeTimeoutRetriesSilentPeer/config_ack (0.23s)
+PASS
+ok  	github.com/jpillora/chisel/client	2.413s

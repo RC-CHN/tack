@@ -1,0 +1,10 @@
+qdisc netem 8060: root refcnt 2 limit 1000 delay 2ms loss 5% rate 4096Kbit seed 7
+ Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+=== RUN   TestNodeSevereLink
+    severe_link_linux_test.go:258: completed=true progress=32783/32783 elapsed=51.973s requests=21 outages=12 stream=139863B maxRSS=12.46MiB shutdown=2.35ms
+--- PASS: TestNodeSevereLink (59.09s)
+PASS
+qdisc netem 8060: root refcnt 2 limit 1000 delay 2ms loss 5% rate 4096Kbit seed 7
+ Sent 440340 bytes 842 pkt (dropped 46, overlimits 0 requeues 0) 
+ backlog 120b 2p requeues 0

@@ -1,0 +1,171 @@
+=== RUN   TestCancellationClosesSilentSSHHandshake
+--- PASS: TestCancellationClosesSilentSSHHandshake (0.00s)
+=== RUN   TestCancellationClosesSilentSSHHandshake
+--- PASS: TestCancellationClosesSilentSSHHandshake (0.00s)
+=== RUN   TestCancellationClosesSilentSSHHandshake
+--- PASS: TestCancellationClosesSilentSSHHandshake (0.00s)
+PASS
+ok  	github.com/jpillora/chisel/client	1.022s
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false
+2026/10/23 19:59:16 client: tun: proxy#57328=>42299: Listening
+2026/10/23 19:59:16 server: session#1: Open (user=- addr=127.0.0.1:51442 remotes=0.0.0.0:57328:127.0.0.1:42299)
+2026/10/23 19:59:16 server: session#1: Close (user=- addr=127.0.0.1:51442 duration=5.668979ms)
+2026/10/23 19:59:16 server: session#2: Open (user=- addr=127.0.0.1:51458 remotes=0.0.0.0:57328:127.0.0.1:42299)
+2026/10/23 19:59:16 server: session#2: Close (user=- addr=127.0.0.1:51458 duration=46.312373ms)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true
+2026/10/23 19:59:16 server: Reverse tunnelling enabled
+2026/10/23 19:59:16 server: session#1: Open (user=- addr=127.0.0.1:56690 remotes=R:0.0.0.0:20834:127.0.0.1:38841)
+2026/10/23 19:59:16 server: session#1: tun: proxy#R:20834=>38841: Listening
+2026/10/23 19:59:16 server: session#1: tun: proxy#R:20834=>38841: conn#3: Stream error: write tcp 127.0.0.1:62605->127.0.0.1:56690: write: broken pipe
+2026/10/23 19:59:16 server: session#1: tun: proxy#R:20834=>38841: conn#4: Stream error: write tcp 127.0.0.1:62605->127.0.0.1:56690: write: broken pipe
+2026/10/23 19:59:16 server: session#1: tun: proxy#R:20834=>38841: conn#5: Stream error: write tcp 127.0.0.1:62605->127.0.0.1:56690: write: broken pipe
+2026/10/23 19:59:16 server: session#1: tun: proxy#R:20834=>38841: conn#6: Stream error: write tcp 127.0.0.1:62605->127.0.0.1:56690: write: broken pipe
+2026/10/23 19:59:16 server: session#1: Close (user=- addr=127.0.0.1:56690 duration=5.314724ms)
+2026/10/23 19:59:17 server: session#2: Open (user=- addr=127.0.0.1:56696 remotes=R:0.0.0.0:20834:127.0.0.1:38841)
+2026/10/23 19:59:17 server: session#2: tun: proxy#R:20834=>38841: Listening
+2026/10/23 19:59:17 server: session#2: Close (user=- addr=127.0.0.1:56696 duration=41.238929ms)
+--- PASS: TestSharedCarrierRecoveryWithConcurrentFlows (0.75s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false (0.38s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true (0.37s)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/forward
+2026/10/23 19:59:17 client: tun: proxy#19599=>34627: Listening
+2026/10/23 19:59:17 server: session#1: Open (user=- addr=127.0.0.1:60338 remotes=0.0.0.0:19599:127.0.0.1:34627)
+2026/10/23 19:59:17 server: session#1: Close (user=- addr=127.0.0.1:60338 duration=131.476079ms)
+2026/10/23 19:59:18 server: session#2: Open (user=- addr=127.0.0.1:60352 remotes=0.0.0.0:19599:127.0.0.1:34627)
+2026/10/23 19:59:18 server: session#2: Close (user=- addr=127.0.0.1:60352 duration=131.922768ms)
+2026/10/23 19:59:18 server: session#3: Open (user=- addr=127.0.0.1:40214 remotes=0.0.0.0:19599:127.0.0.1:34627)
+2026/10/23 19:59:19 server: session#3: Close (user=- addr=127.0.0.1:40214 duration=131.226192ms)
+2026/10/23 19:59:19 server: session#4: Open (user=- addr=127.0.0.1:40228 remotes=0.0.0.0:19599:127.0.0.1:34627)
+2026/10/23 19:59:19 server: session#4: Close (user=- addr=127.0.0.1:40228 duration=131.206522ms)
+2026/10/23 19:59:20 server: session#5: Open (user=- addr=127.0.0.1:40234 remotes=0.0.0.0:19599:127.0.0.1:34627)
+2026/10/23 19:59:20 client: tun: proxy#19599=>34627: conn#6: Stream error: ssh: unexpected packet in response to channel open: <nil>
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/reverse
+2026/10/23 19:59:20 server: session#5: Close (user=- addr=127.0.0.1:40234 duration=131.954931ms)
+2026/10/23 19:59:20 server: Reverse tunnelling enabled
+2026/10/23 19:59:20 server: session#1: Open (user=- addr=127.0.0.1:60304 remotes=R:0.0.0.0:58956:127.0.0.1:35619)
+2026/10/23 19:59:20 server: session#1: tun: proxy#R:58956=>35619: Listening
+2026/10/23 19:59:20 server: session#1: Close (user=- addr=127.0.0.1:60304 duration=110.763793ms)
+2026/10/23 19:59:21 server: session#2: Open (user=- addr=127.0.0.1:60314 remotes=R:0.0.0.0:58956:127.0.0.1:35619)
+2026/10/23 19:59:21 server: session#2: tun: proxy#R:58956=>35619: Listening
+2026/10/23 19:59:21 server: session#2: Close (user=- addr=127.0.0.1:60314 duration=121.495329ms)
+2026/10/23 19:59:22 server: session#3: Open (user=- addr=127.0.0.1:60318 remotes=R:0.0.0.0:58956:127.0.0.1:35619)
+2026/10/23 19:59:22 server: session#3: tun: proxy#R:58956=>35619: Listening
+2026/10/23 19:59:22 server: session#3: Close (user=- addr=127.0.0.1:60318 duration=116.835893ms)
+2026/10/23 19:59:22 server: session#4: Open (user=- addr=127.0.0.1:60320 remotes=R:0.0.0.0:58956:127.0.0.1:35619)
+2026/10/23 19:59:22 server: session#4: tun: proxy#R:58956=>35619: Listening
+2026/10/23 19:59:22 server: session#4: Close (user=- addr=127.0.0.1:60320 duration=116.273438ms)
+2026/10/23 19:59:23 server: session#5: Open (user=- addr=127.0.0.1:60322 remotes=R:0.0.0.0:58956:127.0.0.1:35619)
+2026/10/23 19:59:23 server: session#5: tun: proxy#R:58956=>35619: Listening
+2026/10/23 19:59:23 server: session#5: tun: proxy#R:58956=>35619: conn#2: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 19:59:23 server: session#5: Close (user=- addr=127.0.0.1:60322 duration=116.802955ms)
+--- PASS: TestTunnelRecoversAcrossImpairedTransport (6.25s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/forward (3.16s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/reverse (3.09s)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false
+2026/10/23 19:59:23 client: tun: proxy#4950=>45893: Listening
+2026/10/23 19:59:23 server: session#1: Open (user=- addr=127.0.0.1:47860 remotes=0.0.0.0:4950:127.0.0.1:45893)
+2026/10/23 19:59:23 server: session#1: Close (user=- addr=127.0.0.1:47860 duration=3.710239ms)
+2026/10/23 19:59:23 server: session#2: Open (user=- addr=127.0.0.1:47864 remotes=0.0.0.0:4950:127.0.0.1:45893)
+2026/10/23 19:59:23 server: session#2: Close (user=- addr=127.0.0.1:47864 duration=34.759378ms)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true
+2026/10/23 19:59:23 server: Reverse tunnelling enabled
+2026/10/23 19:59:23 server: session#1: Open (user=- addr=127.0.0.1:59204 remotes=R:0.0.0.0:63886:127.0.0.1:32781)
+2026/10/23 19:59:23 server: session#1: tun: proxy#R:63886=>32781: Listening
+2026/10/23 19:59:23 server: session#1: Close (user=- addr=127.0.0.1:59204 duration=2.811548ms)
+2026/10/23 19:59:24 server: session#2: Open (user=- addr=127.0.0.1:59206 remotes=R:0.0.0.0:63886:127.0.0.1:32781)
+2026/10/23 19:59:24 server: session#2: tun: proxy#R:63886=>32781: Listening
+2026/10/23 19:59:24 server: session#2: Close (user=- addr=127.0.0.1:59206 duration=47.988602ms) (error read tcp 127.0.0.1:21124->127.0.0.1:59206: read: connection reset by peer)
+--- PASS: TestSharedCarrierRecoveryWithConcurrentFlows (0.73s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false (0.36s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true (0.37s)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/forward
+2026/10/23 19:59:24 client: tun: proxy#9434=>45193: Listening
+2026/10/23 19:59:24 server: session#1: Open (user=- addr=127.0.0.1:50684 remotes=0.0.0.0:9434:127.0.0.1:45193)
+2026/10/23 19:59:24 server: session#1: Close (user=- addr=127.0.0.1:50684 duration=130.573765ms)
+2026/10/23 19:59:25 server: session#2: Open (user=- addr=127.0.0.1:50690 remotes=0.0.0.0:9434:127.0.0.1:45193)
+2026/10/23 19:59:25 server: session#2: Close (user=- addr=127.0.0.1:50690 duration=130.82318ms)
+2026/10/23 19:59:25 server: session#3: Open (user=- addr=127.0.0.1:50698 remotes=0.0.0.0:9434:127.0.0.1:45193)
+2026/10/23 19:59:26 server: session#3: Close (user=- addr=127.0.0.1:50698 duration=131.185319ms)
+2026/10/23 19:59:26 server: session#4: Open (user=- addr=127.0.0.1:50704 remotes=0.0.0.0:9434:127.0.0.1:45193)
+2026/10/23 19:59:26 server: session#4: Close (user=- addr=127.0.0.1:50704 duration=131.138316ms)
+2026/10/23 19:59:27 server: session#5: Open (user=- addr=127.0.0.1:50706 remotes=0.0.0.0:9434:127.0.0.1:45193)
+2026/10/23 19:59:27 server: session#5: Close (user=- addr=127.0.0.1:50706 duration=131.080518ms)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/reverse
+2026/10/23 19:59:27 server: Reverse tunnelling enabled
+2026/10/23 19:59:27 server: session#1: Open (user=- addr=127.0.0.1:60422 remotes=R:0.0.0.0:55074:127.0.0.1:43263)
+2026/10/23 19:59:27 server: session#1: tun: proxy#R:55074=>43263: Listening
+2026/10/23 19:59:27 server: session#1: Close (user=- addr=127.0.0.1:60422 duration=109.689498ms)
+2026/10/23 19:59:28 server: session#2: Open (user=- addr=127.0.0.1:60436 remotes=R:0.0.0.0:55074:127.0.0.1:43263)
+2026/10/23 19:59:28 server: session#2: tun: proxy#R:55074=>43263: Listening
+2026/10/23 19:59:28 server: session#2: Close (user=- addr=127.0.0.1:60436 duration=121.801372ms)
+2026/10/23 19:59:29 server: session#3: Open (user=- addr=127.0.0.1:36298 remotes=R:0.0.0.0:55074:127.0.0.1:43263)
+2026/10/23 19:59:29 server: session#3: tun: proxy#R:55074=>43263: Listening
+2026/10/23 19:59:29 server: session#3: Close (user=- addr=127.0.0.1:36298 duration=115.71584ms)
+2026/10/23 19:59:29 server: session#4: Open (user=- addr=127.0.0.1:36308 remotes=R:0.0.0.0:55074:127.0.0.1:43263)
+2026/10/23 19:59:29 server: session#4: tun: proxy#R:55074=>43263: Listening
+2026/10/23 19:59:29 server: session#4: Close (user=- addr=127.0.0.1:36308 duration=117.646563ms)
+2026/10/23 19:59:30 server: session#5: Open (user=- addr=127.0.0.1:36320 remotes=R:0.0.0.0:55074:127.0.0.1:43263)
+2026/10/23 19:59:30 server: session#5: tun: proxy#R:55074=>43263: Listening
+2026/10/23 19:59:30 server: session#5: tun: proxy#R:55074=>43263: conn#2: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 19:59:30 server: session#5: Close (user=- addr=127.0.0.1:36320 duration=114.409791ms)
+--- PASS: TestTunnelRecoversAcrossImpairedTransport (6.24s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/forward (3.15s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/reverse (3.09s)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false
+2026/10/23 19:59:30 client: tun: proxy#11850=>34495: Listening
+2026/10/23 19:59:30 server: session#1: Open (user=- addr=127.0.0.1:47356 remotes=0.0.0.0:11850:127.0.0.1:34495)
+2026/10/23 19:59:30 server: session#1: Close (user=- addr=127.0.0.1:47356 duration=3.485876ms)
+2026/10/23 19:59:30 server: session#2: Open (user=- addr=127.0.0.1:47364 remotes=0.0.0.0:11850:127.0.0.1:34495)
+2026/10/23 19:59:30 server: session#2: Close (user=- addr=127.0.0.1:47364 duration=37.75137ms)
+=== RUN   TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true
+2026/10/23 19:59:30 server: Reverse tunnelling enabled
+2026/10/23 19:59:30 server: session#1: Open (user=- addr=127.0.0.1:37780 remotes=R:0.0.0.0:38929:127.0.0.1:45063)
+2026/10/23 19:59:30 server: session#1: tun: proxy#R:38929=>45063: Listening
+2026/10/23 19:59:30 server: session#1: Close (user=- addr=127.0.0.1:37780 duration=2.955896ms)
+2026/10/23 19:59:31 server: session#2: Open (user=- addr=127.0.0.1:37792 remotes=R:0.0.0.0:38929:127.0.0.1:45063)
+2026/10/23 19:59:31 server: session#2: tun: proxy#R:38929=>45063: Listening
+2026/10/23 19:59:31 server: session#2: Close (user=- addr=127.0.0.1:37792 duration=47.223841ms)
+--- PASS: TestSharedCarrierRecoveryWithConcurrentFlows (0.74s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=false (0.36s)
+    --- PASS: TestSharedCarrierRecoveryWithConcurrentFlows/reverse=true (0.38s)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/forward
+2026/10/23 19:59:31 client: tun: proxy#50958=>34731: Listening
+2026/10/23 19:59:31 server: session#1: Open (user=- addr=127.0.0.1:59060 remotes=0.0.0.0:50958:127.0.0.1:34731)
+2026/10/23 19:59:31 server: session#1: Close (user=- addr=127.0.0.1:59060 duration=130.695825ms)
+2026/10/23 19:59:32 server: session#2: Open (user=- addr=127.0.0.1:59072 remotes=0.0.0.0:50958:127.0.0.1:34731)
+2026/10/23 19:59:32 server: session#2: Close (user=- addr=127.0.0.1:59072 duration=130.503037ms)
+2026/10/23 19:59:32 server: session#3: Open (user=- addr=127.0.0.1:59088 remotes=0.0.0.0:50958:127.0.0.1:34731)
+2026/10/23 19:59:33 server: session#3: Close (user=- addr=127.0.0.1:59088 duration=129.233267ms)
+2026/10/23 19:59:33 server: session#4: Open (user=- addr=127.0.0.1:59090 remotes=0.0.0.0:50958:127.0.0.1:34731)
+2026/10/23 19:59:33 server: session#4: Close (user=- addr=127.0.0.1:59090 duration=130.855186ms)
+2026/10/23 19:59:34 server: session#5: Open (user=- addr=127.0.0.1:59094 remotes=0.0.0.0:50958:127.0.0.1:34731)
+2026/10/23 19:59:34 server: session#5: Close (user=- addr=127.0.0.1:59094 duration=131.380019ms)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/reverse
+2026/10/23 19:59:34 server: Reverse tunnelling enabled
+2026/10/23 19:59:34 server: session#1: Open (user=- addr=127.0.0.1:35266 remotes=R:0.0.0.0:27943:127.0.0.1:35679)
+2026/10/23 19:59:34 server: session#1: tun: proxy#R:27943=>35679: Listening
+2026/10/23 19:59:34 server: session#1: Close (user=- addr=127.0.0.1:35266 duration=113.593651ms)
+2026/10/23 19:59:35 server: session#2: Open (user=- addr=127.0.0.1:35270 remotes=R:0.0.0.0:27943:127.0.0.1:35679)
+2026/10/23 19:59:35 server: session#2: tun: proxy#R:27943=>35679: Listening
+2026/10/23 19:59:35 server: session#2: Close (user=- addr=127.0.0.1:35270 duration=121.75062ms)
+2026/10/23 19:59:36 server: session#3: Open (user=- addr=127.0.0.1:35274 remotes=R:0.0.0.0:27943:127.0.0.1:35679)
+2026/10/23 19:59:36 server: session#3: tun: proxy#R:27943=>35679: Listening
+2026/10/23 19:59:36 server: session#3: Close (user=- addr=127.0.0.1:35274 duration=116.434114ms)
+2026/10/23 19:59:36 server: session#4: Open (user=- addr=127.0.0.1:35288 remotes=R:0.0.0.0:27943:127.0.0.1:35679)
+2026/10/23 19:59:36 server: session#4: tun: proxy#R:27943=>35679: Listening
+2026/10/23 19:59:36 server: session#4: Close (user=- addr=127.0.0.1:35288 duration=115.230614ms)
+2026/10/23 19:59:37 server: session#5: Open (user=- addr=127.0.0.1:35304 remotes=R:0.0.0.0:27943:127.0.0.1:35679)
+2026/10/23 19:59:37 server: session#5: tun: proxy#R:27943=>35679: Listening
+2026/10/23 19:59:37 server: session#5: tun: proxy#R:27943=>35679: conn#2: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 19:59:37 server: session#5: Close (user=- addr=127.0.0.1:35304 duration=115.603596ms)
+--- PASS: TestTunnelRecoversAcrossImpairedTransport (6.24s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/forward (3.15s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/reverse (3.09s)
+PASS
+ok  	github.com/jpillora/chisel/test/e2e	21.972s

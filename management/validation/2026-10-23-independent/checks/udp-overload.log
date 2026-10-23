@@ -1,0 +1,72 @@
+=== RUN   TestSocksUDPOverload
+=== RUN   TestSocksUDPOverload/direct
+    socks_udp_stress_test.go:133: sent=20000 received=17149 loss=14.26% offered=194085 packets/s p50=440.3 us p95=487.3 us; 20 unrelated-client probes and recovery passed
+=== RUN   TestSocksUDPOverload/forward
+2026/10/23 19:22:50 server: Fingerprint FUw7XyvgcBciX/+Q5VxKhRDoVAeUzkqo8vFnC1A2FXE=
+2026/10/23 19:22:50 server: Listening on http://127.0.0.1:20259
+2026/10/23 19:22:50 client: Connecting to ws://127.0.0.1:20259
+2026/10/23 19:22:50 client: tun: proxy#127.0.0.1:58041=>udpsocks: Listening
+2026/10/23 19:22:50 client: tun: proxy#127.0.0.1:58041=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:58041
+2026/10/23 19:22:50 client: tun: Bound proxies
+2026/10/23 19:22:50 server: session#1: Handshaking with 127.0.0.1:39546...
+2026/10/23 19:22:50 client: Handshaking...
+2026/10/23 19:22:50 client: Fingerprint FUw7XyvgcBciX/+Q5VxKhRDoVAeUzkqo8vFnC1A2FXE=
+2026/10/23 19:22:50 server: session#1: Verifying configuration
+2026/10/23 19:22:50 client: Sending config
+2026/10/23 19:22:50 server: session#1: Open (user=- addr=127.0.0.1:39546 remotes=127.0.0.1:58041:udpsocks)
+2026/10/23 19:22:50 server: session#1: tun: Created (SOCKS enabled)
+2026/10/23 19:22:50 server: session#1: tun: SSH connected
+2026/10/23 19:22:50 client: Connected (Latency 174.099µs)
+2026/10/23 19:22:50 client: tun: SSH connected
+2026/10/23 19:22:50 client: tun: proxy#127.0.0.1:58041=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:22:50 server: session#1: tun: conn#1: Open [1/1]
+2026/10/23 19:22:50 server: session#1: tun: conn#2: Open [2/2]
+    socks_udp_stress_test.go:133: sent=20000 received=4666 loss=76.67% offered=110395 packets/s p50=3606.1 us p95=4920.0 us; 20 unrelated-client probes and recovery passed
+2026/10/23 19:22:51 server: Closed
+2026/10/23 19:22:51 client: tun: Unbound proxies
+2026/10/23 19:22:51 client: tun: SSH disconnected
+2026/10/23 19:22:51 client: Disconnected
+2026/10/23 19:22:51 client: Cancelled
+2026/10/23 19:22:51 client: Closed
+2026/10/23 19:22:51 server: session#1: tun: conn#1: Close [1/2]
+2026/10/23 19:22:51 server: session#1: tun: SSH disconnected
+=== RUN   TestSocksUDPOverload/reverse
+2026/10/23 19:22:51 server: session#1: tun: conn#2: Close [0/2]
+2026/10/23 19:22:51 server: session#1: Close (user=- addr=127.0.0.1:39546 duration=438.910435ms)
+2026/10/23 19:22:50.569 GET / 200 441ms
+2026/10/23 19:22:51 server: Reverse tunnelling enabled
+2026/10/23 19:22:51 server: Fingerprint Ra+gFGhtBuNzqjrgywBmEYrwCXY90R6ejdlc+xkmpNA=
+2026/10/23 19:22:51 server: Listening on http://127.0.0.1:40773
+2026/10/23 19:22:51 client: Connecting to ws://127.0.0.1:40773
+2026/10/23 19:22:51 server: session#1: Handshaking with 127.0.0.1:43160...
+2026/10/23 19:22:51 client: Handshaking...
+2026/10/23 19:22:51 client: Fingerprint Ra+gFGhtBuNzqjrgywBmEYrwCXY90R6ejdlc+xkmpNA=
+2026/10/23 19:22:51 server: session#1: Verifying configuration
+2026/10/23 19:22:51 client: Sending config
+2026/10/23 19:22:51 server: session#1: Open (user=- addr=127.0.0.1:43160 remotes=R:127.0.0.1:24441:udpsocks)
+2026/10/23 19:22:51 server: session#1: tun: Created
+2026/10/23 19:22:51 client: Connected (Latency 195.523µs)
+2026/10/23 19:22:51 client: tun: SSH connected
+2026/10/23 19:22:51 server: session#1: tun: SSH connected
+2026/10/23 19:22:51 server: session#1: tun: proxy#R:127.0.0.1:24441=>udpsocks: Listening
+2026/10/23 19:22:51 server: session#1: tun: proxy#R:127.0.0.1:24441=>udpsocks: Listening for SOCKS UDP on 127.0.0.1:24441
+2026/10/23 19:22:51 server: session#1: tun: Bound proxies
+2026/10/23 19:22:51 server: session#1: tun: proxy#R:127.0.0.1:24441=>udpsocks: SOCKS connection: EOF
+2026/10/23 19:22:51 client: tun: conn#1: Open [1/1]
+2026/10/23 19:22:51 client: tun: conn#2: Open [2/2]
+    socks_udp_stress_test.go:133: sent=20000 received=4349 loss=78.25% offered=118150 packets/s p50=3606.3 us p95=5081.3 us; 20 unrelated-client probes and recovery passed
+2026/10/23 19:22:51 server: Closed
+2026/10/23 19:22:51 client: tun: SSH disconnected
+2026/10/23 19:22:51 client: Disconnected
+2026/10/23 19:22:51 client: Cancelled
+2026/10/23 19:22:51 client: tun: conn#1: Close [1/2]
+2026/10/23 19:22:51 client: tun: conn#2: Close [0/2]
+2026/10/23 19:22:51 client: Closed
+2026/10/23 19:22:51 server: session#1: tun: SSH disconnected
+--- PASS: TestSocksUDPOverload (1.23s)
+    --- PASS: TestSocksUDPOverload/direct (0.36s)
+    --- PASS: TestSocksUDPOverload/forward (0.44s)
+    --- PASS: TestSocksUDPOverload/reverse (0.43s)
+2026/10/23 19:22:51 server: session#1: tun: Unbound proxies
+PASS
+ok  	github.com/jpillora/chisel/test/e2e	1.244s

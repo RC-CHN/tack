@@ -1,0 +1,28 @@
+{"Time":"2026-10-23T19:22:48.951281711+08:00","Action":"start","Package":"tack.local/management/protocol"}
+{"Time":"2026-10-23T19:22:48.960354178+08:00","Action":"output","Package":"tack.local/management/protocol","Output":"PASS\n"}
+{"Time":"2026-10-23T19:22:48.961089867+08:00","Action":"output","Package":"tack.local/management/protocol","Output":"ok  \ttack.local/management/protocol\t0.010s\n"}
+{"Time":"2026-10-23T19:22:48.961125591+08:00","Action":"pass","Package":"tack.local/management/protocol","Elapsed":0.01}
+{"Time":"2026-10-23T19:22:48.961269094+08:00","Action":"start","Package":"tack.local/management/protocol/rotatelog"}
+{"Time":"2026-10-23T19:22:48.965913544+08:00","Action":"output","Package":"tack.local/management/protocol/rotatelog","Output":"goos: linux\n"}
+{"Time":"2026-10-23T19:22:48.965963983+08:00","Action":"output","Package":"tack.local/management/protocol/rotatelog","Output":"goarch: amd64\n"}
+{"Time":"2026-10-23T19:22:48.965967744+08:00","Action":"output","Package":"tack.local/management/protocol/rotatelog","Output":"pkg: tack.local/management/protocol/rotatelog\n"}
+{"Time":"2026-10-23T19:22:48.965972399+08:00","Action":"output","Package":"tack.local/management/protocol/rotatelog","Output":"cpu: Intel(R) Xeon(R) CPU Max 9470C\n"}
+{"Time":"2026-10-23T19:22:48.965976738+08:00","Action":"run","Package":"tack.local/management/protocol/rotatelog","Test":"BenchmarkLogStorm"}
+{"Time":"2026-10-23T19:22:48.965979168+08:00","Action":"output","Package":"tack.local/management/protocol/rotatelog","Test":"BenchmarkLogStorm","Output":"=== RUN   BenchmarkLogStorm\n"}
+{"Time":"2026-10-23T19:22:48.965984338+08:00","Action":"output","Package":"tack.local/management/protocol/rotatelog","Test":"BenchmarkLogStorm","Output":"BenchmarkLogStorm\n"}
+{"Time":"2026-10-23T19:22:48.969454311+08:00","Action":"output","Package":"tack.local/management/protocol/rotatelog","Test":"BenchmarkLogStorm","Output":"BenchmarkLogStorm-104     \t      16\t      1626 ns/op\t  22.76 MB/s\t        37.00 logical-write-B/op\t       0 B/op\t       0 allocs/op\n"}
+{"Time":"2026-10-23T19:22:48.969506277+08:00","Action":"output","Package":"tack.local/management/protocol/rotatelog","Output":"PASS\n"}
+{"Time":"2026-10-23T19:22:48.969986379+08:00","Action":"output","Package":"tack.local/management/protocol/rotatelog","Output":"ok  \ttack.local/management/protocol/rotatelog\t0.009s\n"}
+{"Time":"2026-10-23T19:22:48.970011056+08:00","Action":"pass","Package":"tack.local/management/protocol/rotatelog","Elapsed":0.009}
+{"Time":"2026-10-23T19:22:48.970167801+08:00","Action":"start","Package":"tack.local/management/protocol/telemetry"}
+{"Time":"2026-10-23T19:22:48.975749712+08:00","Action":"output","Package":"tack.local/management/protocol/telemetry","Output":"goos: linux\n"}
+{"Time":"2026-10-23T19:22:48.975786071+08:00","Action":"output","Package":"tack.local/management/protocol/telemetry","Output":"goarch: amd64\n"}
+{"Time":"2026-10-23T19:22:48.975790553+08:00","Action":"output","Package":"tack.local/management/protocol/telemetry","Output":"pkg: tack.local/management/protocol/telemetry\n"}
+{"Time":"2026-10-23T19:22:48.975798267+08:00","Action":"output","Package":"tack.local/management/protocol/telemetry","Output":"cpu: Intel(R) Xeon(R) CPU Max 9470C\n"}
+{"Time":"2026-10-23T19:22:48.975803586+08:00","Action":"run","Package":"tack.local/management/protocol/telemetry","Test":"BenchmarkOutageCounters"}
+{"Time":"2026-10-23T19:22:48.97580774+08:00","Action":"output","Package":"tack.local/management/protocol/telemetry","Test":"BenchmarkOutageCounters","Output":"=== RUN   BenchmarkOutageCounters\n"}
+{"Time":"2026-10-23T19:22:48.975811886+08:00","Action":"output","Package":"tack.local/management/protocol/telemetry","Test":"BenchmarkOutageCounters","Output":"BenchmarkOutageCounters\n"}
+{"Time":"2026-10-23T19:22:48.978995853+08:00","Action":"output","Package":"tack.local/management/protocol/telemetry","Test":"BenchmarkOutageCounters","Output":"BenchmarkOutageCounters-104     \t      16\t      8575 ns/op\t    1580 B/op\t      15 allocs/op\n"}
+{"Time":"2026-10-23T19:22:48.979064558+08:00","Action":"output","Package":"tack.local/management/protocol/telemetry","Output":"PASS\n"}
+{"Time":"2026-10-23T19:22:48.979509928+08:00","Action":"output","Package":"tack.local/management/protocol/telemetry","Output":"ok  \ttack.local/management/protocol/telemetry\t0.009s\n"}
+{"Time":"2026-10-23T19:22:48.979521064+08:00","Action":"pass","Package":"tack.local/management/protocol/telemetry","Elapsed":0.009}

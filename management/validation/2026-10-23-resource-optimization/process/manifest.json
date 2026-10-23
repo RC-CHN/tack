@@ -1,0 +1,24 @@
+{
+  "format": "tack-footprint-comparison-v1",
+  "binaries": {
+    "before": {
+      "path": "/tmp/tack-resource-opt/before/tack-node",
+      "sha256": "c4ce29d318adec4a96003cca34e826efc55792fb3a988f0855a26f6fb1b6425f",
+      "build": "/tmp/tack-resource-opt/before/tack-node: go1.23.12\n\tpath\ttack.local/management/node/cmd/tack-node\n\tmod\ttack.local/management/node\t(devel)\t\n\tdep\ttack.local/management/protocol\tv0.0.0\n\t=>\t../protocol\t(devel)\t\n\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=369594e978e4c0446e7a3d5bb8691a4adc727b38\n\tbuild\tvcs.time=2026-10-23T08:49:23Z\n\tbuild\tvcs.modified=true\n"
+    },
+    "after": {
+      "path": "/tmp/tack-resource-opt/after/tack-node",
+      "sha256": "11b12a0e03fa7fecd41aaf47e08b3a80970043b64ae12bd94f547fd435f3e3d5",
+      "build": "/tmp/tack-resource-opt/after/tack-node: go1.23.12\n\tpath\ttack.local/management/node/cmd/tack-node\n\tmod\ttack.local/management/node\t(devel)\t\n\tdep\ttack.local/management/protocol\tv0.0.0\n\t=>\t../protocol\t(devel)\t\n\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=369594e978e4c0446e7a3d5bb8691a4adc727b38\n\tbuild\tvcs.time=2026-10-23T08:49:23Z\n\tbuild\tvcs.modified=true\n"
+    }
+  },
+  "seconds_per_phase": 10,
+  "repeats_per_http_version": 3,
+  "gomaxprocs": "2",
+  "gogc": "default",
+  "gomemlimit": "default",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+  "fixture_go": "go version go1.27.0 linux/amd64",
+  "output_bytes_per_task": 2097152,
+  "order": "before/after on odd rounds, after/before on even rounds"
+}

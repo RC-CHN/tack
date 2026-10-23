@@ -1,0 +1,14 @@
+qdisc netem 805d: root refcnt 2 limit 1000 delay 2ms loss 5% rate 4096Kbit seed 7
+ Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+=== RUN   TestNodeSevereLink
+2026/10/23 21:34:11 http: TLS handshake error from 127.0.0.1:50430: EOF
+2026/10/23 21:34:23 http: TLS handshake error from 127.0.0.1:60576: EOF
+2026/10/23 21:35:11 http: TLS handshake error from 127.0.0.1:40744: EOF
+    severe_link_linux_test.go:232: result did not complete within severe-link budget
+    severe_link_linux_test.go:258: completed=false progress=8195/32783 elapsed=120.203s requests=6 outages=30 stream=75732B maxRSS=11.52MiB shutdown=2.02ms
+--- FAIL: TestNodeSevereLink (125.35s)
+FAIL
+qdisc netem 805d: root refcnt 2 limit 1000 delay 2ms loss 5% rate 4096Kbit seed 7
+ Sent 264072 bytes 705 pkt (dropped 38, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0

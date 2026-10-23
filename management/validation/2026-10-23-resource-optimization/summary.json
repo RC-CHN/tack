@@ -1,0 +1,1605 @@
+{
+  "benchmarks": {
+    "BenchmarkBacklogMetrics/0": {
+      "after": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 759.5,
+          "median": 758.4,
+          "min": 739.2,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 6545.0,
+          "median": 6255.0,
+          "min": 6175.0,
+          "samples": 5
+        }
+      }
+    },
+    "BenchmarkBacklogMetrics/128": {
+      "after": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 2555.0,
+          "median": 2461.0,
+          "min": 2454.0,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 5344.0,
+          "median": 5072.0,
+          "min": 4842.0,
+          "samples": 5
+        }
+      }
+    },
+    "BenchmarkBacklogMetrics/8192": {
+      "after": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 188665.0,
+          "median": 185165.0,
+          "min": 183453.0,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 195820.0,
+          "median": 185206.0,
+          "min": 177989.0,
+          "samples": 5
+        }
+      }
+    },
+    "BenchmarkOutageCounters": {
+      "after": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 100.9,
+          "median": 100.4,
+          "min": 83.09,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 113.6,
+          "median": 103.0,
+          "min": 97.87,
+          "samples": 5
+        }
+      }
+    },
+    "BenchmarkReadyDelay/-1s": {
+      "after": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 4.09,
+          "median": 3.911,
+          "min": 3.731,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 248.0,
+          "median": 248.0,
+          "min": 248.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 3.0,
+          "median": 3.0,
+          "min": 3.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 387.5,
+          "median": 383.9,
+          "min": 378.7,
+          "samples": 5
+        }
+      }
+    },
+    "BenchmarkReadyDelay/0s": {
+      "after": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 4.04,
+          "median": 3.983,
+          "min": 3.759,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 248.0,
+          "median": 248.0,
+          "min": 248.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 3.0,
+          "median": 3.0,
+          "min": 3.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 386.6,
+          "median": 385.0,
+          "min": 378.4,
+          "samples": 5
+        }
+      }
+    },
+    "BenchmarkSnapshot": {
+      "after": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 816.7,
+          "median": 759.9,
+          "min": 738.1,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 7130.0,
+          "median": 6592.0,
+          "min": 6529.0,
+          "samples": 5
+        }
+      }
+    },
+    "BenchmarkSpoolUpload/already_complete": {
+      "after": {
+        "B/op": {
+          "max": 40190.0,
+          "median": 40184.0,
+          "min": 40181.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 83.0,
+          "median": 83.0,
+          "min": 83.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 1561115.0,
+          "median": 1544707.0,
+          "min": 1514747.0,
+          "samples": 5
+        },
+        "read-B/op": {
+          "max": 2097504.0,
+          "median": 2097504.0,
+          "min": 2097504.0,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 105740.0,
+          "median": 105735.0,
+          "min": 105734.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 84.0,
+          "median": 84.0,
+          "min": 84.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 1563900.0,
+          "median": 1541386.0,
+          "min": 1526285.0,
+          "samples": 5
+        },
+        "read-B/op": {
+          "max": 2097504.0,
+          "median": 2097504.0,
+          "min": 2097504.0,
+          "samples": 5
+        }
+      }
+    },
+    "BenchmarkSpoolUpload/transfer": {
+      "after": {
+        "B/op": {
+          "max": 14101706.0,
+          "median": 14033864.0,
+          "min": 13973543.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 1838.0,
+          "median": 1834.0,
+          "min": 1831.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 23799042.0,
+          "median": 22857664.0,
+          "min": 22556844.0,
+          "samples": 5
+        },
+        "read-B/op": {
+          "max": 4194661.0,
+          "median": 4194661.0,
+          "min": 4194661.0,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 14072028.0,
+          "median": 14051149.0,
+          "min": 14016373.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 1932.0,
+          "median": 1931.0,
+          "min": 1930.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 23233839.0,
+          "median": 22897454.0,
+          "min": 22390784.0,
+          "samples": 5
+        },
+        "read-B/op": {
+          "max": 4194661.0,
+          "median": 4194661.0,
+          "min": 4194661.0,
+          "samples": 5
+        }
+      }
+    },
+    "BenchmarkSpoolUpload/unavailable": {
+      "after": {
+        "B/op": {
+          "max": 3560.0,
+          "median": 3560.0,
+          "min": 3560.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 41.0,
+          "median": 41.0,
+          "min": 41.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 5861.0,
+          "median": 5719.0,
+          "min": 5578.0,
+          "samples": 5
+        },
+        "read-B/op": {
+          "max": 0.001064,
+          "median": 0.001017,
+          "min": 0.0009972,
+          "samples": 5
+        }
+      },
+      "before": {
+        "B/op": {
+          "max": 104746.0,
+          "median": 104745.0,
+          "min": 104740.0,
+          "samples": 5
+        },
+        "allocs/op": {
+          "max": 77.0,
+          "median": 77.0,
+          "min": 77.0,
+          "samples": 5
+        },
+        "ns/op": {
+          "max": 1584881.0,
+          "median": 1525842.0,
+          "min": 1506565.0,
+          "samples": 5
+        },
+        "read-B/op": {
+          "max": 2097504.0,
+          "median": 2097504.0,
+          "min": 2097504.0,
+          "samples": 5
+        }
+      }
+    }
+  },
+  "footprint": {
+    "http1/after": {
+      "idle/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/cpu_s": {
+        "max": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "samples": 3
+      },
+      "idle/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "idle/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/read_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/rss_end_mib": {
+        "max": 11.2734375,
+        "median": 11.234375,
+        "min": 11.18359375,
+        "samples": 3
+      },
+      "idle/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/write_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/accepted_connections": {
+        "max": 4,
+        "median": 4,
+        "min": 4,
+        "samples": 3
+      },
+      "offline/cpu_s": {
+        "max": 0.02,
+        "median": 0.02,
+        "min": 0.01,
+        "samples": 3
+      },
+      "offline/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/fds_end": {
+        "max": 6,
+        "median": 6,
+        "min": 6,
+        "samples": 3
+      },
+      "offline/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/read_syscall_bytes": {
+        "max": 32,
+        "median": 16,
+        "min": 16,
+        "samples": 3
+      },
+      "offline/rss_end_mib": {
+        "max": 14.4296875,
+        "median": 13.53125,
+        "min": 13.36328125,
+        "samples": 3
+      },
+      "offline/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/write_syscall_bytes": {
+        "max": 5916,
+        "median": 5900,
+        "min": 5900,
+        "samples": 3
+      },
+      "peak_mib": {
+        "max": 15.265625,
+        "median": 14.7890625,
+        "min": 14.2421875,
+        "samples": 3
+      },
+      "recovered_idle/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/cpu_s": {
+        "max": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "samples": 3
+      },
+      "recovered_idle/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "recovered_idle/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/read_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/rss_end_mib": {
+        "max": 14.2421875,
+        "median": 13.82421875,
+        "min": 13.390625,
+        "samples": 3
+      },
+      "recovered_idle/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/write_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovery_ms": {
+        "max": 14077.501427,
+        "median": 10552.572201,
+        "min": 9482.388223,
+        "samples": 3
+      },
+      "shutdown_ms": {
+        "max": 3.185679,
+        "median": 3.184786,
+        "min": 2.348437,
+        "samples": 3
+      },
+      "upload_blocked/accepted_connections": {
+        "max": 3,
+        "median": 3,
+        "min": 3,
+        "samples": 3
+      },
+      "upload_blocked/cpu_s": {
+        "max": 0.01,
+        "median": 0.01,
+        "min": 0.0,
+        "samples": 3
+      },
+      "upload_blocked/downstream_stream_bytes": {
+        "max": 4905,
+        "median": 4905,
+        "min": 4905,
+        "samples": 3
+      },
+      "upload_blocked/fds_end": {
+        "max": 7,
+        "median": 7,
+        "min": 7,
+        "samples": 3
+      },
+      "upload_blocked/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/read_syscall_bytes": {
+        "max": 4889,
+        "median": 4881,
+        "min": 4873,
+        "samples": 3
+      },
+      "upload_blocked/rss_end_mib": {
+        "max": 14.2265625,
+        "median": 13.4140625,
+        "min": 13.25,
+        "samples": 3
+      },
+      "upload_blocked/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/upload_failures": {
+        "max": 3,
+        "median": 3,
+        "min": 3,
+        "samples": 3
+      },
+      "upload_blocked/upstream_stream_bytes": {
+        "max": 6204,
+        "median": 6204,
+        "min": 6204,
+        "samples": 3
+      },
+      "upload_blocked/write_syscall_bytes": {
+        "max": 6260,
+        "median": 6252,
+        "min": 6244,
+        "samples": 3
+      }
+    },
+    "http1/before": {
+      "idle/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/cpu_s": {
+        "max": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "samples": 3
+      },
+      "idle/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "idle/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/read_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/rss_end_mib": {
+        "max": 11.78515625,
+        "median": 11.6796875,
+        "min": 11.6640625,
+        "samples": 3
+      },
+      "idle/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/write_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/accepted_connections": {
+        "max": 4,
+        "median": 4,
+        "min": 4,
+        "samples": 3
+      },
+      "offline/cpu_s": {
+        "max": 0.02,
+        "median": 0.02,
+        "min": 0.01,
+        "samples": 3
+      },
+      "offline/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/fds_end": {
+        "max": 6,
+        "median": 6,
+        "min": 6,
+        "samples": 3
+      },
+      "offline/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/read_syscall_bytes": {
+        "max": 2097666,
+        "median": 2097658,
+        "min": 2097658,
+        "samples": 3
+      },
+      "offline/rss_end_mib": {
+        "max": 14.53125,
+        "median": 14.17578125,
+        "min": 13.90625,
+        "samples": 3
+      },
+      "offline/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/write_syscall_bytes": {
+        "max": 5908,
+        "median": 5900,
+        "min": 5900,
+        "samples": 3
+      },
+      "peak_mib": {
+        "max": 15.98046875,
+        "median": 15.25390625,
+        "min": 14.17578125,
+        "samples": 3
+      },
+      "recovered_idle/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/cpu_s": {
+        "max": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "samples": 3
+      },
+      "recovered_idle/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "recovered_idle/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/read_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/rss_end_mib": {
+        "max": 14.33203125,
+        "median": 14.19921875,
+        "min": 14.14453125,
+        "samples": 3
+      },
+      "recovered_idle/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/write_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovery_ms": {
+        "max": 17993.874819,
+        "median": 15347.4835,
+        "min": 6242.751018,
+        "samples": 3
+      },
+      "shutdown_ms": {
+        "max": 2.818815,
+        "median": 2.674413,
+        "min": 2.314309,
+        "samples": 3
+      },
+      "upload_blocked/accepted_connections": {
+        "max": 3,
+        "median": 3,
+        "min": 3,
+        "samples": 3
+      },
+      "upload_blocked/cpu_s": {
+        "max": 0.01,
+        "median": 0.01,
+        "min": 0.01,
+        "samples": 3
+      },
+      "upload_blocked/downstream_stream_bytes": {
+        "max": 4905,
+        "median": 4905,
+        "min": 4905,
+        "samples": 3
+      },
+      "upload_blocked/fds_end": {
+        "max": 7,
+        "median": 7,
+        "min": 7,
+        "samples": 3
+      },
+      "upload_blocked/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/read_syscall_bytes": {
+        "max": 6297807,
+        "median": 6297799,
+        "min": 6297799,
+        "samples": 3
+      },
+      "upload_blocked/rss_end_mib": {
+        "max": 14.31640625,
+        "median": 13.98828125,
+        "min": 13.70703125,
+        "samples": 3
+      },
+      "upload_blocked/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/upload_failures": {
+        "max": 3,
+        "median": 3,
+        "min": 3,
+        "samples": 3
+      },
+      "upload_blocked/upstream_stream_bytes": {
+        "max": 6204,
+        "median": 6204,
+        "min": 6204,
+        "samples": 3
+      },
+      "upload_blocked/write_syscall_bytes": {
+        "max": 6252,
+        "median": 6244,
+        "min": 6244,
+        "samples": 3
+      }
+    },
+    "http2/after": {
+      "idle/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/cpu_s": {
+        "max": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "samples": 3
+      },
+      "idle/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "idle/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/read_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/rss_end_mib": {
+        "max": 11.36328125,
+        "median": 11.3203125,
+        "min": 11.29296875,
+        "samples": 3
+      },
+      "idle/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/write_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/accepted_connections": {
+        "max": 4,
+        "median": 4,
+        "min": 4,
+        "samples": 3
+      },
+      "offline/cpu_s": {
+        "max": 0.01,
+        "median": 0.01,
+        "min": 0.01,
+        "samples": 3
+      },
+      "offline/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/fds_end": {
+        "max": 6,
+        "median": 6,
+        "min": 6,
+        "samples": 3
+      },
+      "offline/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/read_syscall_bytes": {
+        "max": 24,
+        "median": 24,
+        "min": 16,
+        "samples": 3
+      },
+      "offline/rss_end_mib": {
+        "max": 15.46875,
+        "median": 15.41015625,
+        "min": 13.1953125,
+        "samples": 3
+      },
+      "offline/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/write_syscall_bytes": {
+        "max": 5908,
+        "median": 5908,
+        "min": 5900,
+        "samples": 3
+      },
+      "peak_mib": {
+        "max": 15.46875,
+        "median": 15.41015625,
+        "min": 14.92578125,
+        "samples": 3
+      },
+      "recovered_idle/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/cpu_s": {
+        "max": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "samples": 3
+      },
+      "recovered_idle/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "recovered_idle/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/read_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/rss_end_mib": {
+        "max": 14.0546875,
+        "median": 13.97265625,
+        "min": 13.39453125,
+        "samples": 3
+      },
+      "recovered_idle/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/write_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovery_ms": {
+        "max": 20778.845547,
+        "median": 19208.659223,
+        "min": 18246.143051,
+        "samples": 3
+      },
+      "shutdown_ms": {
+        "max": 3.192587,
+        "median": 2.993246,
+        "min": 2.698321,
+        "samples": 3
+      },
+      "upload_blocked/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/cpu_s": {
+        "max": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "samples": 3
+      },
+      "upload_blocked/downstream_stream_bytes": {
+        "max": 387,
+        "median": 339,
+        "min": 316,
+        "samples": 3
+      },
+      "upload_blocked/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "upload_blocked/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/read_syscall_bytes": {
+        "max": 395,
+        "median": 339,
+        "min": 324,
+        "samples": 3
+      },
+      "upload_blocked/rss_end_mib": {
+        "max": 15.41796875,
+        "median": 15.2421875,
+        "min": 14.80078125,
+        "samples": 3
+      },
+      "upload_blocked/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/upload_failures": {
+        "max": 3,
+        "median": 3,
+        "min": 3,
+        "samples": 3
+      },
+      "upload_blocked/upstream_stream_bytes": {
+        "max": 987,
+        "median": 987,
+        "min": 987,
+        "samples": 3
+      },
+      "upload_blocked/write_syscall_bytes": {
+        "max": 995,
+        "median": 995,
+        "min": 987,
+        "samples": 3
+      }
+    },
+    "http2/before": {
+      "idle/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/cpu_s": {
+        "max": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "samples": 3
+      },
+      "idle/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "idle/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/read_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/rss_end_mib": {
+        "max": 11.77734375,
+        "median": 11.7265625,
+        "min": 11.6328125,
+        "samples": 3
+      },
+      "idle/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "idle/write_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/accepted_connections": {
+        "max": 4,
+        "median": 4,
+        "min": 4,
+        "samples": 3
+      },
+      "offline/cpu_s": {
+        "max": 0.01,
+        "median": 0.01,
+        "min": 0.0,
+        "samples": 3
+      },
+      "offline/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/fds_end": {
+        "max": 6,
+        "median": 6,
+        "min": 6,
+        "samples": 3
+      },
+      "offline/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/read_syscall_bytes": {
+        "max": 2097688,
+        "median": 2097681,
+        "min": 2097657,
+        "samples": 3
+      },
+      "offline/rss_end_mib": {
+        "max": 13.80078125,
+        "median": 13.484375,
+        "min": 13.2109375,
+        "samples": 3
+      },
+      "offline/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "offline/write_syscall_bytes": {
+        "max": 5932,
+        "median": 5924,
+        "min": 5900,
+        "samples": 3
+      },
+      "peak_mib": {
+        "max": 15.546875,
+        "median": 15.3203125,
+        "min": 15.234375,
+        "samples": 3
+      },
+      "recovered_idle/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/cpu_s": {
+        "max": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "samples": 3
+      },
+      "recovered_idle/downstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "recovered_idle/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/read_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/rss_end_mib": {
+        "max": 14.8359375,
+        "median": 14.26171875,
+        "min": 14.2109375,
+        "samples": 3
+      },
+      "recovered_idle/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/upload_failures": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/upstream_stream_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovered_idle/write_syscall_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "recovery_ms": {
+        "max": 14857.622467,
+        "median": 13665.939891,
+        "min": 8153.768885,
+        "samples": 3
+      },
+      "shutdown_ms": {
+        "max": 3.331877,
+        "median": 3.110091,
+        "min": 2.866352,
+        "samples": 3
+      },
+      "upload_blocked/accepted_connections": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/cpu_s": {
+        "max": 0.02,
+        "median": 0.02,
+        "min": 0.01,
+        "samples": 3
+      },
+      "upload_blocked/downstream_stream_bytes": {
+        "max": 387,
+        "median": 339,
+        "min": 339,
+        "samples": 3
+      },
+      "upload_blocked/fds_end": {
+        "max": 8,
+        "median": 8,
+        "min": 8,
+        "samples": 3
+      },
+      "upload_blocked/logs_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/read_syscall_bytes": {
+        "max": 6293326,
+        "median": 6293270,
+        "min": 6293267,
+        "samples": 3
+      },
+      "upload_blocked/rss_end_mib": {
+        "max": 13.6171875,
+        "median": 13.35546875,
+        "min": 12.89453125,
+        "samples": 3
+      },
+      "upload_blocked/storage_write_bytes": {
+        "max": 0,
+        "median": 0,
+        "min": 0,
+        "samples": 3
+      },
+      "upload_blocked/upload_failures": {
+        "max": 3,
+        "median": 3,
+        "min": 3,
+        "samples": 3
+      },
+      "upload_blocked/upstream_stream_bytes": {
+        "max": 1057,
+        "median": 987,
+        "min": 987,
+        "samples": 3
+      },
+      "upload_blocked/write_syscall_bytes": {
+        "max": 1065,
+        "median": 1003,
+        "min": 995,
+        "samples": 3
+      }
+    }
+  },
+  "format": "tack-resource-optimization-v1",
+  "unpaired_benchmarks": [
+    "BenchmarkBoundedOutput/large",
+    "BenchmarkBoundedOutput/short",
+    "BenchmarkOutputChurn/16384",
+    "BenchmarkOutputChurn/2097152"
+  ]
+}

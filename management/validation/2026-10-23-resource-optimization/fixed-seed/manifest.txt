@@ -1,0 +1,8 @@
+GOMAXPROCS=2
+GODEBUG=randautoseed=0
+node_go=go1.23.12
+fixture=../process/footprint.test
+http2=1
+seconds_per_phase=10
+max_output=1
+order=before,after

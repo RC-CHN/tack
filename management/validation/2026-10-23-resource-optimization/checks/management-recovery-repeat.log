@@ -1,0 +1,26 @@
+=== RUN   TestManagementThroughImpairedTransport
+=== RUN   TestManagementThroughImpairedTransport/http1
+    path_fixture_test.go:129: stream bytes up=241629 down=17640 connections={Accepted:5 Rejected:0 Active:0 UpBytes:242162 DownBytes:17374}
+=== RUN   TestManagementThroughImpairedTransport/http2
+    path_fixture_test.go:129: stream bytes up=238274 down=15157 connections={Accepted:4 Rejected:0 Active:0 UpBytes:238274 DownBytes:14925}
+--- PASS: TestManagementThroughImpairedTransport (10.40s)
+    --- PASS: TestManagementThroughImpairedTransport/http1 (5.33s)
+    --- PASS: TestManagementThroughImpairedTransport/http2 (5.07s)
+=== RUN   TestManagementThroughImpairedTransport
+=== RUN   TestManagementThroughImpairedTransport/http1
+    path_fixture_test.go:129: stream bytes up=241738 down=17639 connections={Accepted:5 Rejected:0 Active:0 UpBytes:241738 DownBytes:17373}
+=== RUN   TestManagementThroughImpairedTransport/http2
+    path_fixture_test.go:129: stream bytes up=238305 down=14882 connections={Accepted:4 Rejected:0 Active:0 UpBytes:238305 DownBytes:14823}
+--- PASS: TestManagementThroughImpairedTransport (11.39s)
+    --- PASS: TestManagementThroughImpairedTransport/http1 (5.80s)
+    --- PASS: TestManagementThroughImpairedTransport/http2 (5.59s)
+=== RUN   TestManagementThroughImpairedTransport
+=== RUN   TestManagementThroughImpairedTransport/http1
+    path_fixture_test.go:129: stream bytes up=241666 down=17377 connections={Accepted:5 Rejected:0 Active:0 UpBytes:241666 DownBytes:17111}
+=== RUN   TestManagementThroughImpairedTransport/http2
+    path_fixture_test.go:129: stream bytes up=238280 down=15084 connections={Accepted:4 Rejected:0 Active:0 UpBytes:238280 DownBytes:14951}
+--- PASS: TestManagementThroughImpairedTransport (10.43s)
+    --- PASS: TestManagementThroughImpairedTransport/http1 (5.10s)
+    --- PASS: TestManagementThroughImpairedTransport/http2 (5.33s)
+PASS
+ok  	tack.local/management/integration	33.239s

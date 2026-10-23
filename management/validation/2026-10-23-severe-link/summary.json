@@ -1,0 +1,956 @@
+{
+  "campaigns": {
+    "mixed-h1": {
+      "before": {
+        "runs": [
+          {
+            "file": "process/mixed-h1/before-1.json",
+            "completed": false,
+            "passed": true,
+            "seconds": 75.025639448,
+            "budget_seconds": 75,
+            "progress_bytes": 0,
+            "output_bytes": 32783,
+            "stream_bytes": 84204,
+            "max_rss_mib": 12.1640625,
+            "max_fds": 9,
+            "requests": 7,
+            "outages": 18,
+            "shutdown_ms": 2.159916,
+            "log_bytes": 0
+          },
+          {
+            "file": "process/mixed-h1/before-2.json",
+            "completed": false,
+            "passed": true,
+            "seconds": 75.032648751,
+            "budget_seconds": 75,
+            "progress_bytes": 0,
+            "output_bytes": 32783,
+            "stream_bytes": 82160,
+            "max_rss_mib": 12.046875,
+            "max_fds": 9,
+            "requests": 7,
+            "outages": 18,
+            "shutdown_ms": 1.991476,
+            "log_bytes": 0
+          },
+          {
+            "file": "process/mixed-h1/before-3.json",
+            "completed": false,
+            "passed": true,
+            "seconds": 75.048742734,
+            "budget_seconds": 75,
+            "progress_bytes": 0,
+            "output_bytes": 32783,
+            "stream_bytes": 81641,
+            "max_rss_mib": 12.0546875,
+            "max_fds": 9,
+            "requests": 7,
+            "outages": 18,
+            "shutdown_ms": 2.22055,
+            "log_bytes": 0
+          }
+        ],
+        "completed": 0,
+        "metrics": {
+          "seconds": {
+            "n": 3,
+            "min": 75.025639448,
+            "median": 75.032648751,
+            "max": 75.048742734
+          },
+          "progress_bytes": {
+            "n": 3,
+            "min": 0,
+            "median": 0,
+            "max": 0
+          },
+          "stream_bytes": {
+            "n": 3,
+            "min": 81641,
+            "median": 82160,
+            "max": 84204
+          },
+          "max_rss_mib": {
+            "n": 3,
+            "min": 12.046875,
+            "median": 12.0546875,
+            "max": 12.1640625
+          },
+          "max_fds": {
+            "n": 3,
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "requests": {
+            "n": 3,
+            "min": 7,
+            "median": 7,
+            "max": 7
+          },
+          "shutdown_ms": {
+            "n": 3,
+            "min": 1.991476,
+            "median": 2.159916,
+            "max": 2.22055
+          }
+        }
+      },
+      "after": {
+        "runs": [
+          {
+            "file": "process/mixed-h1/after-1.json",
+            "completed": true,
+            "passed": true,
+            "seconds": 23.850390993,
+            "budget_seconds": 75,
+            "progress_bytes": 32783,
+            "output_bytes": 32783,
+            "stream_bytes": 105925,
+            "max_rss_mib": 11.2578125,
+            "max_fds": 9,
+            "requests": 15,
+            "outages": 5,
+            "shutdown_ms": 1.955316,
+            "log_bytes": 0
+          },
+          {
+            "file": "process/mixed-h1/after-2.json",
+            "completed": true,
+            "passed": true,
+            "seconds": 30.375371615,
+            "budget_seconds": 75,
+            "progress_bytes": 32783,
+            "output_bytes": 32783,
+            "stream_bytes": 125355,
+            "max_rss_mib": 12.17578125,
+            "max_fds": 9,
+            "requests": 18,
+            "outages": 7,
+            "shutdown_ms": 2.144632,
+            "log_bytes": 0
+          },
+          {
+            "file": "process/mixed-h1/after-3.json",
+            "completed": true,
+            "passed": true,
+            "seconds": 23.847793718,
+            "budget_seconds": 75,
+            "progress_bytes": 32783,
+            "output_bytes": 32783,
+            "stream_bytes": 112051,
+            "max_rss_mib": 11.359375,
+            "max_fds": 9,
+            "requests": 15,
+            "outages": 5,
+            "shutdown_ms": 1.73395,
+            "log_bytes": 0
+          }
+        ],
+        "completed": 3,
+        "metrics": {
+          "seconds": {
+            "n": 3,
+            "min": 23.847793718,
+            "median": 23.850390993,
+            "max": 30.375371615
+          },
+          "progress_bytes": {
+            "n": 3,
+            "min": 32783,
+            "median": 32783,
+            "max": 32783
+          },
+          "stream_bytes": {
+            "n": 3,
+            "min": 105925,
+            "median": 112051,
+            "max": 125355
+          },
+          "max_rss_mib": {
+            "n": 3,
+            "min": 11.2578125,
+            "median": 11.359375,
+            "max": 12.17578125
+          },
+          "max_fds": {
+            "n": 3,
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "requests": {
+            "n": 3,
+            "min": 15,
+            "median": 15,
+            "max": 18
+          },
+          "shutdown_ms": {
+            "n": 3,
+            "min": 1.73395,
+            "median": 1.955316,
+            "max": 2.144632
+          }
+        }
+      }
+    },
+    "mixed-h2": {
+      "before": {
+        "runs": [
+          {
+            "file": "process/mixed-h2/before-1.json",
+            "completed": false,
+            "passed": true,
+            "seconds": 75.041506773,
+            "budget_seconds": 75,
+            "progress_bytes": 0,
+            "output_bytes": 32783,
+            "stream_bytes": 74516,
+            "max_rss_mib": 12.2734375,
+            "max_fds": 9,
+            "requests": 7,
+            "outages": 18,
+            "shutdown_ms": 2.557275,
+            "log_bytes": 0
+          },
+          {
+            "file": "process/mixed-h2/before-2.json",
+            "completed": false,
+            "passed": true,
+            "seconds": 75.016581982,
+            "budget_seconds": 75,
+            "progress_bytes": 0,
+            "output_bytes": 32783,
+            "stream_bytes": 72334,
+            "max_rss_mib": 11.5625,
+            "max_fds": 9,
+            "requests": 7,
+            "outages": 18,
+            "shutdown_ms": 1.421028,
+            "log_bytes": 0
+          },
+          {
+            "file": "process/mixed-h2/before-3.json",
+            "completed": false,
+            "passed": true,
+            "seconds": 75.015323414,
+            "budget_seconds": 75,
+            "progress_bytes": 0,
+            "output_bytes": 32783,
+            "stream_bytes": 72332,
+            "max_rss_mib": 11.5703125,
+            "max_fds": 9,
+            "requests": 7,
+            "outages": 18,
+            "shutdown_ms": 2.323147,
+            "log_bytes": 0
+          }
+        ],
+        "completed": 0,
+        "metrics": {
+          "seconds": {
+            "n": 3,
+            "min": 75.015323414,
+            "median": 75.016581982,
+            "max": 75.041506773
+          },
+          "progress_bytes": {
+            "n": 3,
+            "min": 0,
+            "median": 0,
+            "max": 0
+          },
+          "stream_bytes": {
+            "n": 3,
+            "min": 72332,
+            "median": 72334,
+            "max": 74516
+          },
+          "max_rss_mib": {
+            "n": 3,
+            "min": 11.5625,
+            "median": 11.5703125,
+            "max": 12.2734375
+          },
+          "max_fds": {
+            "n": 3,
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "requests": {
+            "n": 3,
+            "min": 7,
+            "median": 7,
+            "max": 7
+          },
+          "shutdown_ms": {
+            "n": 3,
+            "min": 1.421028,
+            "median": 2.323147,
+            "max": 2.557275
+          }
+        }
+      },
+      "after": {
+        "runs": [
+          {
+            "file": "process/mixed-h2/after-1.json",
+            "completed": true,
+            "passed": true,
+            "seconds": 47.948877265,
+            "budget_seconds": 75,
+            "progress_bytes": 32783,
+            "output_bytes": 32783,
+            "stream_bytes": 137394,
+            "max_rss_mib": 12.71484375,
+            "max_fds": 9,
+            "requests": 23,
+            "outages": 11,
+            "shutdown_ms": 2.485884,
+            "log_bytes": 0
+          },
+          {
+            "file": "process/mixed-h2/after-2.json",
+            "completed": true,
+            "passed": true,
+            "seconds": 47.696540205,
+            "budget_seconds": 75,
+            "progress_bytes": 32783,
+            "output_bytes": 32783,
+            "stream_bytes": 136423,
+            "max_rss_mib": 12.6796875,
+            "max_fds": 9,
+            "requests": 23,
+            "outages": 11,
+            "shutdown_ms": 2.249193,
+            "log_bytes": 0
+          },
+          {
+            "file": "process/mixed-h2/after-3.json",
+            "completed": true,
+            "passed": true,
+            "seconds": 47.193609468,
+            "budget_seconds": 75,
+            "progress_bytes": 32783,
+            "output_bytes": 32783,
+            "stream_bytes": 139069,
+            "max_rss_mib": 12.73828125,
+            "max_fds": 9,
+            "requests": 24,
+            "outages": 11,
+            "shutdown_ms": 2.580403,
+            "log_bytes": 0
+          }
+        ],
+        "completed": 3,
+        "metrics": {
+          "seconds": {
+            "n": 3,
+            "min": 47.193609468,
+            "median": 47.696540205,
+            "max": 47.948877265
+          },
+          "progress_bytes": {
+            "n": 3,
+            "min": 32783,
+            "median": 32783,
+            "max": 32783
+          },
+          "stream_bytes": {
+            "n": 3,
+            "min": 136423,
+            "median": 137394,
+            "max": 139069
+          },
+          "max_rss_mib": {
+            "n": 3,
+            "min": 12.6796875,
+            "median": 12.71484375,
+            "max": 12.73828125
+          },
+          "max_fds": {
+            "n": 3,
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "requests": {
+            "n": 3,
+            "min": 23,
+            "median": 23,
+            "max": 24
+          },
+          "shutdown_ms": {
+            "n": 3,
+            "min": 2.249193,
+            "median": 2.485884,
+            "max": 2.580403
+          }
+        }
+      }
+    },
+    "loss-h1": {
+      "before": {
+        "runs": [
+          {
+            "file": "process/loss-h1/before-1.json",
+            "completed": false,
+            "passed": true,
+            "seconds": 120.191233031,
+            "budget_seconds": 120,
+            "progress_bytes": 0,
+            "output_bytes": 32783,
+            "stream_bytes": 85908,
+            "max_rss_mib": 12.3046875,
+            "max_fds": 9,
+            "requests": 9,
+            "outages": 30,
+            "shutdown_ms": 1.969363,
+            "log_bytes": 0
+          }
+        ],
+        "completed": 0,
+        "metrics": {
+          "seconds": {
+            "n": 1,
+            "min": 120.191233031,
+            "median": 120.191233031,
+            "max": 120.191233031
+          },
+          "progress_bytes": {
+            "n": 1,
+            "min": 0,
+            "median": 0,
+            "max": 0
+          },
+          "stream_bytes": {
+            "n": 1,
+            "min": 85908,
+            "median": 85908,
+            "max": 85908
+          },
+          "max_rss_mib": {
+            "n": 1,
+            "min": 12.3046875,
+            "median": 12.3046875,
+            "max": 12.3046875
+          },
+          "max_fds": {
+            "n": 1,
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "requests": {
+            "n": 1,
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "shutdown_ms": {
+            "n": 1,
+            "min": 1.969363,
+            "median": 1.969363,
+            "max": 1.969363
+          }
+        }
+      },
+      "after": {
+        "runs": [
+          {
+            "file": "process/loss-h1/after-1.json",
+            "completed": true,
+            "passed": true,
+            "seconds": 51.972934456,
+            "budget_seconds": 120,
+            "progress_bytes": 32783,
+            "output_bytes": 32783,
+            "stream_bytes": 139863,
+            "max_rss_mib": 12.45703125,
+            "max_fds": 9,
+            "requests": 21,
+            "outages": 12,
+            "shutdown_ms": 2.350431,
+            "log_bytes": 0
+          }
+        ],
+        "completed": 1,
+        "metrics": {
+          "seconds": {
+            "n": 1,
+            "min": 51.972934456,
+            "median": 51.972934456,
+            "max": 51.972934456
+          },
+          "progress_bytes": {
+            "n": 1,
+            "min": 32783,
+            "median": 32783,
+            "max": 32783
+          },
+          "stream_bytes": {
+            "n": 1,
+            "min": 139863,
+            "median": 139863,
+            "max": 139863
+          },
+          "max_rss_mib": {
+            "n": 1,
+            "min": 12.45703125,
+            "median": 12.45703125,
+            "max": 12.45703125
+          },
+          "max_fds": {
+            "n": 1,
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "requests": {
+            "n": 1,
+            "min": 21,
+            "median": 21,
+            "max": 21
+          },
+          "shutdown_ms": {
+            "n": 1,
+            "min": 2.350431,
+            "median": 2.350431,
+            "max": 2.350431
+          }
+        }
+      }
+    },
+    "loss-h2": {
+      "before": {
+        "runs": [
+          {
+            "file": "process/loss-h2/before-1.json",
+            "completed": false,
+            "passed": true,
+            "seconds": 120.207248167,
+            "budget_seconds": 120,
+            "progress_bytes": 0,
+            "output_bytes": 32783,
+            "stream_bytes": 79802,
+            "max_rss_mib": 11.81640625,
+            "max_fds": 9,
+            "requests": 8,
+            "outages": 30,
+            "shutdown_ms": 1.955576,
+            "log_bytes": 0
+          }
+        ],
+        "completed": 0,
+        "metrics": {
+          "seconds": {
+            "n": 1,
+            "min": 120.207248167,
+            "median": 120.207248167,
+            "max": 120.207248167
+          },
+          "progress_bytes": {
+            "n": 1,
+            "min": 0,
+            "median": 0,
+            "max": 0
+          },
+          "stream_bytes": {
+            "n": 1,
+            "min": 79802,
+            "median": 79802,
+            "max": 79802
+          },
+          "max_rss_mib": {
+            "n": 1,
+            "min": 11.81640625,
+            "median": 11.81640625,
+            "max": 11.81640625
+          },
+          "max_fds": {
+            "n": 1,
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "requests": {
+            "n": 1,
+            "min": 8,
+            "median": 8,
+            "max": 8
+          },
+          "shutdown_ms": {
+            "n": 1,
+            "min": 1.955576,
+            "median": 1.955576,
+            "max": 1.955576
+          }
+        }
+      },
+      "after": {
+        "runs": [
+          {
+            "file": "process/loss-h2/after-1.json",
+            "completed": false,
+            "passed": false,
+            "seconds": 120.226322025,
+            "budget_seconds": 120,
+            "progress_bytes": 32771,
+            "output_bytes": 32783,
+            "stream_bytes": 156309,
+            "max_rss_mib": 12.9375,
+            "max_fds": 9,
+            "requests": 28,
+            "outages": 30,
+            "shutdown_ms": 2.449656,
+            "log_bytes": 0
+          }
+        ],
+        "completed": 0,
+        "metrics": {
+          "seconds": {
+            "n": 1,
+            "min": 120.226322025,
+            "median": 120.226322025,
+            "max": 120.226322025
+          },
+          "progress_bytes": {
+            "n": 1,
+            "min": 32771,
+            "median": 32771,
+            "max": 32771
+          },
+          "stream_bytes": {
+            "n": 1,
+            "min": 156309,
+            "median": 156309,
+            "max": 156309
+          },
+          "max_rss_mib": {
+            "n": 1,
+            "min": 12.9375,
+            "median": 12.9375,
+            "max": 12.9375
+          },
+          "max_fds": {
+            "n": 1,
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "requests": {
+            "n": 1,
+            "min": 28,
+            "median": 28,
+            "max": 28
+          },
+          "shutdown_ms": {
+            "n": 1,
+            "min": 2.449656,
+            "median": 2.449656,
+            "max": 2.449656
+          }
+        }
+      }
+    }
+  },
+  "extended_h2_diagnostic": {
+    "before": {
+      "runs": [
+        {
+          "file": "diagnostic/loss-h2-180/before-1.json",
+          "completed": false,
+          "passed": true,
+          "seconds": 180.186485038,
+          "budget_seconds": 180,
+          "progress_bytes": 0,
+          "output_bytes": 32783,
+          "stream_bytes": 93725,
+          "max_rss_mib": 12.5546875,
+          "max_fds": 9,
+          "requests": 10,
+          "outages": 45,
+          "shutdown_ms": 2.058277,
+          "log_bytes": 0
+        }
+      ],
+      "completed": 0,
+      "metrics": {
+        "seconds": {
+          "n": 1,
+          "min": 180.186485038,
+          "median": 180.186485038,
+          "max": 180.186485038
+        },
+        "progress_bytes": {
+          "n": 1,
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "stream_bytes": {
+          "n": 1,
+          "min": 93725,
+          "median": 93725,
+          "max": 93725
+        },
+        "max_rss_mib": {
+          "n": 1,
+          "min": 12.5546875,
+          "median": 12.5546875,
+          "max": 12.5546875
+        },
+        "max_fds": {
+          "n": 1,
+          "min": 9,
+          "median": 9,
+          "max": 9
+        },
+        "requests": {
+          "n": 1,
+          "min": 10,
+          "median": 10,
+          "max": 10
+        },
+        "shutdown_ms": {
+          "n": 1,
+          "min": 2.058277,
+          "median": 2.058277,
+          "max": 2.058277
+        }
+      }
+    },
+    "after": {
+      "runs": [
+        {
+          "file": "diagnostic/loss-h2-180/after-1.json",
+          "completed": true,
+          "passed": true,
+          "seconds": 51.972935556,
+          "budget_seconds": 180,
+          "progress_bytes": 32783,
+          "output_bytes": 32783,
+          "stream_bytes": 129877,
+          "max_rss_mib": 12.49609375,
+          "max_fds": 9,
+          "requests": 22,
+          "outages": 12,
+          "shutdown_ms": 1.941388,
+          "log_bytes": 0
+        }
+      ],
+      "completed": 1,
+      "metrics": {
+        "seconds": {
+          "n": 1,
+          "min": 51.972935556,
+          "median": 51.972935556,
+          "max": 51.972935556
+        },
+        "progress_bytes": {
+          "n": 1,
+          "min": 32783,
+          "median": 32783,
+          "max": 32783
+        },
+        "stream_bytes": {
+          "n": 1,
+          "min": 129877,
+          "median": 129877,
+          "max": 129877
+        },
+        "max_rss_mib": {
+          "n": 1,
+          "min": 12.49609375,
+          "median": 12.49609375,
+          "max": 12.49609375
+        },
+        "max_fds": {
+          "n": 1,
+          "min": 9,
+          "median": 9,
+          "max": 9
+        },
+        "requests": {
+          "n": 1,
+          "min": 22,
+          "median": 22,
+          "max": 22
+        },
+        "shutdown_ms": {
+          "n": 1,
+          "min": 1.941388,
+          "median": 1.941388,
+          "max": 1.941388
+        }
+      }
+    }
+  },
+  "footprint": [
+    {
+      "http2": false,
+      "passed": true,
+      "phases": [
+        {
+          "name": "idle",
+          "max_rss_mib": 11.29296875,
+          "cpu_seconds": 0.0,
+          "storage_writes": 0,
+          "stream_bytes": 0,
+          "log_bytes": 0,
+          "fds": [
+            8,
+            8
+          ]
+        },
+        {
+          "name": "upload_blocked",
+          "max_rss_mib": 15.4921875,
+          "cpu_seconds": 0.0,
+          "storage_writes": 0,
+          "stream_bytes": 11109,
+          "log_bytes": 0,
+          "fds": [
+            7,
+            7
+          ]
+        },
+        {
+          "name": "offline",
+          "max_rss_mib": 15.55078125,
+          "cpu_seconds": 0.02,
+          "storage_writes": 0,
+          "stream_bytes": 0,
+          "log_bytes": 0,
+          "fds": [
+            6,
+            6
+          ]
+        },
+        {
+          "name": "recovered_idle",
+          "max_rss_mib": 14.0859375,
+          "cpu_seconds": 0.0,
+          "storage_writes": 0,
+          "stream_bytes": 0,
+          "log_bytes": 0,
+          "fds": [
+            8,
+            8
+          ]
+        }
+      ],
+      "shutdown_ms": 2.568903
+    },
+    {
+      "http2": true,
+      "passed": true,
+      "phases": [
+        {
+          "name": "idle",
+          "max_rss_mib": 11.34765625,
+          "cpu_seconds": 0.0,
+          "storage_writes": 0,
+          "stream_bytes": 0,
+          "log_bytes": 0,
+          "fds": [
+            8,
+            8
+          ]
+        },
+        {
+          "name": "upload_blocked",
+          "max_rss_mib": 15.10546875,
+          "cpu_seconds": 0.0,
+          "storage_writes": 0,
+          "stream_bytes": 1396,
+          "log_bytes": 0,
+          "fds": [
+            8,
+            8
+          ]
+        },
+        {
+          "name": "offline",
+          "max_rss_mib": 15.32421875,
+          "cpu_seconds": 0.01,
+          "storage_writes": 0,
+          "stream_bytes": 0,
+          "log_bytes": 0,
+          "fds": [
+            6,
+            6
+          ]
+        },
+        {
+          "name": "recovered_idle",
+          "max_rss_mib": 13.75390625,
+          "cpu_seconds": 0.0,
+          "storage_writes": 0,
+          "stream_bytes": 0,
+          "log_bytes": 0,
+          "fds": [
+            8,
+            8
+          ]
+        }
+      ],
+      "shutdown_ms": 2.354038
+    }
+  ],
+  "handshake": {
+    "before": {
+      "runs": [
+        {
+          "iterations": 5,
+          "ms_per_op": 500.528955,
+          "watchdog_expirations": 5.0
+        },
+        {
+          "iterations": 5,
+          "ms_per_op": 500.574992,
+          "watchdog_expirations": 5.0
+        },
+        {
+          "iterations": 5,
+          "ms_per_op": 500.347463,
+          "watchdog_expirations": 5.0
+        }
+      ],
+      "ms_per_op": {
+        "n": 3,
+        "min": 500.347463,
+        "median": 500.528955,
+        "max": 500.574992
+      }
+    },
+    "after": {
+      "runs": [
+        {
+          "iterations": 5,
+          "ms_per_op": 100.934886,
+          "watchdog_expirations": 0.0
+        },
+        {
+          "iterations": 5,
+          "ms_per_op": 100.866597,
+          "watchdog_expirations": 0.0
+        },
+        {
+          "iterations": 5,
+          "ms_per_op": 100.955637,
+          "watchdog_expirations": 0.0
+        }
+      ],
+      "ms_per_op": {
+        "n": 3,
+        "min": 100.866597,
+        "median": 100.934886,
+        "max": 100.955637
+      }
+    }
+  }
+}

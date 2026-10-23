@@ -1,0 +1,5 @@
+ok  	tack.local/testfixtures/faultnet	1.416s
+ok  	tack.local/testfixtures/lossmodel	1.079s
+ok  	tack.local/testfixtures/pathsim	2.195s
+ok  	tack.local/testfixtures/resource	1.017s
+ok  	tack.local/testfixtures/udperr	3.023s

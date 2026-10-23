@@ -1,0 +1,9 @@
+=== RUN   TestNodeLowFootprint
+    footprint_linux_test.go:264: idle: RSS=14152..14152 KiB peak=14152 KiB CPU=0.000s fds=8..8 written=0 state=163
+    footprint_linux_test.go:276: upload_blocked: RSS=14632..14704 KiB peak=14704 KiB CPU=0.000s fds=7..7 written=0 state=330414
+    footprint_linux_test.go:282: offline: RSS=14708..15004 KiB peak=15004 KiB CPU=0.010s fds=6..6 written=0 state=330414
+    footprint_linux_test.go:309: recovered_idle: RSS=15164..14204 KiB peak=14204 KiB CPU=0.000s fds=8..8 written=0 state=163
+    footprint_linux_test.go:330: shutdown=3.365658ms attempts during outage=4 HTTP/2 requests=0
+--- PASS: TestNodeLowFootprint (59.31s)
+PASS
+ok  	tack.local/management/integration	59.316s

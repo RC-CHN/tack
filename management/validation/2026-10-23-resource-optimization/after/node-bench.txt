@@ -1,0 +1,45 @@
+goos: linux
+goarch: amd64
+pkg: tack.local/management/node
+cpu: Intel(R) Xeon(R) CPU Max 9470C
+BenchmarkBacklogMetrics/0-2 	  760358	       759.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/0-2 	  692781	       759.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/0-2 	  793500	       758.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/0-2 	  873259	       751.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/0-2 	  882536	       739.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/128-2         	  238842	      2461 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/128-2         	  226144	      2555 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/128-2         	  219264	      2454 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/128-2         	  228435	      2496 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/128-2         	  248114	      2456 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/8192-2        	    3397	    188599 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/8192-2        	    3280	    183453 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/8192-2        	    3254	    188665 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/8192-2        	    3241	    184431 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBacklogMetrics/8192-2        	    3225	    185165 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSpoolUpload/unavailable-2    	  105204	      5633 ns/op	         0.001017 read-B/op	    3560 B/op	      41 allocs/op
+BenchmarkSpoolUpload/unavailable-2    	  103198	      5719 ns/op	         0.001056 read-B/op	    3560 B/op	      41 allocs/op
+BenchmarkSpoolUpload/unavailable-2    	  107599	      5861 ns/op	         0.001013 read-B/op	    3560 B/op	      41 allocs/op
+BenchmarkSpoolUpload/unavailable-2    	  110314	      5805 ns/op	         0.0009972 read-B/op	    3560 B/op	      41 allocs/op
+BenchmarkSpoolUpload/unavailable-2    	  104314	      5578 ns/op	         0.001064 read-B/op	    3560 B/op	      41 allocs/op
+BenchmarkSpoolUpload/already_complete-2         	     404	   1561115 ns/op	   2097504 read-B/op	   40184 B/op	      83 allocs/op
+BenchmarkSpoolUpload/already_complete-2         	     392	   1559457 ns/op	   2097504 read-B/op	   40181 B/op	      83 allocs/op
+BenchmarkSpoolUpload/already_complete-2         	     367	   1514747 ns/op	   2097504 read-B/op	   40190 B/op	      83 allocs/op
+BenchmarkSpoolUpload/already_complete-2         	     381	   1544707 ns/op	   2097504 read-B/op	   40188 B/op	      83 allocs/op
+BenchmarkSpoolUpload/already_complete-2         	     381	   1518109 ns/op	   2097504 read-B/op	   40183 B/op	      83 allocs/op
+BenchmarkSpoolUpload/transfer-2                 	      24	  23799042 ns/op	   4194661 read-B/op	13973543 B/op	    1831 allocs/op
+BenchmarkSpoolUpload/transfer-2                 	      24	  22556844 ns/op	   4194661 read-B/op	14033860 B/op	    1834 allocs/op
+BenchmarkSpoolUpload/transfer-2                 	      24	  22857664 ns/op	   4194661 read-B/op	14056454 B/op	    1835 allocs/op
+BenchmarkSpoolUpload/transfer-2                 	      24	  22782286 ns/op	   4194661 read-B/op	14101706 B/op	    1838 allocs/op
+BenchmarkSpoolUpload/transfer-2                 	      24	  23469605 ns/op	   4194661 read-B/op	14033864 B/op	    1834 allocs/op
+BenchmarkReadyDelay/0s-2                        	147470094	         3.983 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadyDelay/0s-2                        	147037654	         3.990 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadyDelay/0s-2                        	148153450	         3.759 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadyDelay/0s-2                        	147643377	         3.911 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadyDelay/0s-2                        	143353836	         4.040 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadyDelay/-1s-2                       	158351232	         3.845 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadyDelay/-1s-2                       	151056151	         3.731 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadyDelay/-1s-2                       	162666244	         3.911 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadyDelay/-1s-2                       	149198626	         4.090 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadyDelay/-1s-2                       	159447541	         4.076 ns/op	       0 B/op	       0 allocs/op
+PASS

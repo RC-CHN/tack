@@ -1,0 +1,44 @@
+ M .github/workflows/tack.yml
+ M .gitignore
+ M README.md
+ M client/client_connect.go
+ M go.mod
+ M management/VALIDATION.md
+ M management/integration/go.mod
+ M management/integration/weaknet_test.go
+ M management/node/network.go
+ M management/node/upload.go
+ M management/protocol/telemetry/meter.go
+?? client/handshake_lifecycle_test.go
+?? client/handshake_timeout_test.go
+?? management/integration/footprint_linux_test.go
+?? management/integration/path_fixture_test.go
+?? management/integration/severe_link_linux_test.go
+?? management/node/resource_contract_test.go
+?? management/node/runner/resource_contract_test.go
+?? management/node/upload_adaptive_test.go
+?? management/node/upload_bench_test.go
+?? management/node/upload_resource_test.go
+?? management/protocol/fuzz_test.go
+?? management/protocol/rotatelog/storm_test.go
+?? management/protocol/telemetry/snapshot_bench_test.go
+?? management/protocol/telemetry/storm_test.go
+?? management/validation/2026-10-23-fixtures/
+?? management/validation/2026-10-23-independent/
+?? management/validation/2026-10-23-resource-optimization/
+?? management/validation/2026-10-23-severe-link/
+?? scripts/__pycache__/
+?? scripts/benchmark-fixtures.sh
+?? scripts/check-fixture-coverage.py
+?? scripts/compare-node-footprint.sh
+?? scripts/summarize-resource-benchmarks.py
+?? scripts/test-fixtures.sh
+?? scripts/test-weaknet-netns.sh
+?? scripts/test_fixture_coverage.py
+?? share/tunnel/socks_contract_test.go
+?? test/campaign/
+?? test/cmd/
+?? test/e2e/recovery_campaign_test.go
+?? test/e2e/socks_contract_test.go
+?? test/e2e/weaknet_fixture_test.go
+?? test/fixtures/

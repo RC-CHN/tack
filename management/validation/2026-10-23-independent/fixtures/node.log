@@ -1,0 +1,3 @@
+ok  	tack.local/management/node	41.232s
+?   	tack.local/management/node/cmd/tack-node	[no test files]
+ok  	tack.local/management/node/runner	2.300s

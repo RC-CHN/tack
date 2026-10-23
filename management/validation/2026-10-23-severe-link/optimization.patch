@@ -1,0 +1,113 @@
+--- a/management/node/upload.go
++++ b/management/node/upload.go
+@@ -17,6 +17,8 @@
+ 	total := manifest.Total()
+ 	retry := time.Second
+ 	nextSend := time.Now()
++	chunkLimit := p.MaxChunk
++	failedOffset, failedBytes := -1, 0
+ 	var body *os.File
+ 	var bodyOffset int64
+ 	var buffer []byte
+@@ -35,6 +37,23 @@
+ 		if err == nil {
+ 			err = ctx.Err()
+ 		}
++		if err == nil && failedOffset >= 0 {
++			// A failed request may have committed its data and only lost the ACK.
++			// Reduce the checkpoint size only when a successful probe proves that
++			// the failed data request made no durable progress. Keep the smaller
++			// size for this result so intermittent links do not oscillate back
++			// into repeatedly unsendable chunks. Clean links retain MaxChunk.
++			if ack.Offset > failedOffset {
++				// This probe is the acknowledgement lost with the connection.
++				// Durable progress must reset backoff just like a direct ACK;
++				// otherwise repeated lost ACKs make a working link wait longer
++				// and longer even as the receiver accumulates valid output.
++				retry = time.Second
++			} else if failedBytes > 4*1024 {
++				chunkLimit = max(4*1024, failedBytes/4)
++			}
++			failedOffset = -1
++		}
+ 		if err == nil && job.Spool != nil && body == nil {
+ 			var header spoolHeader
+ 			body, header, bodyOffset, err = readSpool(a.spoolPath(job.Task.ID), true)
+@@ -44,14 +63,14 @@
+ 				err = errors.New("result file changed; preserving unconfirmed result")
+ 			}
+ 			if err == nil && !ack.Complete {
+-				buffer = make([]byte, min(total, p.MaxChunk))
++				buffer = make([]byte, min(total, chunkLimit))
+ 			}
+ 		}
+ 		for err == nil && !ack.Complete {
+ 			if err = delay(ctx, time.Until(nextSend)); err != nil {
+ 				return err
+ 			}
+-			end := ack.Offset + p.MaxChunk
++			end := ack.Offset + chunkLimit
+ 			if end > total {
+ 				end = total
+ 			}
+@@ -70,7 +89,7 @@
+ 					break
+ 				}
+ 			} else {
+-				input.Data = outputChunk(job.Report.Result, ack.Offset)
++				input.Data = outputChunkSize(job.Report.Result, ack.Offset, chunkLimit)
+ 			}
+ 			if rate := a.config.UploadBytesPerSecond; rate > 0 {
+ 				nextSend = time.Now().Add(time.Duration(len(input.Data)) * time.Second / time.Duration(rate))
+@@ -81,6 +100,8 @@
+ 			}
+ 			if err == nil {
+ 				retry = time.Second
++			} else {
++				failedOffset, failedBytes = input.Offset, len(input.Data)
+ 			}
+ 		}
+ 		if err == nil {
+@@ -115,8 +136,12 @@
+ 
+ // Only a chunk crossing the stdout/stderr boundary needs a temporary copy.
+ func outputChunk(result *p.Result, offset int) []byte {
++	return outputChunkSize(result, offset, p.MaxChunk)
++}
++
++func outputChunkSize(result *p.Result, offset, limit int) []byte {
+ 	total := len(result.Stdout) + len(result.Stderr)
+-	end := offset + p.MaxChunk
++	end := offset + limit
+ 	if end > total {
+ 		end = total
+ 	}
+--- a/client/client_connect.go
++++ b/client/client_connect.go
+@@ -110,6 +110,16 @@
+ 	stopClosing := context.AfterFunc(ctx, func() { conn.Close() })
+ 	defer stopClosing()
+ 	defer conn.Close()
++	// ClientConfig.Timeout is used by ssh.Dial, not NewClientConn. Bound both
++	// SSH negotiation and the config ACK here, otherwise a half-open link can
++	// prevent the reconnect loop from ever getting another attempt. Closing
++	// is safe alongside SSH's readers/writers; changing websocket deadlines
++	// after its goroutines start is not safe.
++	var handshakeTimer *time.Timer
++	if c.sshConfig.Timeout > 0 {
++		handshakeTimer = time.AfterFunc(c.sshConfig.Timeout, func() { conn.Close() })
++		defer handshakeTimer.Stop()
++	}
+ 	// perform SSH handshake on net.Conn
+ 	c.Debugf("Handshaking...")
+ 	sshConn, chans, reqs, err := ssh.NewClientConn(conn, "", c.sshConfig)
+@@ -140,6 +150,9 @@
+ 	if len(configerr) > 0 {
+ 		return false, errors.New(string(configerr))
+ 	}
++	if handshakeTimer != nil && !handshakeTimer.Stop() {
++		return false, errors.New("SSH handshake timed out")
++	}
+ 	c.Infof("Connected (Latency %s)", time.Since(t0))
+ 	//connected, handover ssh connection for tunnel to use, and block
+ 	err = c.tunnel.BindSSH(ctx, sshConn, reqs, chans)

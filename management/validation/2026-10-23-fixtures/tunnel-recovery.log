@@ -1,0 +1,37 @@
+=== RUN   TestTunnelRecoversAcrossImpairedTransport
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/forward
+2026/10/23 17:17:03 client: tun: proxy#34047=>44201: Listening
+2026/10/23 17:17:03 server: session#1: Open (user=- addr=127.0.0.1:47584 remotes=0.0.0.0:34047:127.0.0.1:44201)
+2026/10/23 17:17:04 server: session#1: Close (user=- addr=127.0.0.1:47584 duration=140.228326ms)
+2026/10/23 17:17:04 server: session#2: Open (user=- addr=127.0.0.1:47592 remotes=0.0.0.0:34047:127.0.0.1:44201)
+2026/10/23 17:17:04 server: session#2: Close (user=- addr=127.0.0.1:47592 duration=138.522814ms)
+2026/10/23 17:17:05 server: session#3: Open (user=- addr=127.0.0.1:47608 remotes=0.0.0.0:34047:127.0.0.1:44201)
+2026/10/23 17:17:05 server: session#3: Close (user=- addr=127.0.0.1:47608 duration=138.456792ms)
+2026/10/23 17:17:06 server: session#4: Open (user=- addr=127.0.0.1:47616 remotes=0.0.0.0:34047:127.0.0.1:44201)
+2026/10/23 17:17:06 server: session#4: Close (user=- addr=127.0.0.1:47616 duration=138.423983ms)
+2026/10/23 17:17:06 server: session#5: Open (user=- addr=127.0.0.1:47632 remotes=0.0.0.0:34047:127.0.0.1:44201)
+2026/10/23 17:17:06 client: tun: proxy#34047=>44201: conn#6: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 17:17:06 server: session#5: Close (user=- addr=127.0.0.1:47632 duration=141.111665ms)
+=== RUN   TestTunnelRecoversAcrossImpairedTransport/reverse
+2026/10/23 17:17:06 server: Reverse tunnelling enabled
+2026/10/23 17:17:07 server: session#1: Open (user=- addr=127.0.0.1:58606 remotes=R:0.0.0.0:3041:127.0.0.1:34893)
+2026/10/23 17:17:07 server: session#1: tun: proxy#R:3041=>34893: Listening
+2026/10/23 17:17:07 server: session#1: Close (user=- addr=127.0.0.1:58606 duration=127.150569ms)
+2026/10/23 17:17:07 server: session#2: Open (user=- addr=127.0.0.1:58614 remotes=R:0.0.0.0:3041:127.0.0.1:34893)
+2026/10/23 17:17:07 server: session#2: tun: proxy#R:3041=>34893: Listening
+2026/10/23 17:17:08 server: session#2: Close (user=- addr=127.0.0.1:58614 duration=118.18377ms)
+2026/10/23 17:17:08 server: session#3: Open (user=- addr=127.0.0.1:56338 remotes=R:0.0.0.0:3041:127.0.0.1:34893)
+2026/10/23 17:17:08 server: session#3: tun: proxy#R:3041=>34893: Listening
+2026/10/23 17:17:08 server: session#3: Close (user=- addr=127.0.0.1:56338 duration=131.443963ms)
+2026/10/23 17:17:09 server: session#4: Open (user=- addr=127.0.0.1:56340 remotes=R:0.0.0.0:3041:127.0.0.1:34893)
+2026/10/23 17:17:09 server: session#4: tun: proxy#R:3041=>34893: Listening
+2026/10/23 17:17:09 server: session#4: Close (user=- addr=127.0.0.1:56340 duration=113.923807ms)
+2026/10/23 17:17:10 server: session#5: Open (user=- addr=127.0.0.1:56350 remotes=R:0.0.0.0:3041:127.0.0.1:34893)
+2026/10/23 17:17:10 server: session#5: tun: proxy#R:3041=>34893: Listening
+2026/10/23 17:17:10 server: session#5: tun: proxy#R:3041=>34893: conn#2: Stream error: ssh: unexpected packet in response to channel open: <nil>
+2026/10/23 17:17:10 server: session#5: Close (user=- addr=127.0.0.1:56350 duration=134.307891ms)
+--- PASS: TestTunnelRecoversAcrossImpairedTransport (6.68s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/forward (3.38s)
+    --- PASS: TestTunnelRecoversAcrossImpairedTransport/reverse (3.30s)
+PASS
+ok  	github.com/jpillora/chisel/test/e2e	7.702s

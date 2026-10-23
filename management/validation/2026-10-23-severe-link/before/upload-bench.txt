@@ -1,0 +1,14 @@
+goos: linux
+goarch: amd64
+pkg: tack.local/management/node
+cpu: Intel(R) Xeon(R) CPU Max 9470C
+BenchmarkSpoolUpload/unavailable-2         	   45414	      6190 ns/op	         0.002356 read-B/op	    3560 B/op	      41 allocs/op
+BenchmarkSpoolUpload/unavailable-2         	   50228	      6051 ns/op	         0.002170 read-B/op	    3560 B/op	      41 allocs/op
+BenchmarkSpoolUpload/unavailable-2         	   46009	      6669 ns/op	         0.002369 read-B/op	    3560 B/op	      41 allocs/op
+BenchmarkSpoolUpload/already_complete-2    	     163	   1767012 ns/op	   2097505 read-B/op	   40220 B/op	      83 allocs/op
+BenchmarkSpoolUpload/already_complete-2    	     160	   1779336 ns/op	   2097505 read-B/op	   40182 B/op	      83 allocs/op
+BenchmarkSpoolUpload/already_complete-2    	     163	   1833910 ns/op	   2097505 read-B/op	   40192 B/op	      83 allocs/op
+BenchmarkSpoolUpload/transfer-2            	      10	  26439730 ns/op	   4194668 read-B/op	14009725 B/op	    1833 allocs/op
+BenchmarkSpoolUpload/transfer-2            	      10	  25714397 ns/op	   4194668 read-B/op	13991544 B/op	    1831 allocs/op
+BenchmarkSpoolUpload/transfer-2            	      10	  25824143 ns/op	   4194668 read-B/op	13901072 B/op	    1827 allocs/op
+PASS

@@ -449,3 +449,194 @@ explicitly and verifies both protocols, avoiding dependence on an OS repeatedly
 reissuing an unsuitable ephemeral port. This changes test setup only. Ten local
 race-enabled repetitions of association limits, destination limits and control
 disconnect passed after the change; native CI must also verify this correction.
+
+## Queqiao fixtures and low-footprint gates — 2026-10-23
+
+Historical direct-import validation: the implementations described in this
+section have since been replaced by independent behavior-based fixtures. These
+reports remain evidence for their recorded source hashes, not for the rewritten
+fixtures. See the current fixture guide and independent-migration record below.
+
+Twenty source/test files from Queqiao commit
+`ee85fae695d4c8a04e4bf496fae916974f312b65` were adapted into the independent
+`test/fixtures` module, with original hashes and MIT attribution retained.
+The [fixture guide](../test/fixtures/README.md) records imported families,
+Tack-specific replacements, limits, opt-in campaigns and reproduction commands.
+No production Node dependency or transport policy was added.
+
+Local validation on Linux amd64:
+
+- Fixture `go test -race -short ./...` and vet passed; the fixture module and
+  protocol tests also passed on Go 1.23.12. Root Chisel and management integration
+  race suites and vet passed. Protocol race tests/vet passed.
+- HTTP/1.1 and HTTP/2 crossed a delayed, rate-limited TCP relay, lost a response
+  after a durable output chunk, disconnected and resumed at the committed
+  offset. Exact stdout/stderr, one execution marker, cancellation and shutdown
+  with a silent peer passed. The existing 500 ms server-write-timeout regression
+  still passed after introducing a configurable fixture timeout; new realistic
+  path tests use the production 20-second server timeout.
+- Chisel forward and reverse tunnels passed four disconnect/reconnect cycles
+  and shutdown with a paused transport. Three-repetition recovery runs also
+  passed before the final report run.
+- Actual TCP loss was exercised inside a disposable Linux user/network
+  namespace: netem 2 ms delay, 2% loss, 4096 kbit/s, seed 7, on that namespace's
+  loopback only. Both HTTP modes passed in 15.16 seconds; qdisc counters reported
+  1,691 transmitted packets and 32 drops. This also impairs fixture/admin
+  traffic, and does not represent a physical WAN or NAT qualification.
+- The imported two-regime path calibration and erasure-after-limiter tests
+  passed (25.27 seconds). The unrelated high-rate capacity grid and voice-frame
+  redundancy experiment remain opt-in and were not run in this pass.
+- JSON/chunk fuzzing completed 79,219 executions; manifest-boundary fuzzing
+  completed 213,558 executions, without failure in these short smoke campaigns.
+- Windows amd64 test executables for pathsim, faultnet, UDP error handling and
+  management integration cross-compiled. This does not establish native Windows
+  timing/resource results. Workflow syntax passed actionlint.
+
+The final full fixture runner passed with an unchanged source snapshot,
+Go 1.23.12 for the separate non-race Node, and ten seconds **per phase** in each
+HTTP mode. Phases are warm idle, output blocked with two retained results,
+fully offline, and recovered idle. Three queued commands each executed once,
+exact results were recovered and reclaimed, and every configured resource gate
+passed. Earlier 30-second-per-phase trials also passed; the retained final
+reports below are specifically the ten-second run after the final fixture edits.
+
+| Final observed measurement | HTTP/1.1 | HTTP/2 |
+| --- | --- | --- |
+| Sampled Node RSS / reported VmHWM range | 13.82–14.81 MiB | 13.93–15.16 MiB |
+| CPU in each idle phase | 0 measured ticks | 0 measured ticks |
+| CPU during the ten-second offline phase | 0.01 s | 0.01 s |
+| Additional Node storage writes in each steady phase | 0 bytes | 0 bytes |
+| Connection attempts during the offline phase | 4 | 4 |
+| SIGTERM shutdown with a long poll pending | 3.37 ms | 2.86 ms |
+
+These are small local workloads and observations, not a universal memory
+ceiling or 24-hour qualification. No Node GC was forced. The process sampler
+excludes Controller, relay and task-child memory; stream byte counters exclude
+IP/TCP headers and retransmissions. Physical flash wear, native embedded/old
+kernel behavior, power loss and long-duration NAT expiry are not established.
+
+Retained evidence: [HTTP/1.1](validation/2026-10-23-fixtures/footprint-http2-0.json),
+[HTTP/2](validation/2026-10-23-fixtures/footprint-http2-1.json),
+[runner manifest](validation/2026-10-23-fixtures/manifest.txt),
+[source hashes](validation/2026-10-23-fixtures/source-sha256.json),
+[checksums](validation/2026-10-23-fixtures/SHA256SUMS). The bundle also retains
+the recovery/fixture logs and a zero exit-status record; it excludes binaries.
+## Independent test and benchmark migration — 2026-10-23
+
+The [migration ledger](../test/fixtures/MIGRATION.md) accounts for 1,068 named
+upstream entries at Queqiao `ee85fae695d4c8a04e4bf496fae916974f312b65`: 155
+adaptations, one existing equivalent case and 912 explicitly inapplicable
+protocol/tool cases, with no pending rows. The earlier 20 directly imported
+files have been removed. Implementations were independently written against
+observable behavior; prior source exposure is documented, so this is not a
+claim of personnel-isolated clean-room development.
+
+The final [evidence bundle](validation/2026-10-23-independent/README.md) retains
+runner manifests, source hashes, checksums, raw benchmark JSON, resource samples
+and check logs. The fixture and benchmark runners both exited successfully and
+their recorded source hashes matched the final executable source. Generated
+binaries are omitted with their hashes retained.
+
+Validated locally on Linux amd64:
+
+- Full root Chisel and management integration race suites and vet passed.
+  The unified fixture runner passed fixture, Node, protocol and control
+  race/vet checks and the new contract/tool tests. Both management HTTP modes
+  and forward/reverse tunnel recovery passed three repetitions. The shared
+  carrier recovery test additionally passed ten repetitions, with sixteen
+  application flows per direction.
+- Go 1.23.12 ran the independent fixture suite, new Node resource contracts and
+  protocol tests. The independently launched Node was built without race
+  instrumentation by that same compiler.
+- Windows amd64 builds passed for both network fixture packages and both
+  benchmark commands; these were not native Windows executions.
+- New packet-scheduler fuzzing completed 6,431 executions and SOCKS request
+  address fuzzing completed 3,395 executions during short smoke campaigns.
+- Isolated Linux netem with 2 ms delay, 2% loss, 4096 kbit/s and seed 7 passed
+  both management HTTP modes in 14.08 seconds. The qdisc reported 1,639 sent
+  packets and 31 drops; fixture/admin traffic shares that isolated loopback.
+- UDP overload runs passed for direct, forward and reverse paths, including
+  the quiet association beside the overloaded one. Loss is measured by this
+  experiment, not treated as a fixed host-independent threshold.
+- The final complete benchmark runner passed with `16x 1`: output/backlog,
+  logging/counters, packet scheduling, HTTP clean/weak-path/concurrency,
+  SOCKS UDP and campaign accounting cases. This checks benchmark integrity and
+  exercises worker counts; sixteen observations are not a stable p99 estimate
+  or a performance qualification. Allocation figures for in-process end-to-end
+  benchmarks include their harness.
+- Ledger validation, its negative-case tests, shell syntax and workflow
+  actionlint passed. Remote CI has not been claimed as executed.
+
+The standalone Node run used ten seconds per steady phase, with no forced GC:
+
+| Observed measurement | HTTP/1.1 | HTTP/2 |
+| --- | --- | --- |
+| Sampled RSS / reported VmHWM range | 13.80–15.09 MiB | 13.89–15.05 MiB |
+| CPU in each idle/recovered-idle phase | 0 measured ticks | 0 measured ticks |
+| CPU during offline phase | 0.01 s | 0.01 s |
+| Additional storage writes in each steady phase | 0 bytes | 0 bytes |
+| Stream bytes in each idle/offline/recovered-idle phase | 0 bytes | 0 bytes |
+| Dial attempts during offline phase | 4 | 3 |
+| Idle / offline / recovered file descriptors | 8 / 6 / 8 | 8 / 6 / 8 |
+| Shutdown with a long poll pending | 3.16 ms | 3.12 ms |
+
+The new silent-SSH-handshake regression initially failed: canceling a connected
+WebSocket before the SSH handshake completed did not close it. The client now
+owns and closes that connection during negotiation as well as after binding.
+Its race regression passed after the fix. Application-readiness synchronization
+and HTTP echo completeness issues in the new harness were also fixed before
+the retained final runs.
+
+These measurements exclude the controller, relays and command child processes.
+They are short local observations, not universal memory ceilings, zero-power
+claims or overnight/physical-WAN/embedded-device qualification. Enabled-log
+rotation bounds retained files, not total writes or duplicate suppression.
+
+## 2026-10-23 low-footprint optimization comparison
+
+The [full comparison and raw evidence](validation/2026-10-23-resource-optimization/README.md)
+uses Go 1.23.12 Nodes, GOMAXPROCS=2, five 500 ms microbenchmark repetitions,
+and three alternating before/after runs for each of H1 and H2. Each independent
+Node run has four 10-second phases and a maximum 1 MiB per output stream.
+
+An unavailable probe for a retained 2 MiB result now allocates 3,560 rather
+than 104,745 B/op and does not read the spool. A 10-second H1 upload outage
+reads 4,881 rather than 6,297,799 bytes (median); H2 reads 339 rather than
+6,293,270 bytes. These are cached-read-inclusive syscall bytes, not physical
+disk reads. Probe counts and network traffic did not increase. Runtime snapshot
+cost falls from 6.592 to 0.7599 microseconds with zero allocation in either
+version; expired waits avoid 248 bytes and three timer allocations per call.
+
+All 12 independent-process runs pass the existing resource/recovery gates.
+Idle and recovered-idle phases observe zero CPU ticks, stream traffic, reads,
+writes and logs. RSS ranges overlap, so no stable peak-RSS reduction is claimed.
+Random-backoff H2 recovery was slower in the after sample; a separately retained
+fixed-seed diagnostic gives 7.907 versus 7.922 seconds. This is not a recovery
+percentile claim. Node/protocol Go 1.23.12 race/vet, Controller/integration
+race/vet, repeated tunnel/management recovery and real 2% netem loss checks
+pass. Windows compilation is recorded separately from native validation.
+
+## 2026-10-23 severe intermittent-link optimization
+
+The [full comparison and raw evidence](validation/2026-10-23-severe-link/README.md)
+uses an external Go 1.23.12 Node, 600 ms added RTT, 8 KiB/s per connection and
+direction, and a 500 ms outage every four seconds. Transfers contain 32 KiB
+stdout plus 15 bytes stderr. The final implementation reduces chunks only
+after a probe confirms no progress, resets retry backoff on probe-confirmed
+progress, and enforces the existing SSH handshake timeout through config ACK.
+
+Both H1 and H2 improve from 0/3 completed results within 75 seconds to 3/3,
+with median completion times of 23.850 and 47.697 seconds. Adding actual 5%
+packet loss gives H1 completion in 51.973 seconds; H2's 120-second qualification
+still fails completion, retaining 32,771 of 32,783 bytes. A separate H2
+180-second-budget diagnostic completes in 51.973 seconds while its baseline
+remains at zero progress. These are different runs, showing substantial timing
+variation; the failed primary run remains in the report and is not replaced.
+
+Final main severe runs observe at most 12.938 MiB Node RSS/high-water. Both
+existing 2 MiB-output footprint qualifications pass, including zero observed
+idle/recovered-idle traffic, CPU ticks, storage writes and default logs. Extra
+small-chunk requests increase active traffic; no RSS reduction, fingerprint
+resistance, bulk-tunnel throughput gain or universal completion rate is claimed.
+Root, Node/runner and integration race/vet pass. The opt-in H2 packet-loss
+completion failure is explicitly separate from those passing regressions.

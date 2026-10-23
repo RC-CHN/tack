@@ -1,0 +1,38 @@
+{
+  "before/node.test": {
+    "sha256": "2cf542dfb3a68185d2e02597bdceec4cce2f8282bedb6adef78f5114b713c584",
+    "bytes": 10760559
+  },
+  "before/runner.test": {
+    "sha256": "09dcec4184269f05377607106cafb6bb94718953542919e6951a7dbe7bb2dd2a",
+    "bytes": 5732078
+  },
+  "before/tack-node": {
+    "sha256": "c4ce29d318adec4a96003cca34e826efc55792fb3a988f0855a26f6fb1b6425f",
+    "bytes": 8945609
+  },
+  "before/telemetry.test": {
+    "sha256": "228a14869f672bd8b2e22730126022cbd3bef6872468951037b8f589c4f87c3e",
+    "bytes": 5803491
+  },
+  "after/node.test": {
+    "sha256": "a30889259a6fb8b8f7f527da7b7a086913e58d48c58b8e171bfc72ea0eec07c5",
+    "bytes": 10793381
+  },
+  "after/tack-node": {
+    "sha256": "11b12a0e03fa7fecd41aaf47e08b3a80970043b64ae12bd94f547fd435f3e3d5",
+    "bytes": 8963131
+  },
+  "after/telemetry.test": {
+    "sha256": "d4cbef3524cfa23a00523563693b3c3ef403bce3fb2928a7b7f8486166a66be7",
+    "bytes": 5830000
+  },
+  "process/footprint.test": {
+    "sha256": "ae42edb67200c66f059590bfc8653c88ecb04cd423971ab393d9d31e7f1f7114",
+    "bytes": 12696799
+  },
+  "checks/node-windows.test.exe": {
+    "sha256": "3b5adbe79fe9d157c4a293c3580b03374713422b2111ce3f8564fa751f7c4fba",
+    "bytes": 10914304
+  }
+}

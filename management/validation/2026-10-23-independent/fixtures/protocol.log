@@ -1,0 +1,3 @@
+ok  	tack.local/management/protocol	1.020s
+ok  	tack.local/management/protocol/rotatelog	1.033s
+ok  	tack.local/management/protocol/telemetry	1.047s

@@ -1,0 +1,5 @@
+# Keep checksummed measurement evidence byte-for-byte on every checkout.
+management/validation/** -text
+# Raw tool output and unified-diff context intentionally contain whitespace.
+management/validation/**/*.log -whitespace
+management/validation/**/*.patch -whitespace

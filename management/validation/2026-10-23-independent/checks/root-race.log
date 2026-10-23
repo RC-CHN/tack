@@ -1,0 +1,15 @@
+ok  	github.com/jpillora/chisel	1.122s
+ok  	github.com/jpillora/chisel/client	1.054s
+ok  	github.com/jpillora/chisel/server	1.040s
+ok  	github.com/jpillora/chisel/share	1.034s
+?   	github.com/jpillora/chisel/share/ccrypto	[no test files]
+?   	github.com/jpillora/chisel/share/cio	[no test files]
+ok  	github.com/jpillora/chisel/share/cnet	1.208s
+ok  	github.com/jpillora/chisel/share/cos	1.021s
+ok  	github.com/jpillora/chisel/share/settings	2.110s
+ok  	github.com/jpillora/chisel/share/tunnel	2.449s
+?   	github.com/jpillora/chisel/test/bench	[no test files]
+ok  	github.com/jpillora/chisel/test/campaign	1.068s
+ok  	github.com/jpillora/chisel/test/cmd/bench-origin	1.021s
+ok  	github.com/jpillora/chisel/test/cmd/fieldbench	1.177s
+ok  	github.com/jpillora/chisel/test/e2e	23.877s

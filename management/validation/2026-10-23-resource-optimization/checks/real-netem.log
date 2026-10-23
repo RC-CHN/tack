@@ -1,0 +1,15 @@
+qdisc netem 805a: root refcnt 2 limit 1000 delay 2ms loss 2% rate 4096Kbit seed 7
+ Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+=== RUN   TestManagementThroughImpairedTransport
+=== RUN   TestManagementThroughImpairedTransport/http1
+    path_fixture_test.go:129: stream bytes up=241757 down=17643 connections={Accepted:7 Rejected:0 Active:0 UpBytes:243254 DownBytes:17401}
+=== RUN   TestManagementThroughImpairedTransport/http2
+    path_fixture_test.go:129: stream bytes up=239961 down=15212 connections={Accepted:4 Rejected:0 Active:0 UpBytes:239961 DownBytes:15153}
+--- PASS: TestManagementThroughImpairedTransport (17.10s)
+    --- PASS: TestManagementThroughImpairedTransport/http1 (9.41s)
+    --- PASS: TestManagementThroughImpairedTransport/http2 (7.69s)
+PASS
+qdisc netem 805a: root refcnt 2 limit 1000 delay 2ms loss 2% rate 4096Kbit seed 7
+ Sent 2379977 bytes 1679 pkt (dropped 32, overlimits 0 requeues 0) 
+ backlog 54b 1p requeues 0
