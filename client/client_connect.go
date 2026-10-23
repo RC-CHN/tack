@@ -105,6 +105,21 @@ func (c *Client) connectionOnce(ctx context.Context) (connected bool, err error)
 		return false, err
 	}
 	conn := cnet.NewWebSocketConn(wsConn)
+	// SSH negotiation can block before BindSSH owns the connection. Tie that
+	// interval to the caller's lifetime too, including a silent SSH peer.
+	stopClosing := context.AfterFunc(ctx, func() { conn.Close() })
+	defer stopClosing()
+	defer conn.Close()
+	// ClientConfig.Timeout is used by ssh.Dial, not NewClientConn. Bound both
+	// SSH negotiation and the config ACK here, otherwise a half-open link can
+	// prevent the reconnect loop from ever getting another attempt. Closing
+	// is safe alongside SSH's readers/writers; changing websocket deadlines
+	// after its goroutines start is not safe.
+	var handshakeTimer *time.Timer
+	if c.sshConfig.Timeout > 0 {
+		handshakeTimer = time.AfterFunc(c.sshConfig.Timeout, func() { conn.Close() })
+		defer handshakeTimer.Stop()
+	}
 	// perform SSH handshake on net.Conn
 	c.Debugf("Handshaking...")
 	sshConn, chans, reqs, err := ssh.NewClientConn(conn, "", c.sshConfig)
@@ -134,6 +149,9 @@ func (c *Client) connectionOnce(ctx context.Context) (connected bool, err error)
 	}
 	if len(configerr) > 0 {
 		return false, errors.New(string(configerr))
+	}
+	if handshakeTimer != nil && !handshakeTimer.Stop() {
+		return false, errors.New("SSH handshake timed out")
 	}
 	c.Infof("Connected (Latency %s)", time.Since(t0))
 	//connected, handover ssh connection for tunnel to use, and block
