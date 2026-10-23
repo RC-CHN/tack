@@ -192,3 +192,26 @@ power-loss testing. Actual CentOS 6, ARM/MIPS, NAS/overlay and flash endurance
 remain device-specific validation work. Finite disk cannot keep an unlimited
 unconfirmed backlog: backpressure protects accepted results; only confirmed
 history and diagnostics are lossy/expirable.
+
+
+The first rc.2 branch CI passed the management modules on Linux, macOS and
+Windows, plus the legacy tests and 13 cross-builds. Its Windows root-module
+run exposed an existing SOCKS shutdown test race: `Client.Close()` only requests
+cancellation, and the test attempted to rebind before `Client.Wait()` completed
+while its own accepted TCP connection remained open. The fixture now closes
+that peer, waits for complete client shutdown with a three-second failure bound,
+then checks immediate TCP and UDP reuse. It does not retry binding or skip the
+assertion on Windows. The local root race/vet suite and 20 repeated shutdown regressions passed.
+Native CI now repeats that shutdown regression 20 times on each platform; the
+final branch/tag matrices must pass after this fix.
+
+An additional **standalone Node** measurement used the actual Go 1.23.12,
+CGO-disabled native binary from the rc.2 management code, a local Python TLS
+HTTP/1.1 endpoint holding one v3 long poll, the default 1800-second heartbeat,
+and no tasks. After five seconds of warmup, a 30-second `/proc` observation
+reported RSS 9,016 → 8,176 KiB, seven FDs, eight OS threads, zero measured CPU
+ticks and zero additional disk write bytes. The process was terminated and
+joined afterward. Raw [idle report](validation/2026-10-23-rc2-node-idle.json).
+This short isolated observation excludes the Controller/test server and command
+children; it is not a general RSS ceiling, HTTP/2 measurement or overnight test.
+CPU time below the host clock-tick resolution is not observable in this sample.

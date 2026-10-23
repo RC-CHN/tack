@@ -1,0 +1,23 @@
+{
+  "node_toolchain": "go1.23.12",
+  "window_seconds": 30,
+  "http": "TLS HTTP/1.1",
+  "heartbeat_seconds": 1800,
+  "control_requests": 1,
+  "before": {
+    "rss_kib": 9016,
+    "cpu_ticks": 0,
+    "write_bytes": 20480,
+    "fds": 7,
+    "threads": 8
+  },
+  "after": {
+    "rss_kib": 8176,
+    "cpu_ticks": 0,
+    "write_bytes": 20480,
+    "fds": 7,
+    "threads": 8
+  },
+  "cpu_seconds": 0.0,
+  "idle_write_bytes": 0
+}

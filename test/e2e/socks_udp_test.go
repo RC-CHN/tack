@@ -410,6 +410,20 @@ func TestSocksUDPDisconnectClosesControl(t *testing.T) {
 	if err != io.EOF {
 		t.Fatalf("control did not close on shutdown: %v", err)
 	}
+	// Close only requests cancellation. EOF on this connection does not mean
+	// every proxy listener has finished stopping, and Windows can retain the
+	// endpoint while our half of the accepted connection is still open.
+	control.Close()
+	stopped := make(chan struct{})
+	go func() {
+		client.Wait()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(3 * time.Second):
+		t.Fatal("client did not finish shutdown")
+	}
 	// Both ports must be released after the proxy has stopped.
 	tcp, err := net.Listen("tcp", addr)
 	if err != nil {
