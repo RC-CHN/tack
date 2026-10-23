@@ -61,3 +61,35 @@ func TestWaitGroupDoneIsIdempotent(t *testing.T) {
 	wg.Done() // extra Done must be a no-op, not a panic
 	wg.Wait()
 }
+
+func TestWaitGroupGenerationWakeups(t *testing.T) {
+	var wg waitGroup
+	select {
+	case <-wg.WaitChan():
+	default:
+		t.Fatal("zero-value group must be ready")
+	}
+	for i := 0; i < 100; i++ {
+		wg.Add(2)
+		previous := wg.WaitChan()
+		wg.Done()
+		select {
+		case <-previous:
+			t.Fatal("released before the group completed")
+		default:
+		}
+		wg.DoneAll()
+		wg.Add(1)
+		select {
+		case <-previous:
+		default:
+			t.Fatal("subsequent Add re-blocked an already completed generation")
+		}
+		select {
+		case <-wg.WaitChan():
+			t.Fatal("new generation is already complete")
+		default:
+		}
+		wg.Done()
+	}
+}
