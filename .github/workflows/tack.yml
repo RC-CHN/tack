@@ -1,0 +1,64 @@
+name: Tack
+on:
+  push:
+    paths: ["management/**", "skills/tack-deploy/**", ".github/workflows/tack.yml"]
+  pull_request:
+    paths: ["management/**", "skills/tack-deploy/**", ".github/workflows/tack.yml"]
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+          cache: false
+      - name: Test Tack modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          for module in protocol control node integration; do
+            (cd "management/$module" && go test -race ./... && go vet ./...)
+          done
+      - name: Build Tack commands
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/tack
+          (cd management/control && go build -trimpath -o ../../build/tack/ ./cmd/tack-control ./cmd/tack)
+          (cd management/node && go build -trimpath -o ../../build/tack/ ./cmd/tack-node)
+  legacy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.23.12
+          cache: false
+      - name: Test legacy-compatible modules on the CI host
+        run: |
+          set -eu
+          (cd management/protocol && go test ./...)
+          (cd management/node && go test ./...)
+      - name: Cross-compile Node targets (not native device validation)
+        working-directory: management/node
+        run: |
+          set -eu
+          mkdir -p ../../build/tack-cross
+          for arch in amd64 386 arm arm64 mips mipsle mips64 mips64le; do
+            CGO_ENABLED=0 GOOS=linux GOARCH="$arch" GOARM=5 GOMIPS=softfloat GOMIPS64=softfloat \
+              go build -trimpath -o "../../build/tack-cross/tack-node-linux-$arch" ./cmd/tack-node
+          done
+          for arm in 6 7; do
+            CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM="$arm" \
+              go build -trimpath -o "../../build/tack-cross/tack-node-linux-armv$arm" ./cmd/tack-node
+          done
+          for arch in amd64 386 arm64; do
+            CGO_ENABLED=0 GOOS=windows GOARCH="$arch" \
+              go build -trimpath -o "../../build/tack-cross/tack-node-windows-$arch.exe" ./cmd/tack-node
+          done
