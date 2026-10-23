@@ -1,9 +1,12 @@
 name: Tack
 on:
   push:
-    paths: ["management/**", "skills/tack-deploy/**", ".github/workflows/tack.yml"]
+    branches: [master]
+    tags: ["tack-v*"]
+    paths: ["management/**", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**"]
   pull_request:
-    paths: ["management/**", "skills/tack-deploy/**", ".github/workflows/tack.yml"]
+    paths: ["management/**", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**"]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -16,7 +19,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
-          go-version: stable
+          go-version: 1.26.3
           cache: false
       - name: Test Tack modules
         shell: bash
@@ -25,6 +28,8 @@ jobs:
           for module in protocol control node integration; do
             (cd "management/$module" && go test -race ./... && go vet ./...)
           done
+          GOTOOLCHAIN=local go test -race ./...
+          GOTOOLCHAIN=local go vet ./...
       - name: Build Tack commands
         shell: bash
         run: |
@@ -62,3 +67,53 @@ jobs:
             CGO_ENABLED=0 GOOS=windows GOARCH="$arch" \
               go build -trimpath -o "../../build/tack-cross/tack-node-windows-$arch.exe" ./cmd/tack-node
           done
+  soak:
+    if: startsWith(github.ref, 'refs/tags/tack-v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        http2: ["0", "1"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.26.3
+          cache: false
+      - name: Exercise bounded tasks and reconnects without race overhead
+        working-directory: management/integration
+        env:
+          TACK_SOAK_SECONDS: "180"
+          TACK_SOAK_TASKS: "128"
+          TACK_SOAK_HTTP2: ${{ matrix.http2 }}
+          TACK_SOAK_REPORT: resource-report.json
+        run: go test -run '^TestManagementResourceSoak$' -count=1 -timeout=8m -v .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resource-http2-${{ matrix.http2 }}
+          path: management/integration/resource-report.json
+  release:
+    if: startsWith(github.ref, 'refs/tags/tack-v')
+    needs: [test, legacy, soak]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.26.3
+          cache: false
+      - name: Build, integrity-check, and checksum exact release archives
+        run: python3 scripts/build-release.py --version "${GITHUB_REF_NAME#tack-v}" --output dist/tack
+      - name: Create draft with verified artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#tack-v}"
+          args=(--draft --verify-tag --title "Tack $version" --notes-file ".github/releases/tack-$version.md")
+          if [[ "$version" == *-* ]]; then args+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" "${args[@]}" dist/tack/*

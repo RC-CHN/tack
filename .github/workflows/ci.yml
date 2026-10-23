@@ -54,7 +54,7 @@ jobs:
   release:
     name: Release
     needs: test
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.repository == 'jpillora/chisel' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write

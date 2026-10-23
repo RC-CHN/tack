@@ -20,7 +20,7 @@ jobs:
     name: Promote Docker tags
     # prereleases keep only their version tag; manual dispatch is an
     # explicit operator override
-    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.release.prerelease }}
+    if: ${{ github.repository == 'jpillora/chisel' && (github.event_name == 'workflow_dispatch' || !github.event.release.prerelease) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
