@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"tack.local/management/control"
 	p "tack.local/management/protocol"
@@ -23,8 +25,12 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) == 1 && (args[0] == "version" || args[0] == "-version" || args[0] == "--version") {
+		fmt.Println(p.BuildVersion)
+		return nil
+	}
 	if len(args) == 0 {
-		return errors.New("usage: tack provision|nodes|tasks|submit|get|cancel [options]")
+		return errors.New("usage: tack provision|nodes|metrics|tasks|submit|get|cancel [options]")
 	}
 	if args[0] == "provision" {
 		return provision(args[1:])
@@ -36,6 +42,8 @@ func run(args []string) error {
 	dev := f.Bool("allow-insecure-loopback", false, "allow HTTP on a literal loopback address for development")
 	id := f.String("id", "", "task ID")
 	file := f.String("file", "", "task JSON file for submit")
+	limit := f.Int("limit", 100, "task summary page size (1..200)")
+	after := f.String("after", "", "task page cursor returned by the previous page")
 	if err := f.Parse(args[1:]); err != nil {
 		return err
 	}
@@ -52,8 +60,13 @@ func run(args []string) error {
 	switch args[0] {
 	case "nodes":
 		path = "/v1/nodes"
+	case "metrics":
+		path = "/v1/metrics"
 	case "tasks":
-		path = "/v1/tasks"
+		if *limit < 1 || *limit > 200 || (*after != "" && !p.ValidID(*after)) {
+			return errors.New("invalid task page limit/cursor")
+		}
+		path = "/v2/tasks?" + url.Values{"limit": {strconv.Itoa(*limit)}, "after": {*after}}.Encode()
 	case "get", "cancel":
 		if !p.ValidID(*id) {
 			return errors.New("valid -id required")

@@ -52,6 +52,9 @@ func TestRepeatedDeliveryDoesNotExecuteTwice(t *testing.T) {
 	defer cancel()
 	terminalReports := 0
 	a.client = &http.Client{Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
+		if r.URL.Path == "/health" {
+			return response(map[string]int{"protocol_version": 1}), nil
+		}
 		var input p.SyncRequest
 		if err := p.Decode(r.Body, &input); err != nil {
 			t.Fatal(err)
@@ -89,6 +92,9 @@ func TestRestartMarksIntentUnknown(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	a.client = &http.Client{Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
+		if r.URL.Path == "/health" {
+			return response(map[string]int{"protocol_version": 1}), nil
+		}
 		var input p.SyncRequest
 		p.Decode(r.Body, &input)
 		if input.Report == nil || input.Report.State != "unknown" {

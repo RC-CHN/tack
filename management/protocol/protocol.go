@@ -10,9 +10,14 @@ import (
 )
 
 const Version = 1
+const LatestVersion = 2
 
 // NodeSyncPath retains the version 1 wire endpoint across the Tack rename.
 const NodeSyncPath = "/v1/agent/sync"
+const NodeControlPath = "/v2/node/sync"
+const NodeResultPath = "/v2/node/results"
+const MaxChunk = 64 * 1024
+const ResultTimeoutSeconds = 120
 
 const MaxOutput = 1024 * 1024 // per output stream
 const MaxBody = 4 * 1024 * 1024
@@ -80,25 +85,29 @@ func (c Command) Validate() error {
 }
 
 type Task struct {
-	ID              string    `json:"id"`
-	NodeID          string    `json:"node_id"`
-	Command         Command   `json:"command"`
-	CreatedAt       time.Time `json:"created_at"`
-	State           string    `json:"state"`
-	CancelRequested bool      `json:"cancel_requested"`
-	Result          *Result   `json:"result,omitempty"`
+	ID              string      `json:"id"`
+	NodeID          string      `json:"node_id"`
+	Command         Command     `json:"command"`
+	CreatedAt       time.Time   `json:"created_at"`
+	State           string      `json:"state"`
+	CancelRequested bool        `json:"cancel_requested"`
+	Result          *Result     `json:"result,omitempty"`
+	ResultPending   bool        `json:"result_pending,omitempty"`
+	Upload          *Manifest   `json:"upload,omitempty"`
+	Timing          *TaskTiming `json:"timing,omitempty"`
 }
 
 type Result struct {
-	StartedAt       time.Time `json:"started_at"`
-	FinishedAt      time.Time `json:"finished_at"`
-	Executable      string    `json:"executable,omitempty"`
-	ExitCode        *int      `json:"exit_code,omitempty"`
-	Stdout          []byte    `json:"stdout,omitempty"`
-	Stderr          []byte    `json:"stderr,omitempty"`
-	StdoutTruncated bool      `json:"stdout_truncated"`
-	StderrTruncated bool      `json:"stderr_truncated"`
-	Error           string    `json:"error,omitempty"`
+	MetadataTruncated bool      `json:"metadata_truncated,omitempty"`
+	StartedAt         time.Time `json:"started_at"`
+	FinishedAt        time.Time `json:"finished_at"`
+	Executable        string    `json:"executable,omitempty"`
+	ExitCode          *int      `json:"exit_code,omitempty"`
+	Stdout            []byte    `json:"stdout,omitempty"`
+	Stderr            []byte    `json:"stderr,omitempty"`
+	StdoutTruncated   bool      `json:"stdout_truncated"`
+	StderrTruncated   bool      `json:"stderr_truncated"`
+	Error             string    `json:"error,omitempty"`
 }
 
 func Terminal(state string) bool {
@@ -110,26 +119,35 @@ func Terminal(state string) bool {
 }
 
 type Node struct {
-	ID               string    `json:"id"`
-	Hostname         string    `json:"hostname"`
-	OS               string    `json:"os"`
-	Arch             string    `json:"arch"`
-	Modes            []string  `json:"modes"`
-	StatePersistence string    `json:"state_persistence"`
-	LastSeen         time.Time `json:"last_seen"`
+	ID               string       `json:"id"`
+	Hostname         string       `json:"hostname"`
+	OS               string       `json:"os"`
+	Arch             string       `json:"arch"`
+	Modes            []string     `json:"modes"`
+	StatePersistence string       `json:"state_persistence"`
+	LastSeen         time.Time    `json:"last_seen"`
+	LeaseExpiresAt   *time.Time   `json:"lease_expires_at,omitempty"`
+	Online           bool         `json:"online,omitempty"`
+	Metrics          *NodeMetrics `json:"metrics,omitempty"`
 }
 
 type Report struct {
-	TaskID string  `json:"task_id"`
-	State  string  `json:"state"`
-	Result *Result `json:"result,omitempty"`
+	TaskID string    `json:"task_id"`
+	State  string    `json:"state"`
+	Result *Result   `json:"result,omitempty"`
+	Upload *Manifest `json:"upload,omitempty"`
 }
 
+const MaxHeartbeatSeconds = 86400
+
 type SyncRequest struct {
-	Version    int     `json:"version"`
-	InstanceID string  `json:"instance_id"`
-	Node       Node    `json:"node"`
-	Report     *Report `json:"report,omitempty"`
+	WaitSeconds  int     `json:"wait_seconds,omitempty"`
+	LeaseSeconds int     `json:"lease_seconds,omitempty"`
+	Version      int     `json:"version"`
+	InstanceID   string  `json:"instance_id"`
+	Node         Node    `json:"node"`
+	Report       *Report `json:"report,omitempty"`
+	AcceptTask   bool    `json:"accept_task,omitempty"`
 }
 
 type SyncResponse struct {
@@ -150,8 +168,17 @@ type NodeCredential struct {
 }
 
 type ControlConfig struct {
-	AdminToken string           `json:"admin_token"`
-	Nodes      []NodeCredential `json:"nodes"`
+	AdminToken      string           `json:"admin_token"`
+	Nodes           []NodeCredential `json:"nodes"`
+	MaxActiveTasks  int              `json:"max_active_tasks,omitempty"`
+	MaxActiveBytes  int64            `json:"max_active_bytes,omitempty"`
+	MaxHistoryTasks int              `json:"max_history_tasks,omitempty"`
+	MaxHistoryBytes int64            `json:"max_history_bytes,omitempty"`
+}
+
+type TaskPage struct {
+	Tasks      []Task `json:"tasks"`
+	NextCursor string `json:"next_cursor,omitempty"`
 }
 
 type NodeConfig struct {
@@ -163,6 +190,11 @@ type NodeConfig struct {
 	StatePersistence      string `json:"state_persistence,omitempty"`
 	CAFile                string `json:"ca_file,omitempty"`
 	BusyBox               string `json:"busybox,omitempty"`
+	HeartbeatSeconds      int    `json:"heartbeat_seconds,omitempty"`
+	LeaseSeconds          int    `json:"lease_seconds,omitempty"`
 	PollSeconds           int    `json:"poll_seconds,omitempty"`
 	AllowInsecureLoopback bool   `json:"allow_insecure_loopback,omitempty"`
+	MaxPendingResults     int    `json:"max_pending_results,omitempty"`
+	MaxPendingResultBytes int    `json:"max_pending_result_bytes,omitempty"`
+	UploadBytesPerSecond  int    `json:"upload_bytes_per_second,omitempty"`
 }

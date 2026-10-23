@@ -46,13 +46,18 @@ func WriteJSON(path string, value any) error {
 	if err != nil {
 		return err
 	}
+	return WriteFile(path, append(b, '\n'))
+}
+
+// WriteFile atomically replaces a state file and flushes it before acknowledgement.
+func WriteFile(path string, b []byte) error {
 	f, err := os.CreateTemp(filepath.Dir(path), ".state-*")
 	if err != nil {
 		return err
 	}
 	name := f.Name()
 	defer os.Remove(name)
-	if _, err = f.Write(append(b, '\n')); err != nil {
+	if _, err = f.Write(b); err != nil {
 		f.Close()
 		return err
 	}
@@ -68,3 +73,6 @@ func WriteJSON(path string, value any) error {
 	}
 	return syncDirectory(filepath.Dir(path))
 }
+
+// SyncDirectory persists directory entries where the platform supports it.
+func SyncDirectory(path string) error { return syncDirectory(path) }

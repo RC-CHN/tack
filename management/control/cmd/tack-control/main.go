@@ -24,6 +24,7 @@ func main() {
 	}
 }
 func run() error {
+	version := flag.Bool("version", false, "print release version")
 	configPath := flag.String("config", "", "controller JSON configuration")
 	statePath := flag.String("state", "", "task state file (required)")
 	listen := flag.String("listen", "127.0.0.1:8443", "Node listener address")
@@ -31,6 +32,10 @@ func run() error {
 	cert := flag.String("tls-cert", "", "TLS certificate file")
 	key := flag.String("tls-key", "", "TLS key file")
 	flag.Parse()
+	if *version {
+		fmt.Println(p.BuildVersion)
+		return nil
+	}
 	if *configPath == "" || *statePath == "" {
 		return fmt.Errorf("-config and -state are required")
 	}
@@ -71,10 +76,10 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	srv := &http.Server{Addr: *listen, Handler: api.NodeHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 60 * time.Second, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
-	admin := &http.Server{Addr: *adminListen, Handler: api.AdminHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 60 * time.Second}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	srv := &http.Server{BaseContext: func(net.Listener) context.Context { return ctx }, Addr: *listen, Handler: api.NodeHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 60 * time.Second, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
+	admin := &http.Server{BaseContext: func(net.Listener) context.Context { return ctx }, Addr: *adminListen, Handler: api.AdminHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 60 * time.Second}
 	errorsCh := make(chan error, 2)
 	go func() {
 		if *cert != "" {
@@ -90,10 +95,15 @@ func run() error {
 	case <-ctx.Done():
 		err = nil
 	}
+	stop() // Also cancel pending work when a listener failed, not only on signals.
 	shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	srv.Shutdown(shutdown)
-	admin.Shutdown(shutdown)
+	if e := srv.Shutdown(shutdown); e != nil {
+		srv.Close()
+	}
+	if e := admin.Shutdown(shutdown); e != nil {
+		admin.Close()
+	}
 	if err == http.ErrServerClosed {
 		return nil
 	}

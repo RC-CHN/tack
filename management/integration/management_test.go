@@ -71,7 +71,7 @@ func TestHTTPSExecuteAndCancel(t *testing.T) {
 		for time.Now().Before(deadline) {
 			var task p.Task
 			request("GET", "/v1/tasks/"+id, nil, &task)
-			if task.State == state {
+			if task.State == state && !task.ResultPending {
 				return task
 			}
 			time.Sleep(50 * time.Millisecond)

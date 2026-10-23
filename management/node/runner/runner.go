@@ -104,7 +104,14 @@ func (r Runner) Run(ctx context.Context, c p.Command) (string, *p.Result) {
 		result.Error = err.Error()
 		return state, result
 	}
-	defer os.RemoveAll(workspace)
+	defer func() {
+		if err := os.RemoveAll(workspace); err != nil {
+			if result.Error != "" {
+				result.Error += "; "
+			}
+			result.Error += "task workspace cleanup failed: " + err.Error()
+		}
+	}()
 	path, args := c.Program, append([]string(nil), c.Args...)
 	if c.Mode == "exec" {
 		if runtime.GOOS == "windows" && (strings.EqualFold(filepath.Ext(path), ".cmd") || strings.EqualFold(filepath.Ext(path), ".bat")) {

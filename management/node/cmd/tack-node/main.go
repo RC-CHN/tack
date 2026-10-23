@@ -20,7 +20,12 @@ func main() {
 }
 func run() error {
 	configPath := flag.String("config", "", "Node JSON configuration (required)")
+	version := flag.Bool("version", false, "print release version")
 	flag.Parse()
+	if *version {
+		fmt.Println(p.BuildVersion)
+		return nil
+	}
 	if *configPath == "" {
 		return fmt.Errorf("-config is required; deployment and startup registration are external")
 	}

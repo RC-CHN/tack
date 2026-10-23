@@ -9,16 +9,17 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	p "tack.local/management/protocol"
+	"tack.local/management/protocol/telemetry"
 )
 
 type state struct {
-	Tasks map[string]p.Task `json:"tasks"`
+	Version int               `json:"storage_version"`
+	Tasks   map[string]p.Task `json:"tasks"`
 }
 type liveNode struct {
 	info     p.Node
@@ -27,14 +28,24 @@ type liveNode struct {
 
 // Server is a single-controller durable task queue. Run one process per state file.
 type Server struct {
-	mu     sync.Mutex
-	config p.ControlConfig
-	path   string
-	state  state
-	nodes  map[string]liveNode
+	tx           sync.Mutex // Serializes durable mutations; readers do not wait on disk writes.
+	mu           sync.Mutex
+	config       p.ControlConfig
+	path         string
+	state        state
+	nodes        map[string]liveNode
+	meter        *telemetry.Meter
+	uploads      [64]sync.Mutex
+	changed      chan struct{}
+	historyBytes int64
+	historyTasks int
+	writeJSON    func(string, any) error
 }
 
 func ValidateConfig(c p.ControlConfig) error {
+	if err := storageDefaults(&c); err != nil {
+		return err
+	}
 	if len(c.AdminToken) < 32 {
 		return errors.New("admin_token must contain at least 32 characters")
 	}
@@ -52,17 +63,19 @@ func New(config p.ControlConfig, path string) (*Server, error) {
 	if err := ValidateConfig(config); err != nil {
 		return nil, err
 	}
-	s := &Server{config: config, path: path, state: state{Tasks: map[string]p.Task{}}, nodes: map[string]liveNode{}}
-	if err := p.ReadJSON(path, &s.state); err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-	if s.state.Tasks == nil {
-		s.state.Tasks = map[string]p.Task{}
-	}
+	storageDefaults(&config)
+	s := &Server{config: config, path: path, state: state{Version: 1, Tasks: map[string]p.Task{}}, nodes: map[string]liveNode{}, meter: telemetry.New(), changed: make(chan struct{})}
+	s.writeJSON = s.meter.WriteJSON
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return nil, err
 	}
-	if err := p.WriteJSON(path, s.state); err != nil {
+	if err := s.openStorage(); err != nil {
+		return nil, err
+	}
+	if err := s.writeJSON(path, s.state); err != nil {
+		return nil, err
+	}
+	if err := s.cleanUploads(); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -94,7 +107,7 @@ func failure(w http.ResponseWriter, code int, msg string) {
 // NodeHandler exposes no administrator routes, even with an administrator token.
 func (s *Server) NodeHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != p.NodeSyncPath && r.URL.Path != "/health" {
+		if !nodePath(r.URL.Path) && r.URL.Path != "/health" {
 			failure(w, 404, "endpoint not found")
 			return
 		}
@@ -104,7 +117,7 @@ func (s *Server) NodeHandler() http.Handler {
 
 func (s *Server) AdminHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == p.NodeSyncPath {
+		if nodePath(r.URL.Path) {
 			failure(w, 404, "endpoint not found")
 			return
 		}
@@ -119,9 +132,27 @@ func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 	return true
 }
 
+func nodePath(path string) bool {
+	return path == p.NodeSyncPath || path == p.NodeControlPath || path == p.NodeResultPath
+}
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if nodePath(r.URL.Path) {
+		start := time.Now()
+		status := &statusWriter{ResponseWriter: w, code: 200}
+		defer func() {
+			kind := ""
+			if r.Context().Err() != nil {
+				kind = "canceled"
+			} else if status.code >= 400 {
+				kind = "http"
+			}
+			s.meter.Request(r.URL.Path == p.NodeResultPath, start, status.code, kind)
+		}()
+		w = status
+	}
+
 	if r.URL.Path == "/health" && r.Method == "GET" {
-		respond(w, 200, map[string]int{"protocol_version": p.Version})
+		respond(w, 200, map[string]int{"protocol_version": p.LatestVersion})
 		return
 	}
 	header := r.Header.Get("Authorization")
@@ -130,14 +161,18 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := strings.TrimPrefix(header, "Bearer ")
-	if r.URL.Path == p.NodeSyncPath {
+	if nodePath(r.URL.Path) {
 		if r.Method != "POST" {
 			failure(w, 405, "POST required")
 			return
 		}
 		for _, n := range s.config.Nodes {
 			if equalToken(token, n.Token) {
-				s.syncNode(w, r, n.ID)
+				if r.URL.Path == p.NodeResultPath {
+					s.uploadResult(w, r, n.ID)
+				} else {
+					s.syncNode(w, r, n.ID)
+				}
 				return
 			}
 		}
@@ -148,102 +183,133 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 401, "invalid administrator credential")
 		return
 	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	switch {
-	case r.URL.Path == "/v1/nodes" && r.Method == "GET":
-		nodes := make([]p.Node, 0, len(s.config.Nodes))
-		for _, n := range s.config.Nodes {
-			v := s.nodes[n.ID].info
-			v.ID = n.ID
-			nodes = append(nodes, v)
-		}
-		sort.Slice(nodes, func(i, j int) bool { return nodes[i].ID < nodes[j].ID })
-		respond(w, 200, nodes)
-	case r.URL.Path == "/v1/tasks" && r.Method == "POST":
-		var input p.CreateTask
+	if s.readAdministrator(w, r) {
+		return
+	}
+	var input p.CreateTask
+	if r.URL.Path == "/v1/tasks" && r.Method == "POST" {
 		if !decode(w, r, &input) {
 			return
 		}
+	}
+	response := s.adminResponse(r, input)
+	respond(w, response.code, response.value)
+}
+
+// All values returned here are immutable snapshots; later changes replace
+// records instead of modifying slices/pointers that a response still references.
+func (s *Server) adminResponse(r *http.Request, input p.CreateTask) apiReply {
+	s.tx.Lock()
+	defer s.tx.Unlock()
+	var archived p.Task
+	if strings.HasPrefix(r.URL.Path, "/v1/tasks/") {
+		id := strings.Split(strings.TrimPrefix(r.URL.Path, "/v1/tasks/"), "/")[0]
+		var err error
+		archived, _, err = s.lookupTask(id)
+		if err != nil {
+			return errorReply(500, "cannot read task")
+		}
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	switch {
+	case r.URL.Path == "/v1/tasks" && r.Method == "POST":
 		input.Command.Defaults()
 		if err := input.Command.Validate(); err != nil {
-			failure(w, 400, err.Error())
-			return
+			return errorReply(400, err.Error())
 		}
 		if !s.nodeExists(input.NodeID) {
-			failure(w, 404, "node is not provisioned")
-			return
+			return errorReply(404, "node is not provisioned")
 		}
 		id, err := p.RandomID()
 		if err != nil {
-			failure(w, 500, "cannot create task identity")
-			return
+			return errorReply(500, "cannot create task identity")
 		}
 		t := p.Task{ID: id, NodeID: input.NodeID, Command: input.Command, CreatedAt: time.Now().UTC(), State: "queued"}
+		if err := s.admit(t); err != nil {
+			return errorReply(503, err.Error())
+		}
 		if err := s.commit(t); err != nil {
-			failure(w, 500, "cannot persist task")
-			return
+			return errorReply(500, "cannot persist task")
 		}
-		respond(w, 201, t)
-	case r.URL.Path == "/v1/tasks" && r.Method == "GET":
-		tasks := make([]p.Task, 0, len(s.state.Tasks))
-		for _, t := range s.state.Tasks {
-			tasks = append(tasks, t)
-		}
-		sort.Slice(tasks, func(i, j int) bool { return tasks[i].CreatedAt.Before(tasks[j].CreatedAt) })
-		respond(w, 200, tasks)
+		return apiReply{201, t}
 	case strings.HasPrefix(r.URL.Path, "/v1/tasks/"):
 		parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/v1/tasks/"), "/")
 		t, ok := s.state.Tasks[parts[0]]
-		if !ok {
-			failure(w, 404, "task not found")
-			return
+		if !ok && archived.ID == parts[0] {
+			t, ok = archived, true
 		}
-		if len(parts) == 1 && r.Method == "GET" {
-			respond(w, 200, t)
-			return
+		if !ok {
+			return errorReply(404, "task not found")
 		}
 		if len(parts) == 2 && parts[1] == "cancel" && r.Method == "POST" {
 			if !p.Terminal(t.State) {
 				t.CancelRequested = true
+				t.Timing = timingCopy(t)
+				if t.Timing.CancelRequestedAt.IsZero() {
+					t.Timing.CancelRequestedAt = time.Now().UTC()
+				}
 				if t.State == "queued" {
 					t.State = "canceled"
 				}
 				if err := s.commit(t); err != nil {
-					failure(w, 500, "cannot persist cancellation")
-					return
+					return errorReply(500, "cannot persist cancellation")
 				}
 			}
-			respond(w, 200, t)
-			return
+			return apiReply{200, t}
 		}
-		failure(w, 405, "unsupported task operation")
+		return errorReply(405, "unsupported task operation")
 	default:
-		failure(w, 404, "endpoint not found")
+		return errorReply(404, "endpoint not found")
 	}
 }
 
 // commit rolls back memory if the durable replacement fails.
 func (s *Server) commit(t p.Task) error {
-	old, exists := s.state.Tasks[t.ID]
-	s.state.Tasks[t.ID] = t
-	if err := p.WriteJSON(s.path, s.state); err != nil {
-		if exists {
-			s.state.Tasks[t.ID] = old
-		} else {
-			delete(s.state.Tasks, t.ID)
-		}
+	// The caller holds tx and mu. Publish a new immutable snapshot only after
+	// persistence; releasing mu here keeps status/readers responsive to slow disk.
+	next := state{Version: 1, Tasks: make(map[string]p.Task, len(s.state.Tasks)+1)}
+	for id, task := range s.state.Tasks {
+		next.Tasks[id] = task
+	}
+	if completed(t) {
+		delete(next.Tasks, t.ID)
+	} else {
+		next.Tasks[t.ID] = t
+	}
+	s.mu.Unlock()
+	var err error
+	if completed(t) {
+		err = s.archive(t)
+	}
+	if err == nil {
+		err = s.writeJSON(s.path, next)
+	}
+	s.mu.Lock()
+	if err != nil {
 		return err
 	}
+	s.state = next
+	close(s.changed)
+	s.changed = make(chan struct{})
 	return nil
 }
 
 func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 	var input p.SyncRequest
-	if !decode(w, r, &input) {
+	limit := p.MaxBody
+	if r.URL.Path == p.NodeControlPath {
+		limit = 128 * 1024
+	}
+	if err := p.Decode(http.MaxBytesReader(w, r.Body, int64(limit)), &input); err != nil {
+		failure(w, 400, "invalid control request")
 		return
 	}
-	if input.Version != p.Version {
+	version := p.Version
+	if r.URL.Path == p.NodeControlPath {
+		version = p.LatestVersion
+	}
+	if input.Version != version {
 		failure(w, 400, "unsupported protocol version")
 		return
 	}
@@ -251,44 +317,149 @@ func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 		failure(w, 400, "invalid node identity or capabilities")
 		return
 	}
+	if version == p.LatestVersion && (input.WaitSeconds < 0 || input.WaitSeconds > p.MaxHeartbeatSeconds*3/2 || input.LeaseSeconds < input.WaitSeconds+30 || input.LeaseSeconds > 604800) {
+		failure(w, 400, "invalid heartbeat wait or lease")
+		return
+	}
+	if version == p.LatestVersion {
+		// Bound the response deadline per authenticated long poll; body/header limits remain short.
+		_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(time.Duration(input.WaitSeconds+20) * time.Second))
+	}
+	seen := time.Now().UTC()
+	timer := time.NewTimer(time.Duration(input.WaitSeconds) * time.Second)
+	defer timer.Stop()
+	for {
+		changed := s.syncOnce(w, r, id, input, version, seen, input.WaitSeconds > 0)
+		if changed == nil {
+			return
+		}
+		select {
+		case <-r.Context().Done():
+			return
+		case <-timer.C:
+			s.syncOnce(w, r, id, input, version, seen, false)
+			return
+		case <-changed:
+		}
+	}
+}
+
+// Return a notification channel only when no immediate control message is needed.
+func (s *Server) syncOnce(w http.ResponseWriter, r *http.Request, id string, input p.SyncRequest, version int, seen time.Time, wait bool) <-chan struct{} {
+	reply, changed := s.syncState(id, input, version, seen, wait)
+	if changed == nil {
+		// Waiting may take 45 minutes; sending a response gets only a short deadline.
+		_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(20 * time.Second))
+		respond(w, reply.code, reply.value)
+	}
+	return changed
+}
+
+func (s *Server) syncState(id string, input p.SyncRequest, version int, seen time.Time, wait bool) (reply apiReply, changed <-chan struct{}) {
+	s.tx.Lock()
+	defer s.tx.Unlock()
+	var archived p.Task
+	if input.Report != nil {
+		var err error
+		archived, _, err = s.lookupTask(input.Report.TaskID)
+		if err != nil {
+			return errorReply(500, "cannot read reported task"), nil
+		}
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	now := time.Now().UTC()
 	previous := s.nodes[id]
-	if previous.instance != "" && previous.instance != input.InstanceID && now.Sub(previous.info.LastSeen) < 30*time.Second {
-		failure(w, 409, "another node instance is active for this node")
-		return
+	if previous.instance != "" && previous.instance != input.InstanceID && previous.info.LeaseExpiresAt != nil && now.Before(*previous.info.LeaseExpiresAt) {
+		reply = errorReply(409, "another node instance is active for this node")
+		return reply, nil
 	}
-	input.Node.LastSeen = now
-	s.nodes[id] = liveNode{info: input.Node, instance: input.InstanceID}
-	response := p.SyncResponse{Version: p.Version}
+	input.Node.LastSeen = seen
+	lease := 30
+	if version == p.LatestVersion {
+		lease = input.LeaseSeconds
+	}
+	expires := seen.Add(time.Duration(lease) * time.Second)
+	input.Node.LeaseExpiresAt = &expires
+	if !seen.Before(previous.info.LastSeen) {
+		s.nodes[id] = liveNode{info: input.Node, instance: input.InstanceID}
+	}
+	response := p.SyncResponse{Version: version}
 	if report := input.Report; report != nil {
 		t, ok := s.state.Tasks[report.TaskID]
+		if !ok && archived.ID == report.TaskID {
+			t, ok = archived, true
+		}
 		if !ok || t.NodeID != id {
-			failure(w, 403, "task does not belong to this node")
-			return
+			reply = errorReply(403, "task does not belong to this node")
+			return reply, nil
 		}
 		if report.State != "running" && !p.Terminal(report.State) {
-			failure(w, 400, "invalid task state")
-			return
+			reply = errorReply(400, "invalid task state")
+			return reply, nil
 		}
 		if t.State == "queued" {
-			failure(w, 409, "task has not been dispatched")
-			return
+			reply = errorReply(409, "task has not been dispatched")
+			return reply, nil
 		}
 		if p.Terminal(report.State) && report.Result == nil {
-			failure(w, 400, "terminal report requires result")
-			return
+			reply = errorReply(400, "terminal report requires result")
+			return reply, nil
 		}
 		if report.Result != nil && (len(report.Result.Stdout) > t.Command.OutputLimit || len(report.Result.Stderr) > t.Command.OutputLimit) {
-			failure(w, 400, "result exceeds task output limit")
-			return
+			reply = errorReply(400, "result exceeds task output limit")
+			return reply, nil
+		}
+		if version == p.LatestVersion && p.Terminal(report.State) {
+			if report.Upload == nil || report.Upload.Validate(t.Command.OutputLimit) != nil || len(report.Result.Stdout) != 0 || len(report.Result.Stderr) != 0 || len(report.Result.Error) > 8192 || len(report.Result.Executable) > 4096 {
+				reply = errorReply(400, "terminal report requires a valid manifest and bounded metadata without output")
+				return reply, nil
+			}
+			if p.Terminal(t.State) && t.Upload != nil && *t.Upload != *report.Upload {
+				reply = errorReply(409, "result manifest conflicts with committed report")
+				return reply, nil
+			}
+		}
+		// A v1 final acknowledgement may have been lost during a rolling upgrade.
+		if version == p.LatestVersion && p.Terminal(report.State) && p.Terminal(t.State) && t.Upload == nil {
+			if t.Result == nil {
+				reply = errorReply(409, "terminal task has no result to reconcile")
+				return reply, nil
+			}
+			manifest := p.OutputManifest(t.Result)
+			if manifest != *report.Upload {
+				reply = errorReply(409, "result conflicts with stored legacy output")
+				return reply, nil
+			}
+			t.Upload = &manifest
+			if err := s.commit(t); err != nil {
+				reply = errorReply(500, "cannot reconcile legacy result")
+				return reply, nil
+			}
 		}
 		if !p.Terminal(t.State) && (t.State != report.State || report.Result != nil) {
 			t.State, t.Result = report.State, report.Result
+			t.Timing = timingCopy(t)
+			if t.State == "running" && t.Timing.RunningReportedAt.IsZero() {
+				t.Timing.RunningReportedAt = now
+				if !t.Timing.DispatchedAt.IsZero() {
+					t.Timing.DispatchToRunningMS = now.Sub(t.Timing.DispatchedAt).Milliseconds()
+				}
+			}
+			if p.Terminal(t.State) {
+				t.Timing.TerminalReportedAt = now
+				if !t.Timing.CancelRequestedAt.IsZero() {
+					t.Timing.CancelToTerminalMS = now.Sub(t.Timing.CancelRequestedAt).Milliseconds()
+				}
+				if version == p.LatestVersion {
+					t.Upload, t.ResultPending = report.Upload, true
+				} else {
+					t.Timing.ResultReceivedAt = now
+				}
+			}
 			if err := s.commit(t); err != nil {
-				failure(w, 500, "cannot persist result")
-				return
+				reply = errorReply(500, "cannot persist result")
+				return reply, nil
 			}
 		}
 		if p.Terminal(t.State) {
@@ -308,21 +479,67 @@ func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 		}
 	}
 	if selected != nil {
+		if selected.State == "queued" && version == p.LatestVersion && !input.AcceptTask {
+			if wait && response.Acknowledged == "" {
+				return reply, s.changed
+			}
+			reply = apiReply{200, response}
+			return reply, nil
+		}
 		if selected.State == "queued" {
 			selected.State = "dispatched"
+			selected.Timing = timingCopy(*selected)
+			selected.Timing.DispatchedAt = now
+			selected.Timing.QueueMS = now.Sub(selected.CreatedAt).Milliseconds()
 			if err := s.commit(*selected); err != nil {
-				failure(w, 500, "cannot persist dispatch")
-				return
+				reply = errorReply(500, "cannot persist dispatch")
+				return reply, nil
 			}
+		}
+		if version == p.Version {
+			selected.Timing, selected.Upload, selected.ResultPending = nil, nil, false
 		}
 		response.Task = selected
 		if selected.CancelRequested {
 			response.CancelTaskID = selected.ID
 		}
 	}
-	respond(w, 200, response)
+	if wait && response.Acknowledged == "" && response.CancelTaskID == "" {
+		if selected == nil || (input.Report != nil && input.Report.TaskID == selected.ID && input.Report.State == "running" && selected.State == "running") {
+			return reply, s.changed
+		}
+	}
+	reply = apiReply{200, response}
+	return reply, nil
 }
 
 func (s *Server) String() string {
 	return fmt.Sprintf("tack-control (%d provisioned nodes)", len(s.config.Nodes))
+}
+
+// Copy before mutation so failed commits leave the previous state intact.
+func timingCopy(t p.Task) *p.TaskTiming {
+	v := p.TaskTiming{}
+	if t.Timing != nil {
+		v = *t.Timing
+	}
+	return &v
+}
+
+type statusWriter struct {
+	http.ResponseWriter
+	code int
+}
+
+func (w *statusWriter) WriteHeader(code int) { w.code = code; w.ResponseWriter.WriteHeader(code) }
+
+func (w *statusWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+
+type apiReply struct {
+	code  int
+	value any
+}
+
+func errorReply(code int, message string) apiReply {
+	return apiReply{code, map[string]string{"error": message}}
 }
