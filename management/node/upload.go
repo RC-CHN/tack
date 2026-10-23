@@ -17,6 +17,8 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 	total := manifest.Total()
 	retry := time.Second
 	nextSend := time.Now()
+	chunkLimit := p.MaxChunk
+	failedOffset, failedBytes := -1, 0
 	var body *os.File
 	var bodyOffset int64
 	var buffer []byte
@@ -35,6 +37,23 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 		if err == nil {
 			err = ctx.Err()
 		}
+		if err == nil && failedOffset >= 0 {
+			// A failed request may have committed its data and only lost the ACK.
+			// Reduce the checkpoint size only when a successful probe proves that
+			// the failed data request made no durable progress. Keep the smaller
+			// size for this result so intermittent links do not oscillate back
+			// into repeatedly unsendable chunks. Clean links retain MaxChunk.
+			if ack.Offset > failedOffset {
+				// This probe is the acknowledgement lost with the connection.
+				// Durable progress must reset backoff just like a direct ACK;
+				// otherwise repeated lost ACKs make a working link wait longer
+				// and longer even as the receiver accumulates valid output.
+				retry = time.Second
+			} else if failedBytes > 4*1024 {
+				chunkLimit = max(4*1024, failedBytes/4)
+			}
+			failedOffset = -1
+		}
 		if err == nil && job.Spool != nil && body == nil {
 			var header spoolHeader
 			body, header, bodyOffset, err = readSpool(a.spoolPath(job.Task.ID), true)
@@ -44,14 +63,14 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 				err = errors.New("result file changed; preserving unconfirmed result")
 			}
 			if err == nil && !ack.Complete {
-				buffer = make([]byte, min(total, p.MaxChunk))
+				buffer = make([]byte, min(total, chunkLimit))
 			}
 		}
 		for err == nil && !ack.Complete {
 			if err = delay(ctx, time.Until(nextSend)); err != nil {
 				return err
 			}
-			end := ack.Offset + p.MaxChunk
+			end := ack.Offset + chunkLimit
 			if end > total {
 				end = total
 			}
@@ -70,7 +89,7 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 					break
 				}
 			} else {
-				input.Data = outputChunk(job.Report.Result, ack.Offset)
+				input.Data = outputChunkSize(job.Report.Result, ack.Offset, chunkLimit)
 			}
 			if rate := a.config.UploadBytesPerSecond; rate > 0 {
 				nextSend = time.Now().Add(time.Duration(len(input.Data)) * time.Second / time.Duration(rate))
@@ -81,6 +100,8 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 			}
 			if err == nil {
 				retry = time.Second
+			} else {
+				failedOffset, failedBytes = input.Offset, len(input.Data)
 			}
 		}
 		if err == nil {
@@ -115,8 +136,12 @@ func (a *Node) chunk(ctx context.Context, input p.ResultChunk, total int) (p.Chu
 
 // Only a chunk crossing the stdout/stderr boundary needs a temporary copy.
 func outputChunk(result *p.Result, offset int) []byte {
+	return outputChunkSize(result, offset, p.MaxChunk)
+}
+
+func outputChunkSize(result *p.Result, offset, limit int) []byte {
 	total := len(result.Stdout) + len(result.Stderr)
-	end := offset + p.MaxChunk
+	end := offset + limit
 	if end > total {
 		end = total
 	}
