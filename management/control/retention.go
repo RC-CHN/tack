@@ -87,7 +87,7 @@ func (s *Server) releaseReceipts(node string, ids []string) error {
 		}
 		// The final upload ack requires successful staging cleanup. Startup also
 		// cleans completed staging files before this endpoint can be used.
-		err = os.Rename(s.historyPath(id), s.releasedPath(id))
+		err = p.ReplaceFile(s.historyPath(id), s.releasedPath(id))
 		if err != nil && !os.IsNotExist(err) {
 			return err
 		}
@@ -120,7 +120,7 @@ func (s *Server) moveReleased(id string) error {
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	if err := os.Rename(s.historyPath(id), s.releasedPath(id)); err != nil {
+	if err := p.ReplaceFile(s.historyPath(id), s.releasedPath(id)); err != nil {
 		return err
 	}
 	s.evictions.valid = false

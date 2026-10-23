@@ -71,7 +71,9 @@ other files using its account permissions; hard bounds on those writes require
 deployment-level storage quotas.
 
 Atomic writes use a fixed pending filename per destination, avoiding one new
-temporary filename on every crash. Complete pending Node checkpoints/results
+temporary filename on every crash. On Windows, file replacement retries brief
+sharing/access conflicts with bounded backoff for at most one second; a persistent
+failure is still reported, and replacement never deletes the destination first. Complete pending Node checkpoints/results
 are recovered before deletion; a recovery write failure preserves its source.
 Recognized incomplete Controller archive writes can be discarded because no
 final ack was issued. Completed archives win over stale active snapshots, so a

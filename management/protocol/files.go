@@ -80,7 +80,7 @@ func WriteFile(path string, b []byte) error {
 	if err = f.Close(); err != nil {
 		return err
 	}
-	if err := os.Rename(name, path); err != nil {
+	if err := ReplaceFile(name, path); err != nil {
 		return err
 	}
 	return syncDirectory(filepath.Dir(path))

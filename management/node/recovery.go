@@ -72,7 +72,7 @@ func (a *Node) recoverReplay() error {
 	if closeErr != nil {
 		return closeErr
 	}
-	if err := os.Rename(pending, path); err != nil {
+	if err := p.ReplaceFile(pending, path); err != nil {
 		return err
 	}
 	return p.SyncDirectory(a.config.StateDir)
@@ -96,7 +96,7 @@ func (a *Node) recoverJournal(records map[string]journal, retained bool) (map[st
 		if err := a.writeJSON(recovery, value); err != nil {
 			return err
 		}
-		if err := os.Rename(recovery, path); err != nil {
+		if err := p.ReplaceFile(recovery, path); err != nil {
 			return err
 		}
 		if err := p.SyncDirectory(a.config.StateDir); err != nil {

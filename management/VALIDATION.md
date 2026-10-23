@@ -219,3 +219,17 @@ joined afterward. Raw [idle report](validation/2026-10-23-rc2-node-idle.json).
 This short isolated observation excludes the Controller/test server and command
 children; it is not a general RSS ceiling, HTTP/2 measurement or overnight test.
 CPU time below the host clock-tick resolution is not observable in this sample.
+
+
+A subsequent Windows CI run exposed an actual state-write robustness issue:
+the integration observer's ordinary journal read briefly prevented Windows
+from replacing that file, and the Node exited on `Access is denied`. File
+replacement now retries Windows access/sharing/lock conflicts with bounded
+backoff for at most one second, without deleting the destination first or
+acknowledging a failed commit. Node recovery and Controller receipt moves use
+the same replacement helper. Native Windows regressions hold a destination
+open, verify that a brief reader permits recovery after close, and verify that
+a persistent conflict returns an error while retaining the original bytes.
+The Windows tests cross-compile with Go 1.23.12; local protocol/control/integration
+race/vet and Node recovery/vet checks passed. Native execution is required in
+the final CI gates. Other platforms retain the direct rename operation.

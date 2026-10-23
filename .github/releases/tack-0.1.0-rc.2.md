@@ -11,7 +11,9 @@ Command output keeps a bounded beginning and ring-buffer tail, allocating only
 as needed. Optional diagnostic logs rotate by size and file count. Node-owned
 workspaces and recognized crash leftovers are reclaimed; complete pending
 results are recovered before cleanup. Transient result-write failures retry
-without starting another command. Unknown staging data is preserved and counted.
+without starting another command. Windows state replacement tolerates brief
+reader/scanner sharing conflicts with bounded retry, preserving the old file
+when replacement cannot commit. Unknown staging data is preserved and counted.
 
 The Controller caches at most 128 eviction candidates and reads only archive
 identity headers for receipts. Local benchmarks reduced a 12-byte output's
