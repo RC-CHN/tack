@@ -4,8 +4,10 @@ import (
 	"context"
 	"io"
 	"log"
+	"math/rand/v2"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -170,28 +172,29 @@ func post(url, body string) (string, error) {
 }
 
 func availablePort() string {
-	// The SOCKS relay needs the same port in both protocols. Windows can
-	// exclude a UDP range while still allowing TCP there, so a TCP-only
-	// ephemeral probe is insufficient. Let UDP select first, then verify TCP.
+	// SOCKS needs the same port in both protocols. Windows can exclude
+	// different ranges for TCP and UDP, and repeatedly probing :0 can return
+	// the same recently closed UDP port whose TCP counterpart is unavailable.
+	// Sample the unprivileged range explicitly and verify both protocols.
+	var lastErr error
 	for attempt := 0; attempt < 100; attempt++ {
-		u, err := net.ListenPacket("udp4", "127.0.0.1:0")
+		port := strconv.Itoa(1024 + rand.IntN(65536-1024))
+		address := net.JoinHostPort("127.0.0.1", port)
+		u, err := net.ListenPacket("udp4", address)
 		if err != nil {
-			log.Panic(err)
+			lastErr = err
+			continue
 		}
-		address := u.LocalAddr().String()
 		l, err := net.Listen("tcp4", address)
 		if err != nil {
 			u.Close()
+			lastErr = err
 			continue
 		}
-		_, port, err := net.SplitHostPort(address)
 		l.Close()
 		u.Close()
-		if err != nil {
-			log.Panic(err)
-		}
 		return port
 	}
-	log.Panic("cannot find a port available for both TCP and UDP")
+	log.Panicf("cannot find a port available for both TCP and UDP after 100 probes: %v", lastErr)
 	return ""
 }

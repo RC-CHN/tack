@@ -439,3 +439,13 @@ Retained reports:
 - [128 MiB backlog](validation/2026-10-23-spool-stress-max-backlog-h2.json)
 - [Eight-Node fanout](validation/2026-10-23-spool-stress-fanout-h2.json)
 - [Published rc.2 Node upgrade](validation/2026-10-23-spool-stress-upgrade-rc2.json)
+
+The first native CI run for `99773ac` passed all management race/vet checks on
+Linux, macOS and Windows, plus legacy tests and all 13 cross-builds. The overall
+Windows job subsequently failed in the inherited tunnel end-to-end suite:
+`availablePort` exhausted 100 UDP-selected candidates whose matching TCP ports
+could not be bound. The test helper now samples the unprivileged port range
+explicitly and verifies both protocols, avoiding dependence on an OS repeatedly
+reissuing an unsuitable ephemeral port. This changes test setup only. Ten local
+race-enabled repetitions of association limits, destination limits and control
+disconnect passed after the change; native CI must also verify this correction.
