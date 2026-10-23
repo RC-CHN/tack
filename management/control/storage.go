@@ -19,6 +19,12 @@ import (
 const maxTaskFile = 16 * 1024 * 1024
 
 func storageDefaults(c *p.ControlConfig) error {
+	if c.MaxConcurrentUploads == 0 {
+		c.MaxConcurrentUploads = 8
+	}
+	if c.MaxConcurrentUploads < 1 || c.MaxConcurrentUploads > 64 {
+		return errors.New("max_concurrent_uploads must be 1..64")
+	}
 	if c.MaxActiveTasks == 0 {
 		c.MaxActiveTasks = 256
 	}
@@ -322,6 +328,12 @@ func (s *Server) taskPage(after string, limit int) (p.TaskPage, error) {
 func (s *Server) readAdministrator(w http.ResponseWriter, r *http.Request) bool {
 	if r.Method != "GET" {
 		return false
+	}
+	if r.URL.Path == "/v1/tasks" || r.URL.Path == "/v2/tasks" || strings.HasPrefix(r.URL.Path, "/v1/tasks/") {
+		if !takeSlot(w, s.historySlots) {
+			return true
+		}
+		defer func() { <-s.historySlots }()
 	}
 	switch {
 	case r.URL.Path == "/v1/nodes" || r.URL.Path == "/v1/metrics":

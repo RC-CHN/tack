@@ -168,12 +168,13 @@ type NodeCredential struct {
 }
 
 type ControlConfig struct {
-	AdminToken      string           `json:"admin_token"`
-	Nodes           []NodeCredential `json:"nodes"`
-	MaxActiveTasks  int              `json:"max_active_tasks,omitempty"`
-	MaxActiveBytes  int64            `json:"max_active_bytes,omitempty"`
-	MaxHistoryTasks int              `json:"max_history_tasks,omitempty"`
-	MaxHistoryBytes int64            `json:"max_history_bytes,omitempty"`
+	AdminToken           string           `json:"admin_token"`
+	Nodes                []NodeCredential `json:"nodes"`
+	MaxActiveTasks       int              `json:"max_active_tasks,omitempty"`
+	MaxActiveBytes       int64            `json:"max_active_bytes,omitempty"`
+	MaxHistoryTasks      int              `json:"max_history_tasks,omitempty"`
+	MaxHistoryBytes      int64            `json:"max_history_bytes,omitempty"`
+	MaxConcurrentUploads int              `json:"max_concurrent_uploads,omitempty"`
 }
 
 type TaskPage struct {

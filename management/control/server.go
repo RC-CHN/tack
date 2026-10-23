@@ -40,6 +40,10 @@ type Server struct {
 	historyBytes int64
 	historyTasks int
 	writeJSON    func(string, any) error
+	controlSlots map[string]chan struct{}
+	uploadSlots  chan struct{}
+	historySlots chan struct{}
+	adminSlots   chan struct{}
 }
 
 func ValidateConfig(c p.ControlConfig) error {
@@ -66,6 +70,13 @@ func New(config p.ControlConfig, path string) (*Server, error) {
 	storageDefaults(&config)
 	s := &Server{config: config, path: path, state: state{Version: 1, Tasks: map[string]p.Task{}}, nodes: map[string]liveNode{}, meter: telemetry.New(), changed: make(chan struct{})}
 	s.writeJSON = s.meter.WriteJSON
+	s.controlSlots = make(map[string]chan struct{}, len(config.Nodes))
+	for _, n := range config.Nodes {
+		s.controlSlots[n.ID] = make(chan struct{}, 2)
+	}
+	s.uploadSlots = make(chan struct{}, config.MaxConcurrentUploads)
+	s.historySlots = make(chan struct{}, 8)
+	s.adminSlots = make(chan struct{}, 4)
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return nil, err
 	}
@@ -168,6 +179,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		for _, n := range s.config.Nodes {
 			if equalToken(token, n.Token) {
+				slots := s.controlSlots[n.ID]
+				if r.URL.Path == p.NodeResultPath {
+					slots = s.uploadSlots
+				}
+				if !takeSlot(w, slots) {
+					return
+				}
+				defer func() { <-slots }()
 				if r.URL.Path == p.NodeResultPath {
 					s.uploadResult(w, r, n.ID)
 				} else {
@@ -182,6 +201,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !equalToken(token, s.config.AdminToken) {
 		failure(w, 401, "invalid administrator credential")
 		return
+	}
+	if r.Method == "POST" {
+		if !takeSlot(w, s.adminSlots) {
+			return
+		}
+		defer func() { <-s.adminSlots }()
 	}
 	if s.readAdministrator(w, r) {
 		return
@@ -313,7 +338,7 @@ func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 		failure(w, 400, "unsupported protocol version")
 		return
 	}
-	if !p.ValidID(input.InstanceID) || input.Node.ID != id || len(input.Node.Hostname) > 255 || len(input.Node.Modes) > 16 {
+	if !p.ValidID(input.InstanceID) || input.Node.ID != id || !validNodeInfo(input.Node) {
 		failure(w, 400, "invalid node identity or capabilities")
 		return
 	}
