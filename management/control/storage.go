@@ -341,6 +341,57 @@ func (s *Server) readHistory(id string) (p.Task, bool, error) {
 	return t, true, nil
 }
 
+// HTTP retrieval need not decode and re-encode megabytes of base64 output.
+// Read one bounded immutable archive, validate its JSON and completion metadata,
+// and send the original bytes. Close the file before writing to the network so
+// slow readers cannot prevent receipt moves/retention on Windows.
+func (s *Server) historyJSON(id string) ([]byte, bool, error) {
+	if !p.ValidID(id) {
+		return nil, false, nil
+	}
+	f, err := os.Open(s.historyPath(id))
+	if os.IsNotExist(err) {
+		f, err = os.Open(s.releasedPath(id))
+	}
+	if os.IsNotExist(err) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, false, err
+	}
+	defer f.Close()
+	info, err := f.Stat()
+	if err != nil {
+		return nil, false, err
+	}
+	if !info.Mode().IsRegular() || info.Size() < 2 || info.Size() > maxTaskFile {
+		return nil, false, errors.New("invalid history file")
+	}
+	data := make([]byte, int(info.Size()))
+	if _, err := io.ReadFull(f, data); err != nil {
+		return nil, false, err
+	}
+	var extra [1]byte
+	if n, err := f.Read(extra[:]); n != 0 || err != io.EOF {
+		return nil, false, errors.New("history changed during read")
+	}
+	// Unmarshal validates the entire JSON but skips allocating fields such as
+	// command/output that this response path does not need to inspect.
+	var metadata struct {
+		ID            string `json:"id"`
+		NodeID        string `json:"node_id"`
+		State         string `json:"state"`
+		ResultPending bool   `json:"result_pending"`
+	}
+	if err := json.Unmarshal(data, &metadata); err != nil {
+		return nil, false, err
+	}
+	if metadata.ID != id || !p.ValidID(metadata.NodeID) || !p.Terminal(metadata.State) || metadata.ResultPending {
+		return nil, false, errors.New("invalid completed history")
+	}
+	return data, true, nil
+}
+
 func taskSummary(t p.Task) p.Task {
 	t.Command = p.Command{}
 	t.Result = nil
@@ -463,13 +514,24 @@ func (s *Server) readAdministrator(w http.ResponseWriter, r *http.Request) bool 
 			respond(w, 200, page)
 		}
 	case strings.HasPrefix(r.URL.Path, "/v1/tasks/") && !strings.Contains(strings.TrimPrefix(r.URL.Path, "/v1/tasks/"), "/"):
-		t, ok, err := s.lookupTask(strings.TrimPrefix(r.URL.Path, "/v1/tasks/"))
+		id := strings.TrimPrefix(r.URL.Path, "/v1/tasks/")
+		s.mu.Lock()
+		t, active := s.state.Tasks[id]
+		s.mu.Unlock()
+		if active {
+			respond(w, 200, t)
+			break
+		}
+		data, ok, err := s.historyJSON(id)
 		if err != nil {
 			failure(w, 500, "cannot read task")
 		} else if !ok {
 			failure(w, 404, "task not found")
 		} else {
-			respond(w, 200, t)
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("Cache-Control", "no-store")
+			w.WriteHeader(200)
+			_, _ = w.Write(data)
 		}
 	default:
 		return false

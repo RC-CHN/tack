@@ -126,6 +126,9 @@ func (a *Node) syncRetention(ctx context.Context, report *p.Report, metrics p.No
 		if report != nil && report.Result != nil {
 			metadata, value := *report.Result, *report
 			manifest := p.OutputManifest(report.Result)
+			if report.Upload != nil {
+				manifest = *report.Upload
+			}
 			metadata.Stdout, metadata.Stderr = nil, nil
 			metadata.Error, metadata.MetadataTruncated = boundedMetadata(metadata.Error, 8192, metadata.MetadataTruncated)
 			metadata.Executable, metadata.MetadataTruncated = boundedMetadata(metadata.Executable, 4096, metadata.MetadataTruncated)

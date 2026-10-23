@@ -29,6 +29,15 @@ func TestHeadTailRingAcrossWrites(t *testing.T) {
 				t.Fatalf("limit=%d step=%d got=%x want=%x truncated=%v", limit, j, got, want, truncated)
 			}
 		}
+		want, truncated := b.snapshot()
+		got, cut := b.finish()
+		if !bytes.Equal(got, want) || cut != truncated || b.data != nil {
+			t.Fatal("finish changed head/tail order or retained ownership")
+		}
+		b.Write([]byte("new output"))
+		if !bytes.Equal(got, want) {
+			t.Fatal("subsequent writes changed the detached result")
+		}
 	}
 }
 
@@ -45,7 +54,7 @@ func BenchmarkBoundedOutput(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				buf := &bounded{limit: 65536}
 				buf.Write(input)
-				buf.snapshot()
+				buf.finish()
 			}
 		})
 	}

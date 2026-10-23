@@ -1,10 +1,10 @@
 package node
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -17,31 +17,163 @@ type retainedJournal struct {
 }
 
 func readJournal(path string) (map[string]journal, bool, error) {
-	b, err := os.ReadFile(path)
+	return visitJournal(path, nil)
+}
+
+// Inspect the envelope without buffering its result-bearing records. Legacy
+// files and differently ordered JSON envelopes remain readable.
+func skipJSON(d *json.Decoder) error {
+	token, err := d.Token()
+	if err != nil {
+		return err
+	}
+	if delim, ok := token.(json.Delim); ok && (delim == '{' || delim == '[') {
+		for d.More() {
+			if err := skipJSON(d); err != nil {
+				return err
+			}
+		}
+		_, err = d.Token()
+	}
+	return err
+}
+
+func journalEnvelope(f *os.File) (bool, error) {
+	d := json.NewDecoder(f)
+	token, err := d.Token()
+	if err != nil || token != json.Delim('{') {
+		return false, errors.New("invalid journal object")
+	}
+	for d.More() {
+		key, err := d.Token()
+		if err != nil {
+			return false, err
+		}
+		if key == "storage_version" {
+			var raw json.RawMessage
+			if err := d.Decode(&raw); err != nil {
+				return false, err
+			}
+			var version int
+			if json.Unmarshal(raw, &version) == nil {
+				if version != 3 && version != 4 {
+					return true, errors.New("unsupported journal storage version")
+				}
+				return true, nil
+			}
+		} else if err := skipJSON(d); err != nil {
+			return false, err
+		}
+	}
+	return false, nil
+}
+
+func visitJournal(path string, convert func(journal) (journal, error)) (map[string]journal, bool, error) {
+	f, err := os.Open(path)
 	if os.IsNotExist(err) {
 		return map[string]journal{}, false, nil
 	}
 	if err != nil {
 		return nil, false, err
 	}
-	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(b, &fields); err != nil {
-		return nil, false, err
+	defer f.Close()
+	retained, err := journalEnvelope(f)
+	if err != nil {
+		return nil, retained, err
 	}
-	var version int
-	if raw, ok := fields["storage_version"]; ok && json.Unmarshal(raw, &version) == nil {
-		var in retainedJournal
-		if err := p.Decode(bytes.NewReader(b), &in); err != nil {
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return nil, retained, err
+	}
+	d := json.NewDecoder(f)
+	d.DisallowUnknownFields()
+	records := map[string]journal{}
+	readMap := func() error {
+		if token, err := d.Token(); err != nil || token != json.Delim('{') {
+			return errors.New("invalid journal records")
+		}
+		for d.More() {
+			key, err := d.Token()
+			if err != nil {
+				return err
+			}
+			id, ok := key.(string)
+			if !ok || !p.ValidID(id) {
+				return errors.New("invalid journal identity")
+			}
+			if _, ok := records[id]; ok {
+				return errors.New("duplicate journal identity")
+			}
+			if len(records) >= 10000 {
+				return errors.New("journal record limit exceeded")
+			}
+			var rec journal
+			if err := d.Decode(&rec); err != nil {
+				return err
+			}
+			if rec.Task.ID != id || rec.Report.TaskID != id {
+				return errors.New("mismatched journal identity")
+			}
+			if rec.Spool != nil {
+				if !retained || !p.Terminal(rec.Report.State) || rec.Report.Result == nil || len(rec.Report.Result.Stdout)+len(rec.Report.Result.Stderr) != 0 {
+					return errors.New("invalid disk-backed journal result")
+				}
+				if !rec.Acknowledged && rec.Spool.Validate(p.MaxOutput) != nil {
+					return errors.New("invalid journal output manifest")
+				}
+			}
+			if retained && convert != nil {
+				rec, err = convert(rec)
+				if err != nil {
+					return err
+				}
+			}
+			records[id] = rec
+		}
+		_, err := d.Token()
+		return err
+	}
+	if retained {
+		if token, err := d.Token(); err != nil || token != json.Delim('{') {
+			return nil, true, errors.New("invalid journal envelope")
+		}
+		seen := map[string]bool{}
+		for d.More() {
+			key, err := d.Token()
+			if err != nil {
+				return nil, true, err
+			}
+			field, _ := key.(string)
+			if seen[field] {
+				return nil, true, errors.New("duplicate journal field")
+			}
+			seen[field] = true
+			switch field {
+			case "storage_version":
+				var version int
+				if err := d.Decode(&version); err != nil || (version != 3 && version != 4) {
+					return nil, true, errors.New("invalid journal version")
+				}
+			case "records":
+				if err := readMap(); err != nil {
+					return nil, true, err
+				}
+			default:
+				return nil, true, errors.New("unknown journal field")
+			}
+		}
+		if !seen["records"] || !seen["storage_version"] {
+			return nil, true, errors.New("incomplete journal envelope")
+		}
+		if _, err := d.Token(); err != nil {
 			return nil, true, err
 		}
-		if in.StorageVersion != 3 || in.Records == nil {
-			return nil, true, errors.New("invalid retained journal")
-		}
-		return in.Records, true, nil
+	} else if err := readMap(); err != nil {
+		return nil, false, err
 	}
-	var records map[string]journal
-	err = p.Decode(bytes.NewReader(b), &records)
-	return records, false, err
+	if _, err := d.Token(); err != io.EOF {
+		return nil, retained, errors.New("unexpected trailing journal data")
+	}
+	return records, retained, nil
 }
 
 // The high watermark is flushed BEFORE execution intent and is never rolled

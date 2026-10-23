@@ -23,6 +23,37 @@ func storageHeap() uint64 {
 	return m.HeapAlloc
 }
 
+func TestHistoryJSONPreservesOutputAndRejectsInvalidArchives(t *testing.T) {
+	s, c, _ := fixture(t)
+	task := p.Task{ID: "raw-history", NodeID: c.Nodes[0].ID, State: "succeeded", Result: &p.Result{Stdout: bytes.Repeat([]byte{0, 255, 13, 10}, 32768), Stderr: []byte("separate stderr")}}
+	if err := s.archive(task); err != nil {
+		t.Fatal(err)
+	}
+	var got p.Task
+	if code := call(t, s, "GET", "/v1/tasks/"+task.ID, c.AdminToken, nil, &got); code != 200 || !bytes.Equal(got.Result.Stdout, task.Result.Stdout) || !bytes.Equal(got.Result.Stderr, task.Result.Stderr) {
+		t.Fatal("archive response changed output", code)
+	}
+	for _, bad := range []string{
+		`{"id":"raw-history","node_id":"node-a","state":"succeeded","result":`,
+		`{"id":"wrong-task","node_id":"node-a","state":"succeeded"}`,
+		`{"id":"raw-history","node_id":"node-a","state":"running"}`,
+		`{"id":"raw-history","node_id":"node-a","state":"succeeded","result_pending":true}`,
+	} {
+		if err := os.WriteFile(s.historyPath(task.ID), []byte(bad), 0600); err != nil {
+			t.Fatal(err)
+		}
+		if code := call(t, s, "GET", "/v1/tasks/"+task.ID, c.AdminToken, nil, nil); code != 500 {
+			t.Fatal("invalid archive accepted", code)
+		}
+	}
+	if err := os.Truncate(s.historyPath(task.ID), maxTaskFile+1); err != nil {
+		t.Fatal(err)
+	}
+	if code := call(t, s, "GET", "/v1/tasks/"+task.ID, c.AdminToken, nil, nil); code != 500 {
+		t.Fatal("oversized archive accepted", code)
+	}
+}
+
 func TestCompletedHistoryIsNotRetainedAndPagesAreBounded(t *testing.T) {
 	s, c, path := fixture(t)
 	var first string

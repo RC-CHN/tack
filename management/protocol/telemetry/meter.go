@@ -42,7 +42,9 @@ func (m *Meter) Request(upload bool, start time.Time, status int, failure string
 }
 func (m *Meter) WriteJSON(path string, value any) error {
 	start := time.Now()
-	b, err := json.MarshalIndent(value, "", "  ")
+	// Durable state is machine-readable. Avoid a second whole-value buffer and
+	// indentation pass, particularly for archived base64 task output.
+	b, err := json.Marshal(value)
 	if err == nil {
 		b = append(b, '\n')
 		err = p.WriteFile(path, b)

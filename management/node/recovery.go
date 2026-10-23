@@ -90,7 +90,7 @@ func (a *Node) recoverJournal(records map[string]journal, retained bool) (map[st
 		}
 		var value any = records
 		if retained {
-			value = retainedJournal{StorageVersion: 3, Records: records}
+			value = retainedJournal{StorageVersion: 4, Records: records}
 		}
 		recovery := path + ".recovery"
 		if err := a.writeJSON(recovery, value); err != nil {
@@ -145,7 +145,7 @@ func (a *Node) recoverJournal(records map[string]journal, retained bool) (map[st
 				}
 				cur, ok := records[id]
 				if ok && !cur.Acknowledged && p.Terminal(cur.Report.State) && p.Terminal(rec.Report.State) && cur.Report.Result != nil {
-					if cur.Report.State != rec.Report.State || p.OutputManifest(cur.Report.Result) != p.OutputManifest(rec.Report.Result) {
+					if cur.Report.State != rec.Report.State || journalManifest(cur) != journalManifest(rec) {
 						return errors.New("conflicting unconfirmed recovery results; preserving both")
 					}
 				}

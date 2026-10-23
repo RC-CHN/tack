@@ -147,8 +147,8 @@ func (r Runner) Run(ctx context.Context, c p.Command) (string, *p.Result) {
 	out, errout := &bounded{limit: c.OutputLimit}, &bounded{limit: c.OutputLimit}
 	cmd.Stdout, cmd.Stderr = out, errout
 	err = runProcess(ctx, cmd, c.Mode)
-	result.Stdout, result.StdoutTruncated = out.snapshot()
-	result.Stderr, result.StderrTruncated = errout.snapshot()
+	result.Stdout, result.StdoutTruncated = out.finish()
+	result.Stderr, result.StderrTruncated = errout.finish()
 	if cmd.ProcessState != nil {
 		code := cmd.ProcessState.ExitCode()
 		result.ExitCode = &code

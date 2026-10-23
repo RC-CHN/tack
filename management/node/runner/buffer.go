@@ -1,6 +1,9 @@
 package runner
 
-import "sync"
+import (
+	"slices"
+	"sync"
+)
 
 // Keep the beginning and a circular tail, sharing one fixed byte budget. Output
 // is binary: no text marker or encoding conversion is inserted into the bytes.
@@ -91,4 +94,24 @@ func (b *bounded) snapshot() ([]byte, bool) {
 		}
 	}
 	return out, b.truncated
+}
+
+// finish transfers ownership after the command's output writers have stopped.
+// Rotate the circular tail in place instead of copying both output streams
+// into a second maximum-sized result allocation.
+func (b *bounded) finish() ([]byte, bool) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	headCap := (b.limit + 1) / 2
+	if b.tail > 0 && b.tail == b.limit-headCap && b.next != 0 {
+		tail := b.data[headCap : headCap+b.tail]
+		slices.Reverse(tail[:b.next])
+		slices.Reverse(tail[b.next:])
+		slices.Reverse(tail)
+	}
+	n := b.head + b.tail
+	out, truncated := b.data[:n:n], b.truncated
+	b.data = nil
+	b.head, b.tail, b.next, b.truncated = 0, 0, 0, false
+	return out, truncated
 }

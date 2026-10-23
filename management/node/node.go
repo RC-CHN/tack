@@ -17,10 +17,11 @@ import (
 )
 
 type journal struct {
-	Task                 p.Task   `json:"task"`
-	Report               p.Report `json:"report"`
-	MetadataAcknowledged bool     `json:"metadata_acknowledged,omitempty"`
-	Acknowledged         bool     `json:"acknowledged"`
+	Task                 p.Task      `json:"task"`
+	Report               p.Report    `json:"report"`
+	MetadataAcknowledged bool        `json:"metadata_acknowledged,omitempty"`
+	Acknowledged         bool        `json:"acknowledged"`
+	Spool                *p.Manifest `json:"spool,omitempty"`
 }
 type Node struct {
 	config           p.NodeConfig
@@ -155,7 +156,12 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 		return err
 	}
 	path := filepath.Join(a.config.StateDir, "journal.json")
-	records, retainedFormat, err := readJournal(path)
+	records, retainedFormat, err := visitJournal(path, func(rec journal) (journal, error) {
+		if rec.Task.NodeID != a.config.NodeID {
+			return rec, errors.New("journal belongs to another node")
+		}
+		return a.spoolRecord(rec)
+	})
 	if err != nil {
 		return err
 	}
@@ -168,6 +174,14 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 	records, retainedFormat, err = a.recoverJournal(records, retainedFormat)
 	if err != nil {
 		return err
+	}
+	if err := a.recoverSpools(records); err != nil {
+		return err
+	}
+	for _, rec := range records {
+		if rec.Spool != nil {
+			retainedFormat = true
+		}
 	}
 	if retainedFormat {
 		if _, err := os.Stat(a.replayPath()); err != nil {
@@ -195,10 +209,7 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 		}
 	}
 	persist := func() error {
-		if retainedFormat {
-			return a.writeJSON(path, retainedJournal{StorageVersion: 3, Records: records})
-		}
-		return a.writeJSON(path, records)
+		return a.persistJournal(path, records, retainedFormat)
 	}
 	persistResult := func() error {
 		retry := time.Second
@@ -300,6 +311,9 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 		for _, rec := range records {
 			if !rec.Acknowledged && p.Terminal(rec.Report.State) && (a.version == p.Version || !rec.MetadataAcknowledged) {
 				v := rec.Report
+				if rec.Spool != nil {
+					v.Upload = rec.Spool
+				}
 				report = &v
 				break
 			}
@@ -505,7 +519,11 @@ func (a *Node) nodeMetrics(records map[string]journal, active string) p.NodeMetr
 		if !rec.Acknowledged && p.Terminal(rec.Report.State) {
 			m.PendingResults++
 			if rec.Report.Result != nil {
-				m.PendingResultBytes += len(rec.Report.Result.Stdout) + len(rec.Report.Result.Stderr)
+				if rec.Spool != nil {
+					m.PendingResultBytes += rec.Spool.Total()
+				} else {
+					m.PendingResultBytes += len(rec.Report.Result.Stdout) + len(rec.Report.Result.Stderr)
+				}
 			}
 		}
 	}
