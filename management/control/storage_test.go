@@ -110,8 +110,8 @@ func TestStorageLimitsRejectBeforeAcceptance(t *testing.T) {
 	}
 	call(t, s, "POST", "/v1/tasks/"+task.ID+"/cancel", c.AdminToken, nil, nil)
 	s.config.MaxHistoryTasks = 1
-	if call(t, s, "POST", "/v1/tasks", c.AdminToken, taskInput(), nil) != 503 {
-		t.Fatal("history cap ignored")
+	if call(t, s, "POST", "/v1/tasks", c.AdminToken, taskInput(), nil) != 201 {
+		t.Fatal("confirmed cancellation was not reclaimed")
 	}
 	s.config.MaxHistoryTasks = 100
 	s.config.MaxHistoryBytes = s.historyBytes + 1

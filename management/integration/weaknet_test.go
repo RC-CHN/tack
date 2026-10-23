@@ -57,9 +57,12 @@ type networkFixture struct {
 func newNetworkFixture(t *testing.T, wrap func(http.Handler) http.Handler) *networkFixture {
 	return newNetworkFixtureHTTP2(t, wrap, false)
 }
-func newNetworkFixtureHTTP2(t *testing.T, wrap func(http.Handler) http.Handler, http2 bool) *networkFixture {
+func newNetworkFixtureHTTP2(t *testing.T, wrap func(http.Handler) http.Handler, http2 bool, configure ...func(*p.ControlConfig)) *networkFixture {
 	t.Helper()
 	c := p.ControlConfig{AdminToken: strings.Repeat("a", 40), Nodes: []p.NodeCredential{{ID: "node-a", Token: strings.Repeat("b", 40)}}}
+	for _, setup := range configure {
+		setup(&c)
+	}
 	statePath := filepath.Join(t.TempDir(), "state.json")
 	api, err := control.New(c, statePath)
 	if err != nil {
@@ -136,7 +139,7 @@ func (f *networkFixture) submit(mode, marker string) p.Task {
 	if err != nil {
 		f.t.Fatal(err)
 	}
-	in := p.CreateTask{NodeID: "node-a", Command: p.Command{Mode: "exec", Program: exe, Args: []string{"-test.run=^TestOutputHelper$"}, Env: map[string]string{"TACK_WEAKNET_HELPER": mode, "TACK_WEAKNET_MARKER": marker}, TimeoutSeconds: 40, OutputLimit: 200 * 1024}}
+	in := p.CreateTask{NodeID: "node-a", Command: p.Command{Mode: "exec", Program: exe, Args: []string{"-test.run=^TestOutputHelper$"}, Env: map[string]string{"TACK_WEAKNET_HELPER": mode, "TACK_WEAKNET_MARKER": marker, "GORACE": "atexit_sleep_ms=0"}, TimeoutSeconds: 40, OutputLimit: 200 * 1024}}
 	var task p.Task
 	f.request("POST", "/v1/tasks", in, &task)
 	return task
@@ -176,7 +179,7 @@ func TestBlockedUploadStillDispatchesAndCancelsWithLongHeartbeat(t *testing.T) {
 	var controls atomic.Int64
 	f := newNetworkFixture(t, func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == p.NodeControlPath {
+			if r.URL.Path == p.NodeRetentionPath {
 				controls.Add(1)
 			}
 			if r.URL.Path != p.NodeResultPath {

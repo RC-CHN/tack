@@ -51,11 +51,23 @@ func WriteJSON(path string, value any) error {
 
 // WriteFile atomically replaces a state file and flushes it before acknowledgement.
 func WriteFile(path string, b []byte) error {
-	f, err := os.CreateTemp(filepath.Dir(path), ".state-*")
+	// One deterministic pending file per destination bounds crash leftovers.
+	// Callers serialize writes to a destination. Never follow a pending symlink.
+	name := path + ".tack-pending"
+	if info, err := os.Lstat(name); err == nil {
+		if !info.Mode().IsRegular() {
+			return fmt.Errorf("invalid pending state file: %s", name)
+		}
+		if err := os.Remove(name); err != nil {
+			return err
+		}
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	f, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
 		return err
 	}
-	name := f.Name()
 	defer os.Remove(name)
 	if _, err = f.Write(b); err != nil {
 		f.Close()

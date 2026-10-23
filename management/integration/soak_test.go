@@ -99,7 +99,7 @@ func TestManagementResourceSoak(t *testing.T) {
 					return
 				}
 			}
-			if r.URL.Path == p.NodeControlPath {
+			if r.URL.Path == p.NodeRetentionPath {
 				seq := controls.Add(1)
 				if churn.Load() {
 					switch seq % 4 {
@@ -149,7 +149,7 @@ func TestManagementResourceSoak(t *testing.T) {
 		}
 	}
 	f.metrics(func(m p.MetricsSnapshot) bool {
-		return m.Nodes[0].Metrics != nil && m.Nodes[0].Metrics.PendingResults == 0
+		return m.Nodes[0].Metrics != nil && m.Nodes[0].Metrics.PendingResults == 0 && m.Nodes[0].Metrics.JournalRecords == 0
 	})
 	data, err := os.ReadFile(marker)
 	if err != nil || len(data) != tasks {
@@ -162,7 +162,7 @@ func TestManagementResourceSoak(t *testing.T) {
 	if bytes.Contains(journal, []byte("TACK_SOAK_PADDING")) || len(journal) > tasks*2048+4096 {
 		t.Fatal("acknowledged journal retained command payloads")
 	}
-	work, err := os.ReadDir(f.nodeConfig.WorkDir)
+	work, err := filepath.Glob(filepath.Join(f.nodeConfig.WorkDir, "tack-*", "task-*"))
 	if err != nil || len(work) != 0 {
 		t.Fatalf("task workspaces not cleaned: count=%d err=%v", len(work), err)
 	}

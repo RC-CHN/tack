@@ -32,6 +32,7 @@ type Node struct {
 	origin, instance string
 	runner           runner.Runner
 	Logf             func(string, ...any)
+	writeJSON        func(string, any) error
 }
 
 func New(config p.NodeConfig) (*Node, error) {
@@ -105,7 +106,8 @@ func New(config p.NodeConfig) (*Node, error) {
 	connections := newConnectionSet()
 	connections.attach(client)
 	connections.attach(uploadClient)
-	return &Node{connections: connections, uploadClient: uploadClient, meter: telemetry.New(), config: config, client: client, origin: origin, instance: instance, runner: runner.Runner{WorkDir: config.WorkDir, BusyBox: config.BusyBox}, Logf: log.Printf}, nil
+	meter := telemetry.New()
+	return &Node{connections: connections, uploadClient: uploadClient, meter: meter, writeJSON: meter.WriteJSON, config: config, client: client, origin: origin, instance: instance, runner: runner.Runner{WorkDir: config.WorkDir, BusyBox: config.BusyBox}, Logf: log.Printf}, nil
 }
 
 // Run is a foreground worker. It never installs services or selects deployment paths.
@@ -145,13 +147,32 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 		a.instance = identity.InstanceID
 	}
 	identity.NodeID, identity.InstanceID = a.config.NodeID, a.instance
-	if err := a.meter.WriteJSON(identityPath, identity); err != nil {
+	if err := a.writeJSON(identityPath, identity); err != nil {
+		return err
+	}
+	a.runner.Owner = a.instance
+	if _, err := a.runner.Recover(); err != nil {
 		return err
 	}
 	path := filepath.Join(a.config.StateDir, "journal.json")
-	records := map[string]journal{}
-	if err := p.ReadJSON(path, &records); err != nil && !os.IsNotExist(err) {
+	records, retainedFormat, err := readJournal(path)
+	if err != nil {
 		return err
+	}
+	if records == nil {
+		return errors.New("invalid null task journal")
+	}
+	if err := a.recoverReplay(); err != nil {
+		return err
+	}
+	records, retainedFormat, err = a.recoverJournal(records, retainedFormat)
+	if err != nil {
+		return err
+	}
+	if retainedFormat {
+		if _, err := os.Stat(a.replayPath()); err != nil {
+			return errors.New("retained journal requires its replay checkpoint")
+		}
 	}
 	if records == nil {
 		return errors.New("invalid null task journal")
@@ -173,7 +194,31 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 			return errors.New("terminal journal entry has no result")
 		}
 	}
-	persist := func() error { return a.meter.WriteJSON(path, records) }
+	persist := func() error {
+		if retainedFormat {
+			return a.writeJSON(path, retainedJournal{StorageVersion: 3, Records: records})
+		}
+		return a.writeJSON(path, records)
+	}
+	persistResult := func() error {
+		retry := time.Second
+		for {
+			err := persist()
+			if err == nil {
+				return nil
+			}
+			if ctx.Err() != nil {
+				return err
+			}
+			if a.Logf != nil {
+				a.Logf("retaining result while journal persistence fails: %v", err)
+			}
+			if e := delay(ctx, retry); e != nil {
+				return err
+			}
+			retry = nextRetry(retry)
+		}
+	}
 	if err := persist(); err != nil {
 		return err
 	}
@@ -182,6 +227,16 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 			return nil
 		}
 		return err
+	}
+	high, err := a.openReplay(ctx, records)
+	if err != nil {
+		return err
+	}
+	if a.version >= p.LatestVersion {
+		retainedFormat = true
+		if err := persist(); err != nil {
+			return err
+		}
 	}
 	type completed struct {
 		id, state string
@@ -192,6 +247,7 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 		response p.SyncResponse
 		report   *p.Report
 		err      error
+		receipts []string
 	}
 	syncedCh := make(chan synced, 1)
 	uploaded := make(chan string, 1)
@@ -212,7 +268,7 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 		}
 	}()
 	startUpload := func() {
-		if a.version != p.LatestVersion || uploading != "" {
+		if a.version < p.TransferVersion || uploading != "" {
 			return
 		}
 		var selected *journal
@@ -252,14 +308,19 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 			report = &v
 		}
 		metrics := a.nodeMetrics(records, active)
+		var receipts []string
+		if a.version >= p.LatestVersion {
+			receipts = receiptBatch(records)
+		}
+		watermark := high
 		callCtx, cancel := context.WithCancel(ctx)
 		cancelSync = cancel
 		interrupted = false
 		workers.Add(1)
 		go func() {
 			defer workers.Done()
-			response, err := a.sync(callCtx, report, metrics)
-			syncedCh <- synced{response: response, report: report, err: err}
+			response, err := a.syncRetention(callCtx, report, metrics, watermark, receipts)
+			syncedCh <- synced{response: response, report: report, err: err, receipts: receipts}
 		}()
 	}
 	interruptSync := func() {
@@ -295,7 +356,7 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 			records[done.id] = rec
 			cancelJob()
 			active, cancelJob = "", nil
-			if err := persist(); err != nil {
+			if err := persistResult(); err != nil {
 				return err
 			}
 			interruptSync()
@@ -331,6 +392,19 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 			retry = time.Second
 			response, report := done.response, done.report
 			changed := false
+			removedReceipts := false
+			allowed := map[string]bool{}
+			for _, id := range done.receipts {
+				allowed[id] = true
+			}
+			for _, id := range response.Receipts {
+				if !allowed[id] || !records[id].Acknowledged {
+					return errors.New("invalid receipt acknowledgement")
+				}
+				delete(records, id)
+				delete(allowed, id)
+				removedReceipts = true
+			}
 			if report != nil && response.Acknowledged == report.TaskID {
 				rec := records[report.TaskID]
 				if p.Terminal(rec.Report.State) && p.Terminal(report.State) {
@@ -362,7 +436,18 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 						return errors.New("journal capacity reached; retention upgrade required")
 					}
 					rec := journal{Task: *task, Report: p.Report{TaskID: task.ID, State: "running"}}
-					if response.CancelTaskID == task.ID {
+					if a.version >= p.LatestVersion {
+						if task.Sequence == 0 || task.Sequence <= high {
+							rec.Report.State = "unknown"
+							rec.Report.Result = &p.Result{FinishedAt: time.Now().UTC(), Error: "task is behind the durable replay watermark; refusing execution"}
+						} else {
+							if err := a.saveReplay(task.Sequence); err != nil {
+								return err
+							}
+							high = task.Sequence
+						}
+					}
+					if response.CancelTaskID == task.ID && rec.Report.State == "running" {
 						rec.Report.State = "canceled"
 						rec.Report.Result = &p.Result{FinishedAt: time.Now().UTC()}
 					}
@@ -370,6 +455,7 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 					if err := persist(); err != nil {
 						return err
 					}
+					changed, removedReceipts = false, false
 					if rec.Report.State == "running" {
 						jobCtx, cancel := context.WithCancel(ctx)
 						active, cancelJob = task.ID, cancel
@@ -380,13 +466,17 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 					}
 				}
 			}
-			if changed {
+			// Receipt deletion only removes already-acknowledged tombstones.
+			// Batch that optional cleanup until the receipts drain or another
+			// durable transition writes the journal. A crash merely resends old
+			// receipts; execution intent/results/checkpoints are still synchronous.
+			if changed || (removedReceipts && !hasReceipts(records)) {
 				if err := persist(); err != nil {
 					return err
 				}
 			}
 			startUpload()
-			if a.version == p.LatestVersion && response.CancelTaskID == "" {
+			if a.version >= p.TransferVersion && response.CancelTaskID == "" {
 				resetTimer(0)
 			} else {
 				resetTimer(time.Duration(a.config.PollSeconds) * time.Second)
@@ -414,7 +504,7 @@ func (a *Node) nodeMetrics(records map[string]journal, active string) p.NodeMetr
 // tombstones to suppress replay without retaining scripts, arguments and env.
 func acknowledge(rec journal) journal {
 	rec.Acknowledged = true
-	rec.Task = p.Task{ID: rec.Task.ID, NodeID: rec.Task.NodeID, CreatedAt: rec.Task.CreatedAt}
+	rec.Task = p.Task{ID: rec.Task.ID, Sequence: rec.Task.Sequence, NodeID: rec.Task.NodeID, CreatedAt: rec.Task.CreatedAt}
 	rec.Report = p.Report{TaskID: rec.Report.TaskID, State: rec.Report.State, Result: &p.Result{Error: "result acknowledged by controller"}}
 	return rec
 }

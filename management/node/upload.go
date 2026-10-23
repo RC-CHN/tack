@@ -16,7 +16,7 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 	retry := time.Second
 	nextSend := time.Now()
 	for {
-		input := p.ResultChunk{Version: p.LatestVersion, NodeID: a.config.NodeID, InstanceID: a.instance, TaskID: job.Task.ID, SHA256: manifest.SHA256, Probe: true}
+		input := p.ResultChunk{Version: p.TransferVersion, NodeID: a.config.NodeID, InstanceID: a.instance, TaskID: job.Task.ID, SHA256: manifest.SHA256, Probe: true}
 		ack, err := a.chunk(ctx, input, total)
 		for err == nil && !ack.Complete {
 			if err = delay(ctx, time.Until(nextSend)); err != nil {
@@ -60,7 +60,7 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 func (a *Node) chunk(ctx context.Context, input p.ResultChunk, total int) (p.ChunkAck, error) {
 	var ack p.ChunkAck
 	err := a.request(ctx, a.uploadClient, p.NodeResultPath, input, &ack)
-	if err == nil && (ack.Version != p.LatestVersion || ack.TaskID != input.TaskID || ack.Offset < 0 || ack.Offset > total || (ack.Complete && ack.Offset != total)) {
+	if err == nil && (ack.Version != p.TransferVersion || ack.TaskID != input.TaskID || ack.Offset < 0 || ack.Offset > total || (ack.Complete && ack.Offset != total)) {
 		err = errors.New("invalid upload acknowledgement")
 	}
 	return ack, err

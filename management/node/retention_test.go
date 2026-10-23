@@ -12,9 +12,9 @@ import (
 )
 
 func TestAcknowledgementReleasesCommandAndOutput(t *testing.T) {
-	for _, version := range []int{p.Version, p.LatestVersion} {
+	for _, version := range []int{p.Version, p.TransferVersion} {
 		name := "v1"
-		if version == p.LatestVersion {
+		if version == p.TransferVersion {
 			name = "v2"
 		}
 		t.Run(name, func(t *testing.T) {
@@ -54,7 +54,7 @@ func TestAcknowledgementReleasesCommandAndOutput(t *testing.T) {
 			a.uploadClient = &http.Client{Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
 				var in p.ResultChunk
 				p.Decode(r.Body, &in)
-				return response(p.ChunkAck{Version: p.LatestVersion, TaskID: task.ID, Offset: len(rec.Report.Result.Stdout), Complete: true}), nil
+				return response(p.ChunkAck{Version: p.TransferVersion, TaskID: task.ID, Offset: len(rec.Report.Result.Stdout), Complete: true}), nil
 			})}
 			if err := a.Run(ctx); err != nil {
 				t.Fatal(err)

@@ -18,8 +18,9 @@ import (
 )
 
 type state struct {
-	Version int               `json:"storage_version"`
-	Tasks   map[string]p.Task `json:"tasks"`
+	Version   int               `json:"storage_version"`
+	Tasks     map[string]p.Task `json:"tasks"`
+	Sequences map[string]uint64 `json:"sequences,omitempty"`
 }
 type liveNode struct {
 	info     p.Node
@@ -39,6 +40,9 @@ type Server struct {
 	changed      chan struct{}
 	historyBytes int64
 	historyTasks int
+	orphanBytes  int64
+	orphanFiles  int
+	evictions    evictionCache // tx protects this bounded metadata cache.
 	writeJSON    func(string, any) error
 	controlSlots map[string]chan struct{}
 	uploadSlots  chan struct{}
@@ -68,7 +72,7 @@ func New(config p.ControlConfig, path string) (*Server, error) {
 		return nil, err
 	}
 	storageDefaults(&config)
-	s := &Server{config: config, path: path, state: state{Version: 1, Tasks: map[string]p.Task{}}, nodes: map[string]liveNode{}, meter: telemetry.New(), changed: make(chan struct{})}
+	s := &Server{config: config, path: path, state: state{Version: 2, Tasks: map[string]p.Task{}, Sequences: map[string]uint64{}}, nodes: map[string]liveNode{}, meter: telemetry.New(), changed: make(chan struct{})}
 	s.writeJSON = s.meter.WriteJSON
 	s.controlSlots = make(map[string]chan struct{}, len(config.Nodes))
 	for _, n := range config.Nodes {
@@ -87,6 +91,9 @@ func New(config p.ControlConfig, path string) (*Server, error) {
 		return nil, err
 	}
 	if err := s.cleanUploads(); err != nil {
+		return nil, err
+	}
+	if err := s.Maintain(); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -144,7 +151,7 @@ func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 }
 
 func nodePath(path string) bool {
-	return path == p.NodeSyncPath || path == p.NodeControlPath || path == p.NodeResultPath
+	return path == p.NodeSyncPath || path == p.NodeControlPath || path == p.NodeRetentionPath || path == p.NodeResultPath
 }
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if nodePath(r.URL.Path) {
@@ -251,6 +258,10 @@ func (s *Server) adminResponse(r *http.Request, input p.CreateTask) apiReply {
 			return errorReply(500, "cannot create task identity")
 		}
 		t := p.Task{ID: id, NodeID: input.NodeID, Command: input.Command, CreatedAt: time.Now().UTC(), State: "queued"}
+		if s.state.Sequences[input.NodeID] == ^uint64(0) {
+			return errorReply(503, "task sequence exhausted")
+		}
+		t.Sequence = s.state.Sequences[input.NodeID] + 1
 		if err := s.admit(t); err != nil {
 			return errorReply(503, err.Error())
 		}
@@ -293,7 +304,10 @@ func (s *Server) adminResponse(r *http.Request, input p.CreateTask) apiReply {
 func (s *Server) commit(t p.Task) error {
 	// The caller holds tx and mu. Publish a new immutable snapshot only after
 	// persistence; releasing mu here keeps status/readers responsive to slow disk.
-	next := state{Version: 1, Tasks: make(map[string]p.Task, len(s.state.Tasks)+1)}
+	next := state{Version: 2, Tasks: make(map[string]p.Task, len(s.state.Tasks)+1), Sequences: copySequences(s.state.Sequences)}
+	if t.Sequence > next.Sequences[t.NodeID] {
+		next.Sequences[t.NodeID] = t.Sequence
+	}
 	for id, task := range s.state.Tasks {
 		next.Tasks[id] = task
 	}
@@ -323,7 +337,7 @@ func (s *Server) commit(t p.Task) error {
 func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 	var input p.SyncRequest
 	limit := p.MaxBody
-	if r.URL.Path == p.NodeControlPath {
+	if r.URL.Path == p.NodeControlPath || r.URL.Path == p.NodeRetentionPath {
 		limit = 128 * 1024
 	}
 	if err := p.Decode(http.MaxBytesReader(w, r.Body, int64(limit)), &input); err != nil {
@@ -332,6 +346,9 @@ func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 	}
 	version := p.Version
 	if r.URL.Path == p.NodeControlPath {
+		version = p.TransferVersion
+	}
+	if r.URL.Path == p.NodeRetentionPath {
 		version = p.LatestVersion
 	}
 	if input.Version != version {
@@ -342,11 +359,15 @@ func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 		failure(w, 400, "invalid node identity or capabilities")
 		return
 	}
-	if version == p.LatestVersion && (input.WaitSeconds < 0 || input.WaitSeconds > p.MaxHeartbeatSeconds*3/2 || input.LeaseSeconds < input.WaitSeconds+30 || input.LeaseSeconds > 604800) {
+	if err := validateReceipts(input, version); err != nil {
+		failure(w, 400, err.Error())
+		return
+	}
+	if version >= p.TransferVersion && (input.WaitSeconds < 0 || input.WaitSeconds > p.MaxHeartbeatSeconds*3/2 || input.LeaseSeconds < input.WaitSeconds+30 || input.LeaseSeconds > 604800) {
 		failure(w, 400, "invalid heartbeat wait or lease")
 		return
 	}
-	if version == p.LatestVersion {
+	if version >= p.TransferVersion {
 		// Bound the response deadline per authenticated long poll; body/header limits remain short.
 		_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(time.Duration(input.WaitSeconds+20) * time.Second))
 	}
@@ -401,7 +422,7 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 	}
 	input.Node.LastSeen = seen
 	lease := 30
-	if version == p.LatestVersion {
+	if version >= p.TransferVersion {
 		lease = input.LeaseSeconds
 	}
 	expires := seen.Add(time.Duration(lease) * time.Second)
@@ -410,6 +431,23 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 		s.nodes[id] = liveNode{info: input.Node, instance: input.InstanceID}
 	}
 	response := p.SyncResponse{Version: version}
+	if version >= p.LatestVersion {
+		if err := s.advanceReplay(id, input.ReplayHigh); err != nil {
+			return errorReply(500, "cannot persist replay watermark"), nil
+		}
+		if input.ReplayInit {
+			floor := s.state.Sequences[id]
+			response.ReplayFloor = &floor
+			return apiReply{200, response}, nil
+		}
+		s.mu.Unlock()
+		err := s.releaseReceipts(id, input.Receipts)
+		s.mu.Lock()
+		if err != nil {
+			return errorReply(500, "cannot persist result receipts"), nil
+		}
+		response.Receipts = input.Receipts
+	}
 	if report := input.Report; report != nil {
 		t, ok := s.state.Tasks[report.TaskID]
 		if !ok && archived.ID == report.TaskID {
@@ -435,7 +473,7 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 			reply = errorReply(400, "result exceeds task output limit")
 			return reply, nil
 		}
-		if version == p.LatestVersion && p.Terminal(report.State) {
+		if version >= p.TransferVersion && p.Terminal(report.State) {
 			if report.Upload == nil || report.Upload.Validate(t.Command.OutputLimit) != nil || len(report.Result.Stdout) != 0 || len(report.Result.Stderr) != 0 || len(report.Result.Error) > 8192 || len(report.Result.Executable) > 4096 {
 				reply = errorReply(400, "terminal report requires a valid manifest and bounded metadata without output")
 				return reply, nil
@@ -446,7 +484,7 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 			}
 		}
 		// A v1 final acknowledgement may have been lost during a rolling upgrade.
-		if version == p.LatestVersion && p.Terminal(report.State) && p.Terminal(t.State) && t.Upload == nil {
+		if version >= p.TransferVersion && p.Terminal(report.State) && p.Terminal(t.State) && t.Upload == nil {
 			if t.Result == nil {
 				reply = errorReply(409, "terminal task has no result to reconcile")
 				return reply, nil
@@ -476,7 +514,7 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 				if !t.Timing.CancelRequestedAt.IsZero() {
 					t.Timing.CancelToTerminalMS = now.Sub(t.Timing.CancelRequestedAt).Milliseconds()
 				}
-				if version == p.LatestVersion {
+				if version >= p.TransferVersion {
 					t.Upload, t.ResultPending = report.Upload, true
 				} else {
 					t.Timing.ResultReceivedAt = now
@@ -499,13 +537,13 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 			continue
 		}
 		candidate := t
-		if selected == nil || (candidate.State != "queued" && selected.State == "queued") || (candidate.State == selected.State && candidate.CreatedAt.Before(selected.CreatedAt)) {
+		if selected == nil || (candidate.State != "queued" && selected.State == "queued") || (candidate.State == selected.State && (candidate.Sequence < selected.Sequence || (candidate.Sequence == selected.Sequence && candidate.CreatedAt.Before(selected.CreatedAt)))) {
 			selected = &candidate
 		}
 	}
 	if selected != nil {
-		if selected.State == "queued" && version == p.LatestVersion && !input.AcceptTask {
-			if wait && response.Acknowledged == "" {
+		if selected.State == "queued" && version >= p.TransferVersion && !input.AcceptTask {
+			if wait && response.Acknowledged == "" && len(response.Receipts) == 0 {
 				return reply, s.changed
 			}
 			reply = apiReply{200, response}
@@ -524,12 +562,15 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 		if version == p.Version {
 			selected.Timing, selected.Upload, selected.ResultPending = nil, nil, false
 		}
+		if version < p.LatestVersion {
+			selected.Sequence = 0
+		}
 		response.Task = selected
 		if selected.CancelRequested {
 			response.CancelTaskID = selected.ID
 		}
 	}
-	if wait && response.Acknowledged == "" && response.CancelTaskID == "" {
+	if wait && response.Acknowledged == "" && response.CancelTaskID == "" && len(response.Receipts) == 0 {
 		if selected == nil || (input.Report != nil && input.Report.TaskID == selected.ID && input.Report.State == "running" && selected.State == "running") {
 			return reply, s.changed
 		}

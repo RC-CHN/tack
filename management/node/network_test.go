@@ -104,10 +104,10 @@ func TestUploadRateWaitIsCancellable(t *testing.T) {
 		}
 		calls++
 		if in.Probe {
-			return response(p.ChunkAck{Version: p.LatestVersion, TaskID: in.TaskID}), nil
+			return response(p.ChunkAck{Version: p.TransferVersion, TaskID: in.TaskID}), nil
 		}
 		cancel()
-		return response(p.ChunkAck{Version: p.LatestVersion, TaskID: in.TaskID, Offset: p.MaxChunk}), nil
+		return response(p.ChunkAck{Version: p.TransferVersion, TaskID: in.TaskID, Offset: p.MaxChunk}), nil
 	})}
 	start := time.Now()
 	err = a.upload(ctx, journal{Task: p.Task{ID: "task"}, Report: p.Report{Result: &p.Result{Stdout: make([]byte, p.MaxChunk+1)}}})

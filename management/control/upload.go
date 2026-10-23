@@ -25,7 +25,7 @@ func (s *Server) uploadResult(w http.ResponseWriter, r *http.Request, id string)
 		failure(w, 400, "invalid result chunk")
 		return
 	}
-	if input.Version != p.LatestVersion || input.NodeID != id || !p.ValidID(input.InstanceID) || !p.ValidID(input.TaskID) || input.Offset < 0 || len(input.Data) > p.MaxChunk || (input.Probe && len(input.Data) != 0) {
+	if input.Version != p.TransferVersion || input.NodeID != id || !p.ValidID(input.InstanceID) || !p.ValidID(input.TaskID) || input.Offset < 0 || len(input.Data) > p.MaxChunk || (input.Probe && len(input.Data) != 0) {
 		failure(w, 400, "invalid chunk identity, offset or size")
 		return
 	}
@@ -63,7 +63,7 @@ func (s *Server) uploadResult(w http.ResponseWriter, r *http.Request, id string)
 			failure(w, 500, "cannot clean completed upload")
 			return
 		}
-		respond(w, 200, p.ChunkAck{Version: p.LatestVersion, TaskID: task.ID, Offset: total, Complete: true})
+		respond(w, 200, p.ChunkAck{Version: p.TransferVersion, TaskID: task.ID, Offset: total, Complete: true})
 		return
 	}
 	dir := s.path + ".uploads"
@@ -167,7 +167,7 @@ func (s *Server) uploadResult(w http.ResponseWriter, r *http.Request, id string)
 			return
 		}
 	}
-	respond(w, 200, p.ChunkAck{Version: p.LatestVersion, TaskID: task.ID, Offset: offset, Complete: offset == total})
+	respond(w, 200, p.ChunkAck{Version: p.TransferVersion, TaskID: task.ID, Offset: offset, Complete: offset == total})
 }
 
 func (s *Server) removeUpload(task p.Task) error {

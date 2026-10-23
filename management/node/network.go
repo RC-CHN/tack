@@ -90,6 +90,9 @@ func (a *Node) negotiate(ctx context.Context) error {
 				return errors.New("unsupported controller protocol version")
 			}
 			a.version = p.Version
+			if health.Version >= p.TransferVersion {
+				a.version = p.TransferVersion
+			}
 			if health.Version >= p.LatestVersion {
 				a.version = p.LatestVersion
 			}
@@ -105,11 +108,15 @@ func (a *Node) negotiate(ctx context.Context) error {
 	}
 }
 func (a *Node) sync(ctx context.Context, report *p.Report, metrics p.NodeMetrics) (p.SyncResponse, error) {
+	return a.syncRetention(ctx, report, metrics, 0, nil)
+}
+
+func (a *Node) syncRetention(ctx context.Context, report *p.Report, metrics p.NodeMetrics, high uint64, receipts []string) (p.SyncResponse, error) {
 	host, _ := os.Hostname()
 	input := p.SyncRequest{Version: a.version, InstanceID: a.instance, Node: p.Node{ID: a.config.NodeID, Hostname: host, OS: runtime.GOOS, Arch: runtime.GOARCH, Modes: a.runner.Modes(), StatePersistence: a.config.StatePersistence}, Report: report}
 	path := p.NodeSyncPath
 	client := *a.client // Same control transport, with a timeout covering this long poll.
-	if a.version == p.LatestVersion {
+	if a.version >= p.TransferVersion {
 		path = p.NodeControlPath
 		input.Node.Metrics = &metrics
 		input.AcceptTask = metrics.AcceptingTasks
@@ -125,6 +132,10 @@ func (a *Node) sync(ctx context.Context, report *p.Report, metrics p.NodeMetrics
 			value.Result, value.Upload = &metadata, &manifest
 			input.Report = &value
 		}
+	}
+	if a.version >= p.LatestVersion {
+		path = p.NodeRetentionPath
+		input.ReplayHigh, input.Receipts = high, receipts
 	}
 	var output p.SyncResponse
 	if err := a.request(ctx, &client, path, input, &output); err != nil {

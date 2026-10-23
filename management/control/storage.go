@@ -37,6 +37,12 @@ func storageDefaults(c *p.ControlConfig) error {
 	if c.MaxHistoryBytes == 0 {
 		c.MaxHistoryBytes = 1024 * 1024 * 1024
 	}
+	if c.HistoryRetentionSeconds == 0 {
+		c.HistoryRetentionSeconds = 30 * 86400
+	}
+	if c.HistoryRetentionSeconds < 1 || c.HistoryRetentionSeconds > 10*365*86400 {
+		return errors.New("history_retention_seconds must be 1..315360000")
+	}
 	if c.MaxActiveTasks < 1 || c.MaxActiveTasks > 10000 || c.MaxActiveBytes < p.MaxBody || c.MaxActiveBytes > 1024*1024*1024 || c.MaxHistoryTasks < 1 || c.MaxHistoryTasks > 10000000 || c.MaxHistoryBytes < maxTaskFile {
 		return errors.New("invalid controller storage limits")
 	}
@@ -45,12 +51,22 @@ func storageDefaults(c *p.ControlConfig) error {
 
 func completed(t p.Task) bool                  { return p.Terminal(t.State) && !t.ResultPending }
 func (s *Server) historyPath(id string) string { return filepath.Join(s.path+".history", id+".json") }
+func (s *Server) releasedPath(id string) string {
+	return filepath.Join(s.path+".history", "released", id+".json")
+}
 
 // Active work is bounded independently of completed history. Capacity is
 // reserved before acceptance so draining accepted results remains possible.
 func (s *Server) admit(t p.Task) error {
-	if len(s.state.Tasks) >= s.config.MaxActiveTasks || s.historyTasks+len(s.state.Tasks) >= s.config.MaxHistoryTasks {
-		return errors.New("task capacity reached; increase configured capacity; history has not been deleted")
+	// tx stays held; read-only APIs must not wait on a directory scan or deletion.
+	s.mu.Unlock()
+	err := s.pruneHistory(&t)
+	s.mu.Lock()
+	if err != nil {
+		return err
+	}
+	if len(s.state.Tasks) >= s.config.MaxActiveTasks || s.historyTasks+s.orphanFiles+len(s.state.Tasks) >= s.config.MaxHistoryTasks {
+		return errors.New("active or unconfirmed task capacity reached; confirmed history has been reclaimed")
 	}
 	var active, reserved int64
 	for _, task := range s.state.Tasks {
@@ -59,8 +75,8 @@ func (s *Server) admit(t p.Task) error {
 		reserved += reservation(task)
 	}
 	b, _ := json.Marshal(t.Command)
-	if active+int64(len(b))+32768 > s.config.MaxActiveBytes || s.historyBytes+reserved+reservation(t) > s.config.MaxHistoryBytes {
-		return errors.New("task byte capacity reached; increase configured capacity; history has not been deleted")
+	if active+int64(len(b))+32768 > s.config.MaxActiveBytes || s.historyBytes+s.orphanBytes+reserved+reservation(t) > s.config.MaxHistoryBytes {
+		return errors.New("active or unconfirmed byte capacity reached; confirmed history has been reclaimed")
 	}
 	return nil
 }
@@ -74,6 +90,22 @@ func reservation(t p.Task) int64 {
 // another durable mutation. Historical payloads are never cached in memory.
 func (s *Server) archive(t p.Task) error {
 	path := s.historyPath(t.ID)
+	if t.State == "canceled" && (t.Timing == nil || t.Timing.DispatchedAt.IsZero()) {
+		path = s.releasedPath(t.ID)
+		// rc.1 stored never-dispatched cancellations in the root directory.
+		// Move an existing archive before rewriting it so migration cannot
+		// leave duplicate files or double-count its byte/count reservation.
+		if _, err := os.Stat(s.historyPath(t.ID)); err == nil {
+			if err := s.moveReleased(t.ID); err != nil {
+				return err
+			}
+		} else if !os.IsNotExist(err) {
+			return err
+		}
+	}
+	if _, err := os.Stat(s.releasedPath(t.ID)); err == nil {
+		path = s.releasedPath(t.ID)
+	}
 	var old int64
 	exists := false
 	if info, err := os.Stat(path); err == nil {
@@ -87,6 +119,13 @@ func (s *Server) archive(t p.Task) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		return err
+	}
+	if path == s.releasedPath(t.ID) {
+		if exists {
+			s.evictions.valid = false
+		} else if s.evictions.valid {
+			s.evictions.add(eviction{id: t.ID, size: info.Size(), modified: info.ModTime()})
+		}
 	}
 	s.historyBytes += info.Size() - old
 	if !exists {
@@ -120,13 +159,18 @@ func walkFiles(dir string, fn func(os.DirEntry) error) error {
 
 func (s *Server) openStorage() error {
 	dir := s.path + ".history"
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := os.MkdirAll(filepath.Join(dir, "released"), 0700); err != nil {
 		return err
+	}
+	for _, d := range []string{dir, filepath.Join(dir, "released")} {
+		if err := cleanHistoryTemps(d); err != nil {
+			return err
+		}
 	}
 	if err := p.SyncDirectory(filepath.Dir(dir)); err != nil {
 		return err
 	}
-	if err := walkFiles(dir, func(e os.DirEntry) error {
+	if err := s.walkHistory(func(_ string, e os.DirEntry) error {
 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
 			return nil
 		}
@@ -163,15 +207,33 @@ func (s *Server) openStorage() error {
 	}
 	seen := false
 	versionSeen := false
+	storageVersion := 0
+	sequencesSeen := false
 	var activeBytes int64
 	for d.More() {
 		key, err := d.Token()
+		if err == nil && key == "sequences" && !sequencesSeen {
+			if err := d.Decode(&s.state.Sequences); err != nil {
+				return err
+			}
+			if s.state.Sequences == nil {
+				return errors.New("invalid sequence state")
+			}
+			for id := range s.state.Sequences {
+				if !p.ValidID(id) {
+					return errors.New("invalid sequence node")
+				}
+			}
+			sequencesSeen = true
+			continue
+		}
 		if err == nil && key == "storage_version" && !versionSeen {
 			var version int
-			if err := d.Decode(&version); err != nil || version != 1 {
+			if err := d.Decode(&version); err != nil || (version != 1 && version != 2) {
 				return errors.New("unsupported storage version")
 			}
 			versionSeen = true
+			storageVersion = version
 			continue
 		}
 		if err != nil || key != "tasks" || seen {
@@ -210,6 +272,17 @@ func (s *Server) openStorage() error {
 				}
 				continue
 			}
+			// An archive may have committed just before a crash replacing the
+			// active snapshot, or survive restoration of an older snapshot.
+			// Its durable completion wins; never resurrect an already done task.
+			if saved, ok, err := s.readHistory(id); err != nil {
+				return err
+			} else if ok {
+				if saved.NodeID != task.NodeID {
+					return errors.New("history node does not match active snapshot")
+				}
+				continue
+			}
 			b, _ := json.Marshal(task)
 			activeBytes += int64(len(b))
 			if len(s.state.Tasks) >= s.config.MaxActiveTasks || activeBytes > s.config.MaxActiveBytes {
@@ -227,6 +300,9 @@ func (s *Server) openStorage() error {
 	if _, err := d.Token(); err != io.EOF {
 		return errors.New("unexpected trailing state data")
 	}
+	if storageVersion < 2 {
+		return s.releaseLegacyCancellations()
+	}
 	return nil
 }
 
@@ -240,7 +316,15 @@ func (s *Server) lookupTask(id string) (p.Task, bool, error) {
 	if ok {
 		return t, true, nil
 	}
+	return s.readHistory(id)
+}
+
+func (s *Server) readHistory(id string) (p.Task, bool, error) {
+	var t p.Task
 	f, err := os.Open(s.historyPath(id))
+	if os.IsNotExist(err) {
+		f, err = os.Open(s.releasedPath(id))
+	}
 	if os.IsNotExist(err) {
 		return t, false, nil
 	}
@@ -294,7 +378,7 @@ func (s *Server) taskPage(after string, limit int) (p.TaskPage, error) {
 	for id := range active {
 		add(id)
 	}
-	if err := walkFiles(s.path+".history", func(e os.DirEntry) error {
+	if err := s.walkHistory(func(_ string, e os.DirEntry) error {
 		id := strings.TrimSuffix(e.Name(), ".json")
 		if !e.IsDir() && strings.HasSuffix(e.Name(), ".json") && p.ValidID(id) {
 			add(id)
@@ -397,21 +481,38 @@ func (s *Server) readAdministrator(w http.ResponseWriter, r *http.Request) bool 
 // uploads survive restart and are still recoverable at the acknowledged offset.
 func (s *Server) cleanUploads() error {
 	dir := s.path + ".uploads"
+	s.orphanBytes, s.orphanFiles = 0, 0
+	preserve := func(e os.DirEntry) error {
+		info, err := e.Info()
+		if err != nil {
+			return err
+		}
+		s.orphanFiles++
+		size := info.Size()
+		if size < 4096 {
+			size = 4096
+		}
+		s.orphanBytes += size
+		return nil
+	}
 	err := walkFiles(dir, func(e os.DirEntry) error {
 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".part") {
-			return nil
+			return preserve(e)
 		}
 		name := strings.TrimSuffix(e.Name(), ".part")
 		cut := strings.LastIndexByte(name, '.')
 		if cut < 1 {
-			return nil
+			return preserve(e)
 		}
 		id, digest := name[:cut], name[cut+1:]
 		t, ok, err := s.lookupTask(id)
 		if err != nil {
 			return err
 		}
-		if !ok || !completed(t) || t.Upload == nil || t.Upload.SHA256 != digest {
+		if !ok || t.Upload == nil || t.Upload.SHA256 != digest {
+			return preserve(e)
+		}
+		if !completed(t) {
 			return nil
 		}
 		return os.Remove(filepath.Join(dir, e.Name()))

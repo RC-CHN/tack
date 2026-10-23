@@ -10,11 +10,13 @@ import (
 )
 
 const Version = 1
-const LatestVersion = 2
+const TransferVersion = 2
+const LatestVersion = 3
 
 // NodeSyncPath retains the version 1 wire endpoint across the Tack rename.
 const NodeSyncPath = "/v1/agent/sync"
 const NodeControlPath = "/v2/node/sync"
+const NodeRetentionPath = "/v3/node/sync"
 const NodeResultPath = "/v2/node/results"
 const MaxChunk = 64 * 1024
 const ResultTimeoutSeconds = 120
@@ -86,6 +88,7 @@ func (c Command) Validate() error {
 
 type Task struct {
 	ID              string      `json:"id"`
+	Sequence        uint64      `json:"sequence,omitempty"`
 	NodeID          string      `json:"node_id"`
 	Command         Command     `json:"command"`
 	CreatedAt       time.Time   `json:"created_at"`
@@ -141,20 +144,25 @@ type Report struct {
 const MaxHeartbeatSeconds = 86400
 
 type SyncRequest struct {
-	WaitSeconds  int     `json:"wait_seconds,omitempty"`
-	LeaseSeconds int     `json:"lease_seconds,omitempty"`
-	Version      int     `json:"version"`
-	InstanceID   string  `json:"instance_id"`
-	Node         Node    `json:"node"`
-	Report       *Report `json:"report,omitempty"`
-	AcceptTask   bool    `json:"accept_task,omitempty"`
+	ReplayHigh   uint64   `json:"replay_high,omitempty"`
+	ReplayInit   bool     `json:"replay_init,omitempty"`
+	Receipts     []string `json:"receipts,omitempty"`
+	WaitSeconds  int      `json:"wait_seconds,omitempty"`
+	LeaseSeconds int      `json:"lease_seconds,omitempty"`
+	Version      int      `json:"version"`
+	InstanceID   string   `json:"instance_id"`
+	Node         Node     `json:"node"`
+	Report       *Report  `json:"report,omitempty"`
+	AcceptTask   bool     `json:"accept_task,omitempty"`
 }
 
 type SyncResponse struct {
-	Version      int    `json:"version"`
-	Task         *Task  `json:"task,omitempty"`
-	Acknowledged string `json:"acknowledged,omitempty"`
-	CancelTaskID string `json:"cancel_task_id,omitempty"`
+	ReplayFloor  *uint64  `json:"replay_floor,omitempty"`
+	Receipts     []string `json:"receipts,omitempty"`
+	Version      int      `json:"version"`
+	Task         *Task    `json:"task,omitempty"`
+	Acknowledged string   `json:"acknowledged,omitempty"`
+	CancelTaskID string   `json:"cancel_task_id,omitempty"`
 }
 
 type CreateTask struct {
@@ -168,13 +176,14 @@ type NodeCredential struct {
 }
 
 type ControlConfig struct {
-	AdminToken           string           `json:"admin_token"`
-	Nodes                []NodeCredential `json:"nodes"`
-	MaxActiveTasks       int              `json:"max_active_tasks,omitempty"`
-	MaxActiveBytes       int64            `json:"max_active_bytes,omitempty"`
-	MaxHistoryTasks      int              `json:"max_history_tasks,omitempty"`
-	MaxHistoryBytes      int64            `json:"max_history_bytes,omitempty"`
-	MaxConcurrentUploads int              `json:"max_concurrent_uploads,omitempty"`
+	AdminToken              string           `json:"admin_token"`
+	Nodes                   []NodeCredential `json:"nodes"`
+	MaxActiveTasks          int              `json:"max_active_tasks,omitempty"`
+	MaxActiveBytes          int64            `json:"max_active_bytes,omitempty"`
+	MaxHistoryTasks         int              `json:"max_history_tasks,omitempty"`
+	MaxHistoryBytes         int64            `json:"max_history_bytes,omitempty"`
+	MaxConcurrentUploads    int              `json:"max_concurrent_uploads,omitempty"`
+	HistoryRetentionSeconds int64            `json:"history_retention_seconds,omitempty"`
 }
 
 type TaskPage struct {

@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -11,37 +10,12 @@ import (
 	"runtime"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	p "tack.local/management/protocol"
 )
 
-type Runner struct{ WorkDir, BusyBox string }
-type bounded struct {
-	mu        sync.Mutex
-	data      bytes.Buffer
-	limit     int
-	truncated bool
-}
-
-func (b *bounded) Write(v []byte) (int, error) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	n := len(v)
-	remaining := b.limit - b.data.Len()
-	if n > remaining {
-		b.truncated = true
-		v = v[:remaining]
-	}
-	b.data.Write(v)
-	return n, nil
-}
-func (b *bounded) snapshot() ([]byte, bool) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	return append([]byte(nil), b.data.Bytes()...), b.truncated
-}
+type Runner struct{ WorkDir, BusyBox, Owner string }
 
 func (r Runner) executable(mode string) (string, []string, error) {
 	find := func(name string) (string, []string, error) { path, err := exec.LookPath(name); return path, nil, err }
@@ -99,7 +73,12 @@ func (r Runner) Run(ctx context.Context, c p.Command) (string, *p.Result) {
 		result.Error = err.Error()
 		return state, result
 	}
-	workspace, err := os.MkdirTemp(r.WorkDir, "task-")
+	root, err := r.Recover()
+	if err != nil {
+		result.Error = err.Error()
+		return state, result
+	}
+	workspace, err := os.MkdirTemp(root, "task-")
 	if err != nil {
 		result.Error = err.Error()
 		return state, result

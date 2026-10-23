@@ -13,7 +13,7 @@ import (
 
 func v2Sync(id string) p.SyncRequest {
 	in := syncInput(id)
-	in.Version, in.AcceptTask, in.LeaseSeconds = p.LatestVersion, true, 9000
+	in.Version, in.AcceptTask, in.LeaseSeconds = p.TransferVersion, true, 9000
 	return in
 }
 func pendingResult(t *testing.T, s *Server, c p.ControlConfig, result *p.Result) (p.Task, p.ResultChunk) {
@@ -40,7 +40,7 @@ func pendingResult(t *testing.T, s *Server, c p.ControlConfig, result *p.Result)
 	if !task.ResultPending {
 		t.Fatal("result was marked complete before output arrived")
 	}
-	return task, p.ResultChunk{Version: p.LatestVersion, NodeID: "node-a", InstanceID: sync.InstanceID, TaskID: task.ID, SHA256: manifest.SHA256}
+	return task, p.ResultChunk{Version: p.TransferVersion, NodeID: "node-a", InstanceID: sync.InstanceID, TaskID: task.ID, SHA256: manifest.SHA256}
 }
 func TestUploadResumeAfterControllerRestartAndLostAck(t *testing.T) {
 	s, c, path := fixture(t)
@@ -225,13 +225,13 @@ func TestV1LostFinalAckCanFinishThroughV2Upload(t *testing.T) {
 	in.Report = &p.Report{TaskID: task.ID, State: "succeeded", Result: result}
 	call(t, s, "POST", p.NodeSyncPath, c.Nodes[0].Token, in, nil)
 	manifest := p.OutputManifest(result)
-	in.Version, in.AcceptTask, in.LeaseSeconds = p.LatestVersion, true, 9000
+	in.Version, in.AcceptTask, in.LeaseSeconds = p.TransferVersion, true, 9000
 	in.Report.Result = &p.Result{}
 	in.Report.Upload = &manifest
 	if code := call(t, s, "POST", p.NodeControlPath, c.Nodes[0].Token, in, nil); code != 200 {
 		t.Fatal(code)
 	}
-	chunk := p.ResultChunk{Version: p.LatestVersion, NodeID: "node-a", InstanceID: in.InstanceID, TaskID: task.ID, SHA256: manifest.SHA256, Probe: true}
+	chunk := p.ResultChunk{Version: p.TransferVersion, NodeID: "node-a", InstanceID: in.InstanceID, TaskID: task.ID, SHA256: manifest.SHA256, Probe: true}
 	var ack p.ChunkAck
 	if code := call(t, s, "POST", p.NodeResultPath, c.Nodes[0].Token, chunk, &ack); code != 200 || !ack.Complete || ack.Offset != manifest.Total() {
 		t.Fatalf("legacy ack not reconciled: %d %+v", code, ack)
