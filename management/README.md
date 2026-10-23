@@ -85,7 +85,7 @@ Additional configuration fields:
 
 | Field | Meaning |
 | --- | --- |
-| `state_dir` | Exclusive state directory for one node; contains identity, lock and task journal |
+| `state_dir` | Exclusive state directory for one node; contains identity, lock, task journal, replay checkpoint and pending `results/` files |
 | `work_dir` | Task-specific temporary directories; may be on a different writable volume |
 | `state_persistence` | `durable` (default) or `volatile`, declared by the deployment operator |
 | `ca_file` | Optional node-side PEM CA bundle for a private issuer |
@@ -143,19 +143,19 @@ The Node listener offers `POST /v2/node/sync` and `POST /v2/node/results`, retai
 
 ## Output recovery and metrics
 
-The control connection sends terminal metadata plus output lengths and a SHA-256 digest of raw `stdout || stderr`. A distinct uploader probes the controller's durable offset, sends chunks of up to 64 KiB, and retries after transport/HTTP failures. It slices immutable runner output directly, allocating at most one chunk when crossing the stdout/stderr boundary instead of duplicating the full output. Duplicate chunks must match stored bytes. Final acknowledgement requires digest verification and persistence of the complete result. The node retains full output until that final acknowledgement; receipt of metadata alone never discards output. Node or controller restarts resume from stored state without rerunning the command. Empty output follows the same final-acknowledgement rule.
+The control connection sends terminal metadata plus output lengths and a SHA-256 digest of raw `stdout || stderr`. In protocol v3 sessions, the Node saves each nonempty result once in an immutable `results/<task-id>.out` file and retains only metadata in its journal. A distinct uploader probes the controller's durable offset and reads chunks of up to 64 KiB from that file using one reusable buffer. Legacy v1/v2 sessions retain the inline-output path. Duplicate chunks must match stored bytes. Final acknowledgement requires digest verification and persistence of the complete result. The Node flushes that acknowledgement to its journal before deleting the result file; receipt of metadata alone never discards output. Node or controller restarts resume from stored state without rerunning the command. Empty output follows the same final-acknowledgement rule.
 
 One uploader runs alongside one executor. Result limits stop new work while an upload backlog exists, leaving excess tasks queued; metrics expose the reason. Upload pacing applies to raw payload bytes, not TLS/JSON overhead, and is independent of the control connection. This is application-level isolation, not a reserved network lane: shared NIC bandwidth, filesystem latency and controller snapshot writes can still delay control traffic.
 
 `tack metrics` returns JSON only on the private administrator API. It includes separate control/upload request counts, failures and failure classes, durations, consecutive failures and last success; intentional canceled requests have a separate counter. Long-poll duration includes idle waiting and is **not network RTT**. Per-task `timing` measures queue delay, observed dispatch-to-running, cancellation-to-terminal and result-transfer time using the controller clock. Inspect timestamps to distinguish unavailable observations from zero-duration ones. Tiny jobs may finish before a running report is observed.
 
-Process metrics include Go allocated heap (not RSS), goroutine count, cumulative process CPU time where supported, state JSON write attempts/failures/payload bytes/time and node output backlog. JSON counters include journal/snapshot writes, not upload staging writes or physical disk/flash write amplification. Counters reset at process restart. Node metrics are self-reported snapshots, normally refreshed on the heartbeat/task transitions; they are not trusted for authentication or authorization. Metrics contain no tokens or task output.
+Process metrics include Go allocated heap (not RSS), goroutine count, cumulative process CPU time where supported, state JSON write attempts/failures/payload bytes/time and node output backlog. JSON counters include journal/snapshot writes, not raw Node result files, upload staging writes or physical disk/flash write amplification. Counters reset at process restart. Node metrics are self-reported snapshots, normally refreshed on the heartbeat/task transitions; they are not trusted for authentication or authorization. Metrics contain no tokens or task output.
 
-Existing configuration and v1 wire clients remain usable. New state includes persisted instance IDs, metadata acknowledgements, manifests and timings. Controller storage v2, the Node journal wrapper v3 and `replay.json` must be upgraded together with the CLI. Older binaries reject the new state; a new Node with a replay checkpoint also refuses a v1/v2 Controller. Back up state before upgrade and do not perform an in-place binary-only downgrade. Restoring a snapshot predating executed tasks can lose evidence; preserve the node journal and reconcile task history. A lost v1 result acknowledgement is reconciled when a node switches to v2.
+Existing configuration and v1 wire clients remain usable. Controller storage remains v2 and the wire protocol remains v3. Node journal storage v4 references separate result files and reads existing v3 journals one record at a time during migration. Older Nodes reject v4 state; a new Node with a replay checkpoint also refuses a v1/v2 Controller. Back up the complete state directory before upgrade and do not perform an in-place binary-only downgrade. Restoring a snapshot predating executed tasks can lose evidence; preserve the journal, `results/` and replay checkpoint and reconcile task history. A lost v1 result acknowledgement is reconciled when a node switches to v2.
 
 ## Diagnostic logs and crash cleanup
 
-Node and Controller remain foreground programs. By default their diagnostic logs go to stderr; the supervisor must bound any captured log files. To select a rotating file explicitly, add `-log-file /chosen/path/runtime.log -log-max-bytes 4194304 -log-files 4` to either command. This keeps at most four files including the current file (16 MiB by default). The path and its numeric backup names are reserved for this logger. Smaller limits on restart remove excess/oversized old diagnostic files. Avoid unbounded shell append redirection. Task results never use this lossy log sink.
+Node and Controller remain foreground programs. Routine diagnostic logging is disabled by default. Fatal startup/runtime errors still go to stderr and exit unsuccessfully. For troubleshooting, select `-log-stderr` with bounded supervisor capture, or `-log-file /chosen/path/runtime.log -log-max-bytes 4194304 -log-files 4`; these destinations are mutually exclusive. The rotating option keeps at most four files including the current file (16 MiB by default). The path and its numeric backup names are reserved for this logger. Smaller limits on restart remove excess/oversized old diagnostic files. Avoid unbounded shell append redirection. Task results, acknowledgement records and replay checkpoints remain durable regardless of this logging choice.
 
 The Node owns only `work_dir/tack-<persistent-instance-id>/task-*` beneath the supplied work path. It removes leftover owned workspaces at startup and before the next command; unrecognized content or failed cleanup is reported. Existing customer paths and old unowned `task-*` directories are not swept. Commands may themselves write outside this workspace, so filesystem/container quotas are a deployment decision when a hard limit on command-created files is required.
 
@@ -186,7 +186,7 @@ Before accepting a task, the Controller automatically deletes the oldest receipt
 
 With protocol v3, the Controller allocates increasing task sequences per node. The Node flushes a monotonic replay watermark before execution intent. After final output acknowledgement it reduces the journal entry to a receipt, and removes that entry after the Controller durably accepts the receipt. Completed work therefore does not accumulate per-task tombstones. Sequence zero or a sequence behind the watermark without a live journal entry is reported as `unknown` and never executed. A crash between the watermark and execution can refuse an unstarted command; this is at-most-once execution, not a promise that every command runs. The bounded pending-result/receipt queue still applies when acknowledgements cannot be delivered. Old v1/v2 sessions retain their original tombstone limit and need upgrading for rolling retention.
 
-Upgrade the Controller first, then the CLI and Nodes. Drain the queue before migrating legacy Nodes: the first v3 handshake fences every already allocated sequence before retiring legacy identities, so queued work from before migration may become `unknown`. Check the original side effects before deciding to resubmit. Keep `identity.json`, `journal.json` and `replay.json` together; deleting/restoring Node evidence to an older point cannot preserve replay protection. The Node advertises its retained watermark after Controller rollback, and completed archives take precedence over a stale active snapshot. See [retention invariants](../docs/tack-retention.md).
+Upgrade the Controller first, then the CLI and Nodes. Drain the queue before migrating legacy Nodes: the first v3 handshake fences every already allocated sequence before retiring legacy identities, so queued work from before migration may become `unknown`. Check the original side effects before deciding to resubmit. Keep the entire Node state directory together, including `identity.json`, `journal.json`, `replay.json`, `results/` and recovery files; deleting/restoring Node evidence to an older point cannot preserve replay protection. The Node advertises its retained watermark after Controller rollback, and completed archives take precedence over a stale active snapshot. See [retention invariants](../docs/tack-retention.md).
 
 Short network failures do not cancel tasks. Shutdown requests cancel the local task and save its result when possible; an unexpected restart converts unfinished intent to `unknown`. Process-group cleanup does not cover programs deliberately escaping the group. Job Object behavior requires Windows native validation. Filesystem crash durability, flash limits, device drivers and boot persistence require target-system testing.
 
@@ -222,6 +222,54 @@ For an overnight reconnect soak, set `TACK_SOAK_SECONDS=86400` and `-timeout=25h
 Controller history is disk-backed and automatically reclaims confirmed results. Tests cover count/byte/age retention, full legacy-journal migration, lost acknowledgements, recovered temporary results, and stale Controller snapshots after per-task records have been pruned. Never delete a replay checkpoint to reclaim space. Native Windows handle counts, CentOS 6/embedded behavior, disk-full/power-loss recovery and 24–72 hour device soaks are separate acceptance work.
 
 The separate management CI covers these modules, a Go 1.23.12 Node build/test job and an architecture compilation matrix. Cross-compilation is recorded separately from native OS/kernel/device testing.
+
+For **peak-load measurements of separate release processes** on a Linux host,
+extract matching `tack-node` and `tack-control` binaries into a private directory
+and run the localhost driver from the repository root:
+
+```sh
+python3 scripts/stress-management.py --bin-dir /tmp/tack-bin \
+  --profile defaults --output /tmp/tack-stress-defaults.json
+python3 scripts/stress-management.py --bin-dir /tmp/tack-bin \
+  --profile large-output --http 1 --output /tmp/tack-stress-large-output.json
+python3 scripts/stress-management.py --bin-dir /tmp/tack-bin \
+  --profile max-backlog --output /tmp/tack-stress-max-backlog.json
+python3 scripts/stress-management.py --bin-dir /tmp/tack-bin \
+  --profile fanout --output /tmp/tack-stress-fanout.json
+```
+
+The driver needs Python 3, OpenSSL, `/proc`, at least 4 GiB of temporary free
+space, and permission to create loopback listeners. It uses disposable
+credentials, real TLS and temporary state, then terminates its processes and
+removes that state. Run profiles sequentially on a test host. The maximum
+backlog case deliberately exercises substantial memory and disk writes;
+do not run it on customer devices or flash media to measure a small agent.
+An observed 4 GiB aggregate RSS or allocated-state threshold aborts the run;
+this sampling guard is not a kernel-enforced resource limit.
+
+Backlog profiles limit upload to one byte per second, reach the pending-result
+budget, hold it for ten seconds, restart with unrestricted upload, and verify
+every retained output byte and execution marker. `defaults` keeps the usual
+64 KiB per stream; `large-output` uses the maximum 1 MiB per stream with the
+default 8 MiB backlog; `max-backlog` raises that backlog to 128 MiB. `fanout`
+runs eight Nodes, 16 history readers and 256 commands while reclaiming history
+at a 64-task/256-MiB budget. Every command produces 8 MiB on each output stream
+to exercise truncation and draining. The driver also checks journal/workspace
+and result-file cleanup, history limits and clean shutdown. For an upgrade test,
+add `--initial-node-bin /path/to/old/tack-node` to a backlog profile: the driver
+fills the old Node's journal and restarts using the Node in `--bin-dir`. Reports
+record both binary hashes and each process separately. Diagnostic file logging
+is explicitly enabled in these tests so failures retain troubleshooting context.
+
+Reports distinguish each executable's kernel RSS high-water mark, sampled
+descriptors/threads, CPU time, approximately one-second CPU peaks, state-space
+peaks and cumulative `/proc` write accounting. CPU 100% means one logical CPU.
+Commands and the driver are outside the Node's RSS; command helpers report
+their own post-exec memory separately. Disk sampling can miss short atomic
+replacement overlaps, and `/proc` writes are not physical flash wear. A pending
+result byte budget limits retained raw output, **not total process memory**.
+These are measured workload peaks, not universal upper bounds or long-term
+leak tests. See the validation record for actual observations.
 
 See the [validation record](VALIDATION.md) for checks actually run in this workspace and remaining native-platform validation.
 

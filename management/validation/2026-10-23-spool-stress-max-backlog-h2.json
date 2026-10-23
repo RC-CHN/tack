@@ -1,0 +1,3694 @@
+{
+  "profile": "max-backlog",
+  "http": "2",
+  "http_mode": "HTTP/2 enabled with normal TLS negotiation",
+  "driver_sha256": "8e83e527f8d75b4b8ee735468c59e38c1bf04e02908f2e68775fa0a93bef4d28",
+  "started_at": "2026-10-23T08:31:53Z",
+  "platform": [
+    "Linux",
+    "ms03",
+    "7.0.0-38-generic",
+    "#38-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 09:10:14 UTC 2026",
+    "x86_64"
+  ],
+  "cpu_affinity_count": 104,
+  "sampling_seconds": 0.05,
+  "cpu_window_seconds": 1,
+  "binary_sha256": {
+    "tack-node": "0c4edf5beca899600448a5fee96e95515ce1bfa83eaae495abf1075ed9f6cf83",
+    "tack-control": "7866d57315f7a5f1da59346f5a570d590967e8dc70e0cb08d8e83dd66bc86774"
+  },
+  "checkpoints": {
+    "baseline": {
+      "processes": {
+        "controller": {
+          "rss_bytes": 10641408,
+          "hwm_bytes": 10641408,
+          "fds": 11,
+          "threads": 8,
+          "cpu_seconds": 0.01,
+          "write_bytes": 8192
+        },
+        "stress-0": {
+          "rss_bytes": 9609216,
+          "hwm_bytes": 9609216,
+          "fds": 8,
+          "threads": 8,
+          "cpu_seconds": 0.0,
+          "write_bytes": 20480
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 159,
+          "allocated_bytes": 20480,
+          "files": 3
+        },
+        "stress-0": {
+          "logical_bytes": 229,
+          "allocated_bytes": 32768,
+          "files": 5
+        }
+      },
+      "journals": {
+        "stress-0": 35
+      },
+      "metrics": {
+        "controller": {
+          "started_at": "2026-10-23T08:31:53.322672872Z",
+          "uptime_seconds": 5,
+          "go_alloc_bytes": 2558592,
+          "goroutines": 11,
+          "cpu_time_ms": 15,
+          "cpu_available": true,
+          "control": {
+            "canceled": 0,
+            "requests": 0,
+            "failures": 0,
+            "consecutive_failures": 0,
+            "last_duration_ms": 0,
+            "total_duration_ms": 0,
+            "max_duration_ms": 0,
+            "last_status": 0,
+            "last_success_at": "0001-01-01T00:00:00Z"
+          },
+          "upload": {
+            "canceled": 0,
+            "requests": 0,
+            "failures": 0,
+            "consecutive_failures": 0,
+            "last_duration_ms": 0,
+            "total_duration_ms": 0,
+            "max_duration_ms": 0,
+            "last_status": 0,
+            "last_success_at": "0001-01-01T00:00:00Z"
+          },
+          "state_writes": 1,
+          "state_write_failures": 0,
+          "state_bytes_written": 33,
+          "state_write_ms": 0,
+          "state_write_max_ms": 0
+        },
+        "nodes": [
+          {
+            "id": "stress-0",
+            "hostname": "ms03",
+            "os": "linux",
+            "arch": "amd64",
+            "modes": [
+              "exec",
+              "posix-sh",
+              "bash"
+            ],
+            "state_persistence": "durable",
+            "last_seen": "2026-10-23T08:31:53.434324303Z",
+            "lease_expires_at": "2026-10-23T11:01:53.434324303Z",
+            "online": true,
+            "metrics": {
+              "runtime": {
+                "started_at": "2026-10-23T08:31:53.426450189Z",
+                "uptime_seconds": 0,
+                "go_alloc_bytes": 1573024,
+                "goroutines": 4,
+                "cpu_time_ms": 8,
+                "cpu_available": true,
+                "control": {
+                  "canceled": 0,
+                  "requests": 1,
+                  "failures": 0,
+                  "consecutive_failures": 0,
+                  "last_duration_ms": 3,
+                  "total_duration_ms": 3,
+                  "max_duration_ms": 3,
+                  "last_status": 200,
+                  "last_success_at": "2026-10-23T08:31:53.432394121Z"
+                },
+                "upload": {
+                  "canceled": 0,
+                  "requests": 0,
+                  "failures": 0,
+                  "consecutive_failures": 0,
+                  "last_duration_ms": 0,
+                  "total_duration_ms": 0,
+                  "max_duration_ms": 0,
+                  "last_status": 0,
+                  "last_success_at": "0001-01-01T00:00:00Z"
+                },
+                "state_writes": 4,
+                "state_write_failures": 0,
+                "state_bytes_written": 170,
+                "state_write_ms": 1,
+                "state_write_max_ms": 1
+              },
+              "journal_records": 0,
+              "pending_results": 0,
+              "pending_result_bytes": 0,
+              "accepting_tasks": true
+            }
+          }
+        ]
+      }
+    },
+    "saturated": {
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      },
+      "journals": {
+        "stress-0": 49026
+      },
+      "metrics": {
+        "controller": {
+          "started_at": "2026-10-23T08:31:53.322672872Z",
+          "uptime_seconds": 17,
+          "go_alloc_bytes": 5418496,
+          "goroutines": 13,
+          "cpu_time_ms": 436,
+          "cpu_available": true,
+          "control": {
+            "canceled": 64,
+            "requests": 129,
+            "failures": 0,
+            "consecutive_failures": 0,
+            "last_duration_ms": 1,
+            "total_duration_ms": 7253,
+            "max_duration_ms": 4998,
+            "last_status": 200,
+            "last_success_at": "2026-10-23T08:32:00.907826829Z"
+          },
+          "upload": {
+            "canceled": 0,
+            "requests": 2,
+            "failures": 0,
+            "consecutive_failures": 0,
+            "last_duration_ms": 1,
+            "total_duration_ms": 1,
+            "max_duration_ms": 1,
+            "last_status": 200,
+            "last_success_at": "2026-10-23T08:31:58.478119714Z"
+          },
+          "state_writes": 259,
+          "state_write_failures": 0,
+          "state_bytes_written": 10893999,
+          "state_write_ms": 90,
+          "state_write_max_ms": 2
+        },
+        "nodes": [
+          {
+            "id": "stress-0",
+            "hostname": "ms03",
+            "os": "linux",
+            "arch": "amd64",
+            "modes": [
+              "exec",
+              "posix-sh",
+              "bash"
+            ],
+            "state_persistence": "durable",
+            "last_seen": "2026-10-23T08:32:00.910519579Z",
+            "lease_expires_at": "2026-10-23T11:02:00.910519579Z",
+            "online": true,
+            "metrics": {
+              "runtime": {
+                "started_at": "2026-10-23T08:31:53.426450189Z",
+                "uptime_seconds": 7,
+                "go_alloc_bytes": 5154440,
+                "goroutines": 6,
+                "cpu_time_ms": 1171,
+                "cpu_available": true,
+                "control": {
+                  "canceled": 64,
+                  "requests": 130,
+                  "failures": 0,
+                  "consecutive_failures": 0,
+                  "last_duration_ms": 1,
+                  "total_duration_ms": 7292,
+                  "max_duration_ms": 4999,
+                  "last_status": 200,
+                  "last_success_at": "2026-10-23T08:32:00.908133417Z"
+                },
+                "upload": {
+                  "canceled": 0,
+                  "requests": 2,
+                  "failures": 0,
+                  "consecutive_failures": 0,
+                  "last_duration_ms": 2,
+                  "total_duration_ms": 5,
+                  "max_duration_ms": 3,
+                  "last_status": 200,
+                  "last_success_at": "2026-10-23T08:31:58.478284358Z"
+                },
+                "state_writes": 197,
+                "state_write_failures": 0,
+                "state_bytes_written": 3215409,
+                "state_write_ms": 6,
+                "state_write_max_ms": 1
+              },
+              "journal_records": 64,
+              "pending_results": 64,
+              "pending_result_bytes": 134217728,
+              "accepting_tasks": false
+            }
+          }
+        ]
+      }
+    },
+    "drained": {
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      },
+      "journals": {
+        "stress-0": 35
+      },
+      "metrics": {
+        "controller": {
+          "started_at": "2026-10-23T08:31:53.322672872Z",
+          "uptime_seconds": 22,
+          "go_alloc_bytes": 8629624,
+          "goroutines": 13,
+          "cpu_time_ms": 7783,
+          "cpu_available": true,
+          "control": {
+            "canceled": 133,
+            "requests": 266,
+            "failures": 0,
+            "consecutive_failures": 0,
+            "last_duration_ms": 0,
+            "total_duration_ms": 21889,
+            "max_duration_ms": 10012,
+            "last_status": 200,
+            "last_success_at": "2026-10-23T08:32:15.890503025Z"
+          },
+          "upload": {
+            "canceled": 0,
+            "requests": 2179,
+            "failures": 0,
+            "consecutive_failures": 0,
+            "last_duration_ms": 11,
+            "total_duration_ms": 2932,
+            "max_duration_ms": 18,
+            "last_status": 200,
+            "last_success_at": "2026-10-23T08:32:15.886736365Z"
+          },
+          "state_writes": 397,
+          "state_write_failures": 0,
+          "state_bytes_written": 198425189,
+          "state_write_ms": 738,
+          "state_write_max_ms": 12
+        },
+        "nodes": [
+          {
+            "id": "stress-0",
+            "hostname": "ms03",
+            "os": "linux",
+            "arch": "amd64",
+            "modes": [
+              "exec",
+              "posix-sh",
+              "bash"
+            ],
+            "state_persistence": "durable",
+            "last_seen": "2026-10-23T08:32:15.89316549Z",
+            "lease_expires_at": "2026-10-23T11:02:15.89316549Z",
+            "online": true,
+            "metrics": {
+              "runtime": {
+                "started_at": "2026-10-23T08:32:10.929382505Z",
+                "uptime_seconds": 4,
+                "go_alloc_bytes": 4341960,
+                "goroutines": 5,
+                "cpu_time_ms": 2102,
+                "cpu_available": true,
+                "control": {
+                  "canceled": 68,
+                  "requests": 137,
+                  "failures": 0,
+                  "consecutive_failures": 0,
+                  "last_duration_ms": 1,
+                  "total_duration_ms": 4654,
+                  "max_duration_ms": 82,
+                  "last_status": 200,
+                  "last_success_at": "2026-10-23T08:32:15.891019203Z"
+                },
+                "upload": {
+                  "canceled": 0,
+                  "requests": 2177,
+                  "failures": 0,
+                  "consecutive_failures": 0,
+                  "last_duration_ms": 12,
+                  "total_duration_ms": 3580,
+                  "max_duration_ms": 19,
+                  "last_status": 200,
+                  "last_success_at": "2026-10-23T08:32:15.887056159Z"
+                },
+                "state_writes": 141,
+                "state_write_failures": 0,
+                "state_bytes_written": 3628425,
+                "state_write_ms": 38,
+                "state_write_max_ms": 1
+              },
+              "journal_records": 0,
+              "pending_results": 0,
+              "pending_result_bytes": 0,
+              "accepting_tasks": true
+            }
+          }
+        ]
+      }
+    },
+    "after_idle": {
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      },
+      "journals": {
+        "stress-0": 35
+      },
+      "metrics": {
+        "controller": {
+          "started_at": "2026-10-23T08:31:53.322672872Z",
+          "uptime_seconds": 82,
+          "go_alloc_bytes": 8765400,
+          "goroutines": 13,
+          "cpu_time_ms": 7786,
+          "cpu_available": true,
+          "control": {
+            "canceled": 133,
+            "requests": 266,
+            "failures": 0,
+            "consecutive_failures": 0,
+            "last_duration_ms": 0,
+            "total_duration_ms": 21889,
+            "max_duration_ms": 10012,
+            "last_status": 200,
+            "last_success_at": "2026-10-23T08:32:15.890503025Z"
+          },
+          "upload": {
+            "canceled": 0,
+            "requests": 2179,
+            "failures": 0,
+            "consecutive_failures": 0,
+            "last_duration_ms": 11,
+            "total_duration_ms": 2932,
+            "max_duration_ms": 18,
+            "last_status": 200,
+            "last_success_at": "2026-10-23T08:32:15.886736365Z"
+          },
+          "state_writes": 397,
+          "state_write_failures": 0,
+          "state_bytes_written": 198425189,
+          "state_write_ms": 738,
+          "state_write_max_ms": 12
+        },
+        "nodes": [
+          {
+            "id": "stress-0",
+            "hostname": "ms03",
+            "os": "linux",
+            "arch": "amd64",
+            "modes": [
+              "exec",
+              "posix-sh",
+              "bash"
+            ],
+            "state_persistence": "durable",
+            "last_seen": "2026-10-23T08:32:15.89316549Z",
+            "lease_expires_at": "2026-10-23T11:02:15.89316549Z",
+            "online": true,
+            "metrics": {
+              "runtime": {
+                "started_at": "2026-10-23T08:32:10.929382505Z",
+                "uptime_seconds": 4,
+                "go_alloc_bytes": 4341960,
+                "goroutines": 5,
+                "cpu_time_ms": 2102,
+                "cpu_available": true,
+                "control": {
+                  "canceled": 68,
+                  "requests": 137,
+                  "failures": 0,
+                  "consecutive_failures": 0,
+                  "last_duration_ms": 1,
+                  "total_duration_ms": 4654,
+                  "max_duration_ms": 82,
+                  "last_status": 200,
+                  "last_success_at": "2026-10-23T08:32:15.891019203Z"
+                },
+                "upload": {
+                  "canceled": 0,
+                  "requests": 2177,
+                  "failures": 0,
+                  "consecutive_failures": 0,
+                  "last_duration_ms": 12,
+                  "total_duration_ms": 3580,
+                  "max_duration_ms": 19,
+                  "last_status": 200,
+                  "last_success_at": "2026-10-23T08:32:15.887056159Z"
+                },
+                "state_writes": 141,
+                "state_write_failures": 0,
+                "state_bytes_written": 3628425,
+                "state_write_ms": 38,
+                "state_write_max_ms": 1
+              },
+              "journal_records": 0,
+              "pending_results": 0,
+              "pending_result_bytes": 0,
+              "accepting_tasks": true
+            }
+          }
+        ]
+      }
+    }
+  },
+  "checks": {
+    "backpressure_at_results": 64,
+    "verified_results": 66,
+    "executions": 66,
+    "duplicate_executions": 0,
+    "history_files_after_drain": 66,
+    "empty_journals": true,
+    "empty_task_workspaces": true,
+    "empty_result_spools": true
+  },
+  "workload": {
+    "nodes": 1,
+    "history_tasks": 100000,
+    "history_bytes": 1073741824,
+    "pending_results": 128,
+    "pending_bytes": 134217728,
+    "generated_bytes_per_stream": 8388608,
+    "output_limit_per_stream": 1048576
+  },
+  "command_children": {
+    "count": 66,
+    "max_individual_hwm_bytes": 12009472,
+    "hwm_method": "post-exec /proc/self/status VmHWM",
+    "max_pre_exec_inclusive_hwm_bytes": 15462400,
+    "total_cpu_seconds": 1.376287
+  },
+  "passed": true,
+  "elapsed_seconds": 82.67393587902188,
+  "process_high_water": {
+    "controller": {
+      "rss_bytes": 39256064,
+      "hwm_bytes": 39256064,
+      "fds": 15,
+      "threads": 41,
+      "cpu_seconds": 7.78,
+      "write_bytes": 337539072,
+      "sampled_children_rss_bytes": 0,
+      "cpu_core_percent_1s_max": 152.64951326118697
+    },
+    "stress-0": {
+      "rss_bytes": 19603456,
+      "hwm_bytes": 19603456,
+      "fds": 13,
+      "threads": 21,
+      "cpu_seconds": 1.16,
+      "write_bytes": 138248192,
+      "sampled_children_rss_bytes": 4542464,
+      "cpu_core_percent_1s_max": 47.2618890625772
+    },
+    "stress-0-restart": {
+      "rss_bytes": 19955712,
+      "hwm_bytes": 19955712,
+      "fds": 13,
+      "threads": 25,
+      "cpu_seconds": 2.1,
+      "write_bytes": 8101888,
+      "sampled_children_rss_bytes": 0,
+      "cpu_core_percent_1s_max": 46.23366889976632
+    }
+  },
+  "disk_high_water": {
+    "controller": {
+      "logical_bytes": 184623405,
+      "allocated_bytes": 184672256,
+      "files": 69
+    },
+    "stress-0": {
+      "logical_bytes": 134303887,
+      "allocated_bytes": 134574080,
+      "files": 71
+    },
+    "stress-0-restart": {
+      "logical_bytes": 134303887,
+      "allocated_bytes": 134574080,
+      "files": 71
+    }
+  },
+  "samples": [
+    {
+      "monotonic": 585208.233226775,
+      "phase": "startup",
+      "processes": {
+        "controller": {
+          "rss_bytes": 9269248,
+          "hwm_bytes": 9269248,
+          "fds": 10,
+          "threads": 8,
+          "cpu_seconds": 0.0,
+          "write_bytes": 8192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 159,
+          "allocated_bytes": 20480,
+          "files": 3
+        }
+      }
+    },
+    {
+      "monotonic": 585209.266929325,
+      "phase": "idle-baseline",
+      "processes": {
+        "controller": {
+          "rss_bytes": 10641408,
+          "hwm_bytes": 10641408,
+          "fds": 11,
+          "threads": 8,
+          "cpu_seconds": 0.01,
+          "write_bytes": 8192
+        },
+        "stress-0": {
+          "rss_bytes": 9609216,
+          "hwm_bytes": 9609216,
+          "fds": 8,
+          "threads": 8,
+          "cpu_seconds": 0.0,
+          "write_bytes": 20480
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 159,
+          "allocated_bytes": 20480,
+          "files": 3
+        },
+        "stress-0": {
+          "logical_bytes": 229,
+          "allocated_bytes": 32768,
+          "files": 5
+        }
+      }
+    },
+    {
+      "monotonic": 585210.301232295,
+      "phase": "idle-baseline",
+      "processes": {
+        "controller": {
+          "rss_bytes": 10641408,
+          "hwm_bytes": 10641408,
+          "fds": 11,
+          "threads": 8,
+          "cpu_seconds": 0.01,
+          "write_bytes": 8192
+        },
+        "stress-0": {
+          "rss_bytes": 9609216,
+          "hwm_bytes": 9609216,
+          "fds": 8,
+          "threads": 8,
+          "cpu_seconds": 0.0,
+          "write_bytes": 20480
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 159,
+          "allocated_bytes": 20480,
+          "files": 3
+        },
+        "stress-0": {
+          "logical_bytes": 229,
+          "allocated_bytes": 32768,
+          "files": 5
+        }
+      }
+    },
+    {
+      "monotonic": 585211.336505848,
+      "phase": "idle-baseline",
+      "processes": {
+        "controller": {
+          "rss_bytes": 10641408,
+          "hwm_bytes": 10641408,
+          "fds": 11,
+          "threads": 8,
+          "cpu_seconds": 0.01,
+          "write_bytes": 8192
+        },
+        "stress-0": {
+          "rss_bytes": 9609216,
+          "hwm_bytes": 9609216,
+          "fds": 8,
+          "threads": 8,
+          "cpu_seconds": 0.0,
+          "write_bytes": 20480
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 159,
+          "allocated_bytes": 20480,
+          "files": 3
+        },
+        "stress-0": {
+          "logical_bytes": 229,
+          "allocated_bytes": 32768,
+          "files": 5
+        }
+      }
+    },
+    {
+      "monotonic": 585212.368904425,
+      "phase": "idle-baseline",
+      "processes": {
+        "controller": {
+          "rss_bytes": 10641408,
+          "hwm_bytes": 10641408,
+          "fds": 11,
+          "threads": 8,
+          "cpu_seconds": 0.01,
+          "write_bytes": 8192
+        },
+        "stress-0": {
+          "rss_bytes": 9609216,
+          "hwm_bytes": 9609216,
+          "fds": 8,
+          "threads": 8,
+          "cpu_seconds": 0.0,
+          "write_bytes": 20480
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 159,
+          "allocated_bytes": 20480,
+          "files": 3
+        },
+        "stress-0": {
+          "logical_bytes": 229,
+          "allocated_bytes": 32768,
+          "files": 5
+        }
+      }
+    },
+    {
+      "monotonic": 585213.402937052,
+      "phase": "fill-backlog-at-1-byte-per-second",
+      "processes": {
+        "controller": {
+          "rss_bytes": 17793024,
+          "hwm_bytes": 17793024,
+          "fds": 13,
+          "threads": 36,
+          "cpu_seconds": 0.09,
+          "write_bytes": 1204224
+        },
+        "stress-0": {
+          "rss_bytes": 16338944,
+          "hwm_bytes": 16338944,
+          "fds": 13,
+          "threads": 18,
+          "cpu_seconds": 0.04,
+          "write_bytes": 4263936
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 94849,
+          "allocated_bytes": 118784,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 4197599,
+          "allocated_bytes": 4251648,
+          "files": 9
+        }
+      }
+    },
+    {
+      "monotonic": 585214.439713215,
+      "phase": "fill-backlog-at-1-byte-per-second",
+      "processes": {
+        "controller": {
+          "rss_bytes": 17694720,
+          "hwm_bytes": 17694720,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.23,
+          "write_bytes": 4812800
+        },
+        "stress-0": {
+          "rss_bytes": 19251200,
+          "hwm_bytes": 19251200,
+          "fds": 13,
+          "threads": 21,
+          "cpu_seconds": 0.53,
+          "write_bytes": 61890560
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 115701,
+          "allocated_bytes": 139264,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 60856803,
+          "allocated_bytes": 61005824,
+          "files": 36
+        }
+      }
+    },
+    {
+      "monotonic": 585215.484787136,
+      "phase": "fill-backlog-at-1-byte-per-second",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18034688,
+          "hwm_bytes": 18034688,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.38,
+          "write_bytes": 9662464
+        },
+        "stress-0": {
+          "rss_bytes": 19509248,
+          "hwm_bytes": 19509248,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.01,
+          "write_bytes": 120590336
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 134091,
+          "allocated_bytes": 155648,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 117515625,
+          "allocated_bytes": 117760000,
+          "files": 63
+        }
+      }
+    },
+    {
+      "monotonic": 585216.530365291,
+      "phase": "hold-saturated-backlog",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585217.57845956,
+      "phase": "hold-saturated-backlog",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585218.627048798,
+      "phase": "hold-saturated-backlog",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585219.677042626,
+      "phase": "hold-saturated-backlog",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585220.72548382,
+      "phase": "hold-saturated-backlog",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585221.773817324,
+      "phase": "hold-saturated-backlog",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585222.823822236,
+      "phase": "hold-saturated-backlog",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585223.873608469,
+      "phase": "hold-saturated-backlog",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585224.923830097,
+      "phase": "hold-saturated-backlog",
+      "processes": {
+        "controller": {
+          "rss_bytes": 18489344,
+          "hwm_bytes": 18489344,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.43,
+          "write_bytes": 11505664
+        },
+        "stress-0": {
+          "rss_bytes": 19550208,
+          "hwm_bytes": 19550208,
+          "fds": 10,
+          "threads": 21,
+          "cpu_seconds": 1.16,
+          "write_bytes": 138248192
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 140115,
+          "allocated_bytes": 163840,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303594,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585225.975728684,
+      "phase": "restart-and-drain-preserved-results",
+      "processes": {
+        "controller": {
+          "rss_bytes": 20742144,
+          "hwm_bytes": 20742144,
+          "fds": 12,
+          "threads": 36,
+          "cpu_seconds": 0.47,
+          "write_bytes": 12554240
+        },
+        "stress-0-restart": {
+          "rss_bytes": 14000128,
+          "hwm_bytes": 14000128,
+          "fds": 10,
+          "threads": 12,
+          "cpu_seconds": 0.13,
+          "write_bytes": 102400
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 1188691,
+          "allocated_bytes": 1212416,
+          "files": 4
+        },
+        "stress-0": {
+          "logical_bytes": 134303656,
+          "allocated_bytes": 134574080,
+          "files": 71
+        },
+        "stress-0-restart": {
+          "logical_bytes": 134303656,
+          "allocated_bytes": 134574080,
+          "files": 71
+        }
+      }
+    },
+    {
+      "monotonic": 585226.991712776,
+      "phase": "restart-and-drain-preserved-results",
+      "processes": {
+        "controller": {
+          "rss_bytes": 32268288,
+          "hwm_bytes": 32268288,
+          "fds": 14,
+          "threads": 38,
+          "cpu_seconds": 1.95,
+          "write_bytes": 83476480
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15302656,
+          "hwm_bytes": 15302656,
+          "fds": 10,
+          "threads": 24,
+          "cpu_seconds": 0.54,
+          "write_bytes": 5820416
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 41319567,
+          "allocated_bytes": 41349120,
+          "files": 19
+        },
+        "stress-0": {
+          "logical_bytes": 109123347,
+          "allocated_bytes": 109350912,
+          "files": 59
+        },
+        "stress-0-restart": {
+          "logical_bytes": 109123347,
+          "allocated_bytes": 109350912,
+          "files": 59
+        }
+      }
+    },
+    {
+      "monotonic": 585228.022732095,
+      "phase": "restart-and-drain-preserved-results",
+      "processes": {
+        "controller": {
+          "rss_bytes": 34443264,
+          "hwm_bytes": 36466688,
+          "fds": 14,
+          "threads": 40,
+          "cpu_seconds": 3.52,
+          "write_bytes": 152485888
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15482880,
+          "hwm_bytes": 15482880,
+          "fds": 10,
+          "threads": 24,
+          "cpu_seconds": 0.97,
+          "write_bytes": 6844416
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 80269379,
+          "allocated_bytes": 80302080,
+          "files": 32
+        },
+        "stress-0": {
+          "logical_bytes": 79746035,
+          "allocated_bytes": 79925248,
+          "files": 45
+        },
+        "stress-0-restart": {
+          "logical_bytes": 79746035,
+          "allocated_bytes": 79925248,
+          "files": 45
+        }
+      }
+    },
+    {
+      "monotonic": 585229.055378294,
+      "phase": "restart-and-drain-preserved-results",
+      "processes": {
+        "controller": {
+          "rss_bytes": 28332032,
+          "hwm_bytes": 36466688,
+          "fds": 13,
+          "threads": 41,
+          "cpu_seconds": 5.09,
+          "write_bytes": 221270016
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15183872,
+          "hwm_bytes": 15183872,
+          "fds": 10,
+          "threads": 24,
+          "cpu_seconds": 1.38,
+          "write_bytes": 7561216
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 119153654,
+          "allocated_bytes": 119189504,
+          "files": 46
+        },
+        "stress-0": {
+          "logical_bytes": 50368721,
+          "allocated_bytes": 50495488,
+          "files": 31
+        },
+        "stress-0-restart": {
+          "logical_bytes": 50368721,
+          "allocated_bytes": 50495488,
+          "files": 31
+        }
+      }
+    },
+    {
+      "monotonic": 585230.096980043,
+      "phase": "restart-and-drain-preserved-results",
+      "processes": {
+        "controller": {
+          "rss_bytes": 32030720,
+          "hwm_bytes": 36466688,
+          "fds": 13,
+          "threads": 41,
+          "cpu_seconds": 6.68,
+          "write_bytes": 289828864
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15679488,
+          "hwm_bytes": 15679488,
+          "fds": 10,
+          "threads": 25,
+          "cpu_seconds": 1.81,
+          "write_bytes": 7983104
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 158103468,
+          "allocated_bytes": 158142464,
+          "files": 60
+        },
+        "stress-0": {
+          "logical_bytes": 20991409,
+          "allocated_bytes": 21065728,
+          "files": 17
+        },
+        "stress-0-restart": {
+          "logical_bytes": 20991409,
+          "allocated_bytes": 21065728,
+          "files": 17
+        }
+      }
+    },
+    {
+      "monotonic": 585231.118601218,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585232.122710913,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585233.175374655,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585234.22643691,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585235.278125986,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585236.281488655,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585237.281519747,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585238.333425809,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585239.334338928,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585240.334604746,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585241.336045136,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585242.338300776,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585243.390077934,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585244.441169737,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585245.49340821,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585246.542982021,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585247.593824324,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585248.594445309,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585249.594756054,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585250.595282099,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35356672,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585251.644578927,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585252.697062148,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585253.749362754,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585254.798685033,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585255.846855824,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585256.897302999,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585257.899590282,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585258.951618963,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585260.003053533,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585261.054689689,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585262.107055325,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585263.158471231,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585264.21062728,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585265.212491677,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585266.21490057,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585267.267734694,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585268.268268492,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585269.32128379,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585270.323820446,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585271.376619875,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585272.377809659,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585273.380217512,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585274.380566013,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585275.383288793,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585276.386277142,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585277.386658515,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585278.434582805,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585279.436400679,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585280.436517793,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585281.438619924,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585282.438942056,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585283.441843392,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585284.442807204,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585285.446140599,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585286.447144632,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585287.49686849,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585288.548179698,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585289.548664338,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    },
+    {
+      "monotonic": 585290.548759953,
+      "phase": "drained-idle",
+      "processes": {
+        "controller": {
+          "rss_bytes": 35360768,
+          "hwm_bytes": 36466688,
+          "fds": 12,
+          "threads": 41,
+          "cpu_seconds": 7.78,
+          "write_bytes": 337539072
+        },
+        "stress-0-restart": {
+          "rss_bytes": 15982592,
+          "hwm_bytes": 15982592,
+          "fds": 9,
+          "threads": 25,
+          "cpu_seconds": 2.1,
+          "write_bytes": 8101888
+        }
+      },
+      "disk": {
+        "controller": {
+          "logical_bytes": 184623405,
+          "allocated_bytes": 184672256,
+          "files": 69
+        },
+        "stress-0": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        },
+        "stress-0-restart": {
+          "logical_bytes": 7622,
+          "allocated_bytes": 49152,
+          "files": 7
+        }
+      }
+    }
+  ],
+  "shutdown_errors": []
+}

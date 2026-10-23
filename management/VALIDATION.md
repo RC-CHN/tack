@@ -233,3 +233,209 @@ a persistent conflict returns an error while retaining the original bytes.
 The Windows tests cross-compile with Go 1.23.12; local protocol/control/integration
 race/vet and Node recovery/vet checks passed. Native execution is required in
 the final CI gates. Other platforms retain the direct rename operation.
+
+## 2026-10-23 rc.2 separate-process peak-load measurements
+
+**Published rc.2 baseline: the large-backlog path did not meet the low-footprint objective.**
+The subsequent low-resource section records the implementation and measurements
+that address this finding; the figures in this section remain the rc.2 baseline.
+Bounded retained output and successful cleanup do not imply a small RSS peak.
+This test used the published Linux/amd64 `tack-v0.1.0-rc.2` executables from
+commit `ea524be9f37de55370dd06dfe937f20012cdef3b`, with Node built by Go 1.23.12
+and Controller by Go 1.26.3. No executable or production source was modified.
+Binary SHA-256 values are recorded in each report.
+
+The host was a Linux x86-64 Xeon Max 9470C with 104 available logical CPUs and
+about 62.5 GiB RAM. Each profile ran sequentially, with separate Controller
+and Node processes, local TLS, durable temporary state, and default Go runtime
+settings. The driver removed inherited `GOGC`, `GOMEMLIMIT`, `GOMAXPROCS` and
+`GODEBUG` settings; HTTP/1.1 alone was forced for `large-output`. The other
+profiles enabled normal HTTP/2 TLS negotiation, without separately recording
+the negotiated protocol. Every command generated 8 MiB stdout and 8 MiB stderr
+using a small Python helper. The driver and command children are excluded from
+the executable RSS figures below.
+
+| Retained run | Verified tasks | Highest Node RSS, MiB | Controller RSS peak, MiB | Node state-space peak, MiB | Highest Node CPU, % of one CPU |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Defaults: 64 KiB/stream, eight pending results | 10 | 29.2 | 19.2 | 1.4 | 23.8 |
+| 1 MiB/stream, default 8 MiB pending budget | 6 | 106.6 | 41.0 | 21.4 | 54.5 |
+| 1 MiB/stream, 128 MiB pending budget | 66 | **2,182.1** | 48.0 | **341.6** | 108.2 |
+| Eight Nodes, 16 concurrent history readers | 256 | 50.8 per Node | **159.4** | 5.4 per Node | 35.3 per Node |
+
+RSS is the kernel `VmHWM`, sampled alongside current RSS every approximately
+50 ms. For a restarted Node, the table uses the larger process high-water mark,
+not a sum. CPU peaks use approximately one-second windows: 100% is one logical
+CPU. The fanout Controller reached 841.0% (about 8.4 logical CPUs) under repeated
+full-result reads. These CPU figures are host/workload dependent. Disk values
+are sampled allocated space including directories and atomic-write temporaries;
+short overlaps may be missed. Provisioning space cannot use these observed
+peaks as a guaranteed ceiling. The small default journal can briefly require
+two file copies even though this run did not sample that overlap.
+
+The first three profiles set upload pacing to one byte per second, saturated
+the pending queue at 8/4/64 results respectively, and left two more commands
+queued for ten seconds. Each Node was stopped gracefully and restarted with
+unrestricted upload. Every output byte, truncation flag and execution marker
+was checked. The 338 tasks across the four retained runs completed exactly
+once, with no missing retained results. This is a controlled restart, not a
+power-loss or disk-full experiment.
+
+The fanout run completed 256 tasks across eight Nodes while 16 readers fetched
+large completed results. There were 1,737 successful history reads and 768
+expected HTTP 503 admission responses; command progress continued. The
+Controller's history budget was 64 tasks / 256 MiB, with default upload and
+active-queue limits. It retained 64 confirmed history files at completion and
+peaked at 172.1 MiB allocated Controller state. There were no HTTP 500 responses
+from those readers. This exercises rolling retention, not the default
+100,000-file history limit or the maximum supported number of Nodes.
+
+All runs ended with 44-byte Node journals, no owned task workspaces and clean
+process shutdown. After 30 seconds idle, the retained defaults run used
+16.4 MiB Node RSS and the large-output run 45.3 MiB. The 128 MiB backlog run
+still used **97.5 MiB after 60 seconds idle**, down from its 2.13 GiB peak;
+this is not evidence of a permanent leak or a return to startup RSS. Fanout
+Nodes remained at 22.6–46.5 MiB after 30 seconds idle. No forced GC was injected
+into the measured production processes.
+
+Across these runs, sampled FD peaks were 17 for one Node and 54 for the
+Controller. Each Node returned to nine FDs after draining; the Controller
+returned to 12 with one Node or 26 with eight connected Nodes. All test
+processes had exited and all disposable state directories had been removed
+when the final external cleanup check ran.
+
+The 128 MiB backlog became a **170.8 MiB JSON journal** at saturation. Filling
+and draining it, including the restart, accounted for **22.33 GiB of cumulative
+Node `write_bytes`**, while peak simultaneous Node disk allocation was only
+341.6 MiB. Those are different measurements: the former exposes write
+amplification, not unlimited disk-space growth. `/proc` accounting does not
+measure device-level flash wear or filesystem journal amplification.
+
+The source explains the main amplification: Node `persist()` in `node/node.go`
+serializes the whole result-bearing journal on durable transitions, and
+`protocol.WriteJSON` first constructs the entire indented JSON representation
+before the atomic file replacement. Raw output, base64 JSON and temporary
+encoding buffers can coexist; the same retained output is rewritten across
+many later task transitions. Ring buffers cap command output capture, but do
+not solve this persistence cost. The next performance change should separate
+immutable per-result output files from the small durable execution/receipt
+journal, while preserving acknowledgement ordering, recovery and replay
+protection. The rc.2 large-backlog setting is unsuitable as a low-memory
+or low-write deployment promise.
+
+Reproduce with [the standalone driver](../scripts/stress-management.py) and the
+commands in [the README](README.md). Retained reports:
+
+- [Default limits](validation/2026-10-23-rc2-stress-defaults-h2.json)
+- [Maximum per-stream output, default backlog](validation/2026-10-23-rc2-stress-large-output-h1.json)
+- [Maximum configurable backlog](validation/2026-10-23-rc2-stress-max-backlog-h2.json)
+- [Eight-Node fanout and history churn](validation/2026-10-23-rc2-stress-fanout-h2.json)
+
+Two preliminary short runs showed about 25.8 MiB and 111.0 MiB Node RSS for
+the defaults and large-output workloads. Those two profiles were repeated
+after improving startup CPU sampling and child-process memory accounting;
+the table and linked reports contain the retained reruns. This variability
+also rules out treating one observed peak as a strict limit. The older
+maximum-backlog report's `command_children.max_individual_hwm_bytes` uses
+`getrusage`, which includes the pre-exec fork image; do not add it to the
+parent's RSS or interpret it as additional Python memory. The final driver
+records post-exec `/proc/self/status` high-water marks separately; fanout
+helpers peaked at 11.4 MiB each. This harness correction does not change any
+Node/Controller RSS or disk measurement.
+
+These short runs establish peaks for these specific settings, not a global
+maximum, unlimited command-child resource bound, 24–72 hour leak result, or
+native Windows/CentOS 6/ARM/MIPS/NAS validation. The report's `passed` field
+means integrity, budget/backpressure, cleanup and test guard checks passed;
+it does **not** mean the measured footprint meets a production memory target.
+
+
+## 2026-10-23 low-resource result storage and opt-in diagnostics
+
+The changes in `148022b` and `b91be06` separate immutable Node output from
+its small journal, upload from disk using one reusable 64 KiB buffer, transfer
+runner buffers without a second full copy, write compact state JSON and serve
+stored historical JSON without decoding/re-encoding its output. Routine
+Node/Controller diagnostics are now opt-in; task results, acknowledgements and
+replay evidence remain durable. Wire protocol v3 and Controller storage v2 are
+unchanged; Node storage advances to v4. See [recovery ordering](../docs/tack-retention.md).
+
+The same four workloads ran sequentially on the host described above. The
+Node used Go 1.23.12 and Controller Go 1.26.3, both CGO-disabled, stripped and
+trimpath builds stamped `0.1.0-rc.2+spool-dev`. They were built from the working
+changes before those commits, so their Go VCS metadata records base `ea524be`
+and `vcs.modified=true`; these are development measurements, not release
+artifacts. Each report contains binary hashes. Workloads and measurement
+semantics match the rc.2 baseline; the driver additionally verifies empty
+result directories and supports an optional old Node for upgrade tests.
+Diagnostic file logging was explicitly enabled in all stress runs, so disabling
+routine logging does not account for the improvements below. No forced GC or
+Go memory/CPU tuning was applied.
+
+| Workload | Peak Node RSS, MiB, rc.2 → new | Peak Controller RSS, MiB, rc.2 → new | Cumulative Node writes, MiB, rc.2 → new |
+| --- | ---: | ---: | ---: |
+| Defaults, 64 KiB/stream | 29.2 → 14.2 | 19.2 → 18.6 | 28.8 → 1.6 |
+| 1 MiB/stream, 8 MiB backlog, HTTP/1.1 | 106.6 → 16.7 | 41.0 → 35.1 | 144.2 → 12.2 |
+| 1 MiB/stream, 128 MiB backlog | 2182.1 → 19.0 | 48.0 → 37.4 | 22862.7 → 139.6 |
+| Eight Nodes, 16 history readers | 50.8 → 18.2 | 159.4 → 102.9 | 1372.2 → 519.2 |
+
+Node peaks use the largest individual process, including restarts; fanout uses
+the largest of eight Nodes. Writes sum the Node processes in that workload,
+including the restart or all eight Nodes. CPU, child-process memory, sampled
+space and write accounting retain the limitations stated above. These figures
+are observed workloads, not universal memory limits.
+
+The 128 MiB backlog's journal shrank from 170.8 MiB to 49,026 bytes. Peak
+allocated Node state fell from 341.6 MiB to 128.3 MiB; raw unconfirmed output
+still occupies its required space. Node RSS was 15.2 MiB after 60 seconds idle,
+compared with 97.5 MiB for rc.2. Cumulative Node writes fell from 22.33 GiB to
+139.6 MiB. Controller state still peaked at 176.1 MiB in that run because it
+retains the acknowledged result history under its configured policy.
+
+The fanout test completed 256 commands, retained 64 history files, and recorded
+1,142 successful historical reads plus 462 expected admission-limit responses
+with no HTTP 500 errors. Controller peak CPU was 731.8% of one core and total
+process CPU was 55.73 seconds over the 43.4-second run (including 30 seconds
+idle). The baseline had a different number of reads and elapsed time, so this
+is not an equal-request CPU benchmark. After idle, Node RSS ranged from
+14.8–17.9 MiB and Controller RSS was 75.3 MiB. Raw reports expose the remaining
+query load and memory cost rather than claiming it is eliminated.
+
+A fifth test started the actual published rc.2 Node, saturated 64 results
+(128 MiB raw output), stopped it and restarted with the new executable. The
+old process peaked at 2,343.9 MiB; the new process migrated its 170.8 MiB inline
+journal, resumed uploads and executed the remaining two queued tasks at a
+22.6 MiB RSS peak. All 66 results and execution markers matched. The migration
+process wrote 136.0 MiB including creation of the raw result files. Migrating
+requires space for the old journal and new files until the new journal commits.
+
+Across the four new-build workloads and this upgrade test, 404 command results
+were verified with no missing retained bytes or duplicate executions. All runs
+ended with 35-byte empty journals, empty result directories, no owned task
+workspaces and clean process shutdown. This evidence covers controlled restarts;
+it does not establish physical power-loss durability or long-term endurance.
+
+Local Go race tests and vet passed for protocol, Node, Controller and integration;
+Node tests also passed with Go 1.23.12. New regressions cover completion recovery
+before journal commit, complete pending-result promotion, arbitrary upload offsets,
+failed acknowledgement persistence, cleanup after acknowledgement, interrupted
+migration, corrupt/orphan/missing result files, conflicting identities and
+reopening a repaired result on retry. Repeated journal transitions leave output
+files unchanged. Historical response tests check exact binary output and reject
+malformed, oversized or unfinished archives.
+
+Actual CLI smoke checks confirmed zero routine stderr output on default Node
+and Controller startup, explicit output with `-log-stderr`, nonzero exits with
+visible fatal configuration errors, and rejection of simultaneous `-log-stderr`
+and `-log-file`. The updated deployment skill passed `quick_validate.py`.
+The Tack CI workflow additionally checks native platforms and cross-builds;
+these local checks do not substitute for those gates. CentOS 6,
+ARM/MIPS hardware, device flash behavior and 24–72 hour soaks remain separate
+validation targets.
+
+Retained reports:
+
+- [Default limits](validation/2026-10-23-spool-stress-defaults-h2.json)
+- [Large output over HTTP/1.1](validation/2026-10-23-spool-stress-large-output-h1.json)
+- [128 MiB backlog](validation/2026-10-23-spool-stress-max-backlog-h2.json)
+- [Eight-Node fanout](validation/2026-10-23-spool-stress-fanout-h2.json)
+- [Published rc.2 Node upgrade](validation/2026-10-23-spool-stress-upgrade-rc2.json)

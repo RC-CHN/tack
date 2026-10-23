@@ -12,12 +12,17 @@ compaction simply by deleting its journal.
 2. Before running a new task, the Node flushes `replay.json` with that sequence,
    then persists execution intent in `journal.json`. A sequence at or below the
    watermark without a live journal record produces `unknown`, never execution.
-3. The Node saves the complete result before uploading it. A transient journal
-   write failure retains the in-memory result and retries without starting another
-   command. The Controller flushes chunks, verifies the digest, commits the full
-   history record and active snapshot, and removes staging before the final ack.
+3. For a nonempty result, the Node writes bounded metadata followed by raw
+   `stdout || stderr` to `results/<task-id>.out.tack-pending`, flushes it, renames
+   it to `.out` and flushes the directory. Its small journal then records the
+   manifest; empty output needs only the journal. A transient write failure
+   retains the result and retries without starting another command. The uploader
+   reads at most 64 KiB at a time. The Controller flushes chunks, verifies the
+   digest, commits the full history record and active snapshot, and removes
+   staging before the final ack.
 4. After receiving that ack, the Node persists a small acknowledged receipt.
-   It may now discard its local command/output copy. It sends up to 128 receipt
+   Only after that flush does it delete its result file and flush the result
+   directory. Receipt exchange waits for this cleanup. It sends up to 128 receipt
    IDs per control request; the Controller moves their completed history files
    into `.history/released` and flushes the directory changes before replying.
 5. Only after the receipt reply does the Node remove each per-task record. The
@@ -55,10 +60,19 @@ atomic replacement, filesystem metadata and recovery need additional headroom.
 Each stdout/stderr buffer keeps the first ceil(limit/2) bytes and a circular
 tail of floor(limit/2) bytes. Storage grows on demand up to the cap; empty and
 short output do not preallocate the full configured limit. `*_truncated` means the middle was omitted; bytes
-are concatenated without adding a textual marker. The default limit remains
-64 KiB per stream, with a maximum of 1 MiB. Diagnostic logs can use a separately
-chosen rotating path: `-log-file PATH -log-max-bytes 4194304 -log-files 4`.
-Results, checkpoints and pending uploads never use this lossy rotation mechanism.
+are concatenated without adding a textual marker. On completion the circular
+tail is rotated in place and its buffer is transferred without another full
+output copy. The default limit remains 64 KiB per stream, with a maximum of
+1 MiB. Pending-result bytes bound raw disk-backed output, not total process or
+command-child memory. Output is written once instead of being base64-encoded
+and rewritten on every journal transition. Historical single-task queries reuse
+the bounded stored JSON without decoding and re-encoding output bytes.
+
+Routine diagnostics are disabled by default. Troubleshooting can use
+`-log-stderr` with bounded supervisor capture or a separately chosen rotating
+path: `-log-file PATH -log-max-bytes 4194304 -log-files 4`. Fatal errors still
+reach stderr. Results, checkpoints and pending uploads remain durable and never
+use this lossy rotation mechanism.
 
 ## Crash recovery and migration
 
@@ -89,8 +103,19 @@ geometrically; small normal-workload maps are reused. Old tasks without sufficie
 their side effects before deciding to submit another task. Protocol v1/v2 keeps
 its old tombstone limits until that Node is upgraded.
 
-Back up Node identity, journal and replay checkpoint as one unit. The v3 journal
-wrapper intentionally prevents older binaries from ignoring a new watermark.
+Node journal storage v4 is independent of wire protocol v3. Existing v3 inline
+results migrate one record at a time to immutable files; the old journal remains
+the recovery source until the new journal is committed. An interrupted migration
+reuses matching complete result files. Complete pending result files can recover
+completion even when the journal still contains execution intent. Each result
+is checked against its node, task, sequence, lengths and SHA-256 digest. Missing,
+conflicting, corrupt or orphaned unconfirmed data is preserved and reported as
+an error; recovery never substitutes empty output or reruns the command. Only
+recognized incomplete pending writes can be discarded without an acknowledgement.
+
+Back up the complete Node state directory, including identity, journal, replay
+checkpoint, `results/` and recovery files, as one unit. The v4 journal wrapper
+intentionally prevents older Nodes from ignoring external output references.
 Back up Controller state together with all of `.history` and `.uploads`. On
 Controller rollback, a live Node raises its sequence allocation floor; commands
 behind that floor may be refused. Restoring or deleting the Node's own execution
