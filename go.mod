@@ -16,7 +16,10 @@ require (
 	golang.org/x/crypto v0.55.0
 	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
+	tack.local/testfixtures v0.0.0
 )
+
+replace tack.local/testfixtures => ./test/fixtures
 
 require (
 	github.com/andrew-d/go-termutil v0.0.0-20150726205930-009166a695a2 // indirect

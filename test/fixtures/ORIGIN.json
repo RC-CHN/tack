@@ -1,0 +1,108 @@
+{
+  "repository": "https://github.com/bojieli/queqiao",
+  "commit": "ee85fae695d4c8a04e4bf496fae916974f312b65",
+  "files": [
+    {
+      "source": "internal/pathsim/capacity_test.go",
+      "destination": "pathsim/capacity_test.go",
+      "source_sha256": "2f68b1b2026425259801049f6e3f5a13a4bf49599697da1fe18a61160021f8ac"
+    },
+    {
+      "source": "internal/pathsim/framefec_test.go",
+      "destination": "pathsim/framefec_test.go",
+      "source_sha256": "5e75077d4e7292f323e777b97af89bade568818595efcedb82d94bcf1f80ec5d"
+    },
+    {
+      "source": "internal/pathsim/pathsim.go",
+      "destination": "pathsim/pathsim.go",
+      "source_sha256": "9af5ae0b10e93c9825d26fccb35c1ff8a169542609ccb67f2dc7050d6ac5a438"
+    },
+    {
+      "source": "internal/pathsim/pathsim_test.go",
+      "destination": "pathsim/pathsim_test.go",
+      "source_sha256": "674765cd2456ef59f705eaa49fa1d77a34b2fd8884957fbac88ec67827946548"
+    },
+    {
+      "source": "internal/pathsim/profiles.go",
+      "destination": "pathsim/profiles.go",
+      "source_sha256": "6c622c7a1f75f2897bf6ffd0fd033546a2ffb7d4eb71b330e00e403cf6130c67"
+    },
+    {
+      "source": "internal/pathsim/race_disabled_test.go",
+      "destination": "pathsim/race_disabled_test.go",
+      "source_sha256": "70660dbe4e311a796718de61ca37c9e58f2a8fdf66aa29a358cd4e284fd785e8"
+    },
+    {
+      "source": "internal/pathsim/race_enabled_test.go",
+      "destination": "pathsim/race_enabled_test.go",
+      "source_sha256": "bfbdc8f776f4f091402a572326f0ea8c52ea625a82165ad7ccc2ec91dbac7e71"
+    },
+    {
+      "source": "internal/pathsim/readerr.go",
+      "destination": "pathsim/readerr.go",
+      "source_sha256": "b49ce5181bd62754680d9e7be99cdbc763014809e0593e4b44104a95e7c2bd07"
+    },
+    {
+      "source": "internal/pathsim/readerr_test.go",
+      "destination": "pathsim/readerr_test.go",
+      "source_sha256": "8d0e3b350bbba62c44a0beb753b031aa0221f05d174fff64fdbef2efb2b28c0a"
+    },
+    {
+      "source": "internal/pathsim/schedule.go",
+      "destination": "pathsim/schedule.go",
+      "source_sha256": "81889d1fba4f298d9fa51019afc5b8bae4a1418899c33d909589157bf977cba2"
+    },
+    {
+      "source": "internal/pathsim/tcp.go",
+      "destination": "pathsim/tcp.go",
+      "source_sha256": "fc926c266dfc54a6a295358d248fb2cbfb8bcc1dd682c76f7323ee386cb6a1a1"
+    },
+    {
+      "source": "internal/pathsim/tworegime_test.go",
+      "destination": "pathsim/tworegime_test.go",
+      "source_sha256": "88824d9b309ad7f386c1c1eab05f473b5870669355ec61cf7a9986f3a72d046e"
+    },
+    {
+      "source": "internal/lossmodel/lossmodel.go",
+      "destination": "lossmodel/lossmodel.go",
+      "source_sha256": "c623b02f6614e10e3ef6021e4dc9b476ac21458f32e93525f2f9067fb4da9304"
+    },
+    {
+      "source": "internal/lossmodel/lossmodel_test.go",
+      "destination": "lossmodel/lossmodel_test.go",
+      "source_sha256": "f63ad0a24aa0c25a9804ba50127ed22bae0758391112037394f84d459d5fcabb"
+    },
+    {
+      "source": "internal/udperr/udperr.go",
+      "destination": "udperr/udperr.go",
+      "source_sha256": "bb903b71dd4b6a8c34784ef3dbbc2897365c9f25cede1dc83b7e5869d4fdf75e"
+    },
+    {
+      "source": "internal/udperr/udperr_other.go",
+      "destination": "udperr/udperr_other.go",
+      "source_sha256": "ccaf29311f1412f1a829b088dbb43c2396776ee6ec4a0906820fb9f533b3f00b"
+    },
+    {
+      "source": "internal/udperr/udperr_samples_other_test.go",
+      "destination": "udperr/udperr_samples_other_test.go",
+      "source_sha256": "864092708413ccc9a85ff2196f12beaeb3d3ecf187fd48357a846aa48cd68108"
+    },
+    {
+      "source": "internal/udperr/udperr_samples_windows_test.go",
+      "destination": "udperr/udperr_samples_windows_test.go",
+      "source_sha256": "59bf75473bc68219deff8ee208d39e6a741a13a32d41989606e230f700b4c30d"
+    },
+    {
+      "source": "internal/udperr/udperr_test.go",
+      "destination": "udperr/udperr_test.go",
+      "source_sha256": "ba90b3c1205a496e04ea8e332fcdbf06e3af9c6e67d3fb262570605ed88d4e01"
+    },
+    {
+      "source": "internal/udperr/udperr_windows.go",
+      "destination": "udperr/udperr_windows.go",
+      "source_sha256": "ec33d6c94de3e13d1a4ac8ee2fdaddc0ba931e9ba78c96376a40aeb4a26e9fc2"
+    }
+  ],
+  "status": "historical_import_removed",
+  "replacement": "BEHAVIOR.md and upstream-inventory.json; independent linklab/faultnet implementations"
+}

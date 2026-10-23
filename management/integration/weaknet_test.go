@@ -39,6 +39,16 @@ func TestOutputHelper(t *testing.T) {
 	if mode == "wait" {
 		time.Sleep(30 * time.Second)
 	}
+	if mode == "max-output" {
+		os.Stdout.Write(bytes.Repeat([]byte("o"), p.MaxOutput))
+		os.Stderr.Write(bytes.Repeat([]byte("e"), p.MaxOutput))
+		os.Exit(0)
+	}
+	if mode == "severe-output" {
+		os.Stdout.Write(bytes.Repeat([]byte("o"), 32*1024))
+		os.Stderr.Write([]byte("separate stderr"))
+		os.Exit(0)
+	}
 	os.Stdout.Write(bytes.Repeat([]byte("o"), 160*1024))
 	os.Stderr.Write([]byte("separate stderr"))
 	os.Exit(0)
@@ -58,6 +68,10 @@ func newNetworkFixture(t *testing.T, wrap func(http.Handler) http.Handler) *netw
 	return newNetworkFixtureHTTP2(t, wrap, false)
 }
 func newNetworkFixtureHTTP2(t *testing.T, wrap func(http.Handler) http.Handler, http2 bool, configure ...func(*p.ControlConfig)) *networkFixture {
+	return newNetworkFixtureHTTP2Timeout(t, wrap, http2, 500*time.Millisecond, configure...)
+}
+
+func newNetworkFixtureHTTP2Timeout(t *testing.T, wrap func(http.Handler) http.Handler, http2 bool, writeTimeout time.Duration, configure ...func(*p.ControlConfig)) *networkFixture {
 	t.Helper()
 	c := p.ControlConfig{AdminToken: strings.Repeat("a", 40), Nodes: []p.NodeCredential{{ID: "node-a", Token: strings.Repeat("b", 40)}}}
 	for _, setup := range configure {
@@ -75,7 +89,7 @@ func newNetworkFixtureHTTP2(t *testing.T, wrap func(http.Handler) http.Handler, 
 	server := httptest.NewUnstartedServer(handler)
 	server.EnableHTTP2 = http2
 	server.Config.ReadTimeout = 20 * time.Second
-	server.Config.WriteTimeout = 500 * time.Millisecond
+	server.Config.WriteTimeout = writeTimeout
 	server.StartTLS()
 	t.Cleanup(server.Close)
 	admin := httptest.NewServer(api.AdminHandler())
@@ -140,6 +154,9 @@ func (f *networkFixture) submit(mode, marker string) p.Task {
 		f.t.Fatal(err)
 	}
 	in := p.CreateTask{NodeID: "node-a", Command: p.Command{Mode: "exec", Program: exe, Args: []string{"-test.run=^TestOutputHelper$"}, Env: map[string]string{"TACK_WEAKNET_HELPER": mode, "TACK_WEAKNET_MARKER": marker, "GORACE": "atexit_sleep_ms=0"}, TimeoutSeconds: 40, OutputLimit: 200 * 1024}}
+	if mode == "max-output" {
+		in.Command.OutputLimit = p.MaxOutput
+	}
 	var task p.Task
 	f.request("POST", "/v1/tasks", in, &task)
 	return task
