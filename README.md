@@ -19,7 +19,7 @@
 
 ## Current scope
 
-The first-stage development baseline supports independent node credentials, HTTPS communication, a private administrator listener, per-node task queues, output limits, execution journaling, timeout and cancellation. Commands can use direct execution or an explicitly selected shell, with a configured BusyBox fallback for POSIX tasks.
+The first-stage development baseline supports independent node credentials, HTTPS communication, a private administrator listener, per-node task queues, output limits, execution journaling, timeout and cancellation. The link extension adds configurable long heartbeats with immediate command delivery over HTTPS long polling, independent resumable output uploads and private metrics. Commands can use direct execution or an explicitly selected shell, with a configured BusyBox fallback for POSIX tasks.
 
 The node runs in the foreground. Deployment chooses executable, configuration, state and work paths, and configures startup externally. This allows read-only NAS roots, router overlays and other device-specific layouts without embedding installation policy in the runtime.
 
