@@ -86,3 +86,34 @@ Two final race-enabled HTTPS runs each executed **64 real bounded-output tasks**
 These measurements include the controller, Node, TLS servers and test harness in one process, with race instrumentation enabled. They are **not** per-agent memory requirements. HTTP/2 RSS rose by about 11.7 MiB while post-GC live heap did not grow; allocator/race overhead may contribute, but the short run does not establish the cause or prove RSS has plateaued. The soak's coarse pass gates are at most 8 MiB additional post-GC heap and 8 additional goroutines/FDs; RSS is recorded, not gated. There was no sampled goroutine/FD accumulation in either final run.
 
 The controller still keeps all task history/results in memory and rewrites its entire JSON state under the queue lock. This is deliberate data retention with unbounded capacity growth, and remains unsuitable for unlimited continuous history without a retention/storage design. These runs do not establish 24–72 hour leak freedom, native Windows handle stability, CentOS 6/ARM/MIPS device reliability, disk-full or power-loss recovery, nor endurance of the Chisel data tunnel under sustained traffic. Longer-run commands and limits are documented in [management README](README.md#resource-lifecycle-and-endurance-tests).
+
+## Candidate storage and release hardening — 2026-10-23
+
+This section supersedes the earlier all-history-in-memory limitation. Completed tasks now live in individual disk history files, with a bounded active snapshot, bounded summary pages and count/byte admission limits that reserve output capacity before accepting work. Existing full snapshots migrate one task at a time. Committed reads/status do not hold the mutation lock while state is written. Archive and snapshot failures never acknowledge completion; restart reconciles a completed archive with an older pending active entry. History is not silently deleted.
+
+Local race-enabled tests cover 220 archived results while holding no completed entries in the active map, at most 2 MiB additional post-GC heap after warmup, pages of 13 entries with no missing/duplicate IDs, and an active snapshot below 256 bytes after completion. Count/byte capacity, legacy migration, staged-output cleanup, lost acknowledgements, injected ENOSPC, and 40 concurrent completion/cancellation pairs passed. ENOSPC is injected at the storage call boundary; no shared filesystem was filled.
+
+The final preflight built and integrity-checked all 36 planned platform archives with Go 1.23.12 for Node and Go 1.26.3 for the other components. Native versions and target build metadata matched. These local preflight archives were made from the development worktree and are not release assets; tagged CI rebuilds and verifies the actual assets. Workflow syntax passed actionlint. All management module race/vet tests and legacy Node tests passed locally, and the root race suite also passed with the optional UDP overload test enabled (20,000 packets on each of direct, forward and reverse paths).
+
+An additional tunnel regression covers 100 SSH lifetimes with a parent context kept alive across reconnects: the connection now owns and joins its cancellation watcher, and a previous disconnect cannot prematurely release the next connection's readiness wait. The root race/vet suite passed after this fix.
+
+Request admission tests also passed after adding separate upload/control/history limits: saturating upload bodies returns 503 without blocking a control request; one node cannot consume another node's control allowance; large status/metric strings are rejected before retention. Local controller/integration race tests and vet passed for these final bounds.
+
+The first expanded Windows CI run passed all management modules, including native Job Object execution and the connection lifecycle tests, but exposed a tunnel test-fixture defect: TCP-selected ephemeral ports could be reserved against UDP binding on Windows. The fixture now obtains a UDP port and verifies TCP availability before using the shared port, retaining the original UDP assertions. The final native matrix is rerun before publication.
+
+Two non-race Go 1.26.3 HTTPS tests subsequently passed: each executed 128 real tasks, then injected faults for **900 seconds** (15 minutes) with a fixed history. Full run times were 929.03 s and 928.37 s. These exercise the new disk-history design; subsequent admission and SSH watcher fixes are covered by their own regressions and the final tag workflow. Raw reports: [HTTP/1.1](validation/2026-10-23-candidate-http1.json), [HTTP/2](validation/2026-10-23-candidate-http2.json).
+
+| Measurement | HTTP/1.1 | HTTP/2 |
+| --- | --- | --- |
+| Control requests / upload requests | 2287 / 277 | 2315 / 277 |
+| Injected connection abortions / HTTP 503s | 443 / 464 | 449 / 471 |
+| Post-GC heap | 2.45–2.58 MiB | 2.59–2.71 MiB |
+| RSS | 20.67–23.82 MiB | 20.48–25.57 MiB |
+| Live goroutines | 8–12 | 11–12 |
+| Linux FDs | 12–14 | 14–14 |
+| After closing fixture: goroutines / FDs | 2 / 7 | 2 / 7 |
+| Active Controller snapshot | 42 bytes | 42 bytes |
+
+Transient reconnect samples returned to baseline counts; there was no sustained goroutine/FD accumulation. HTTP/2 RSS did not reproduce the earlier race-enabled growth. This supports treating the earlier RSS observation separately from retained Go heap, but does not prove the instrumentation was its sole cause. Figures still include both Node and Controller in one process and are not individual production memory requirements or a 24–72 hour guarantee.
+
+A local end-to-end run after the port-fixture change returned a failure with truncated diagnostics; a captured rerun and a subsequent three-repetition race run passed (47.979 s for the three repetitions). The unexplained intermittent local failure remains recorded; native CI and tag gates must also pass before publication.

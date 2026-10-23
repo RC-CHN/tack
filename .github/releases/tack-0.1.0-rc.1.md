@@ -12,7 +12,8 @@ This candidate fixes retained command/output payloads, HTTP/2 shutdown socket
 cleanup, pending dial cancellation and disconnected tunnel wait goroutines.
 Slow network clients and state writes no longer hold the Controller's read
 mutex. Completed history is stored on disk, active work and accepted result
-capacity are bounded, and task lists use paginated summaries. Staging cleanup,
+capacity are bounded, and task lists use paginated summaries. Upload/control
+concurrency and retained node metadata are bounded before large allocations. Staging cleanup,
 migration and failed persistence have regression coverage.
 
 Before upgrading, stop the Controller and back up its state file together with

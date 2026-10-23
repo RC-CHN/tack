@@ -163,10 +163,13 @@ Optional Controller configuration limits:
 
 | Field | Default | Behavior |
 | --- | --- | --- |
+| `max_concurrent_uploads` | 8 | Simultaneous authenticated result requests (1–64); excess receives 503 before body allocation |
 | `max_active_tasks` | 256 | Maximum queued, executing or result-pending tasks |
 | `max_active_bytes` | 16777216 | Command bytes plus reserved metadata in the active queue |
 | `max_history_tasks` | 100000 | Completed history plus slots reserved for accepted work |
 | `max_history_bytes` | 1073741824 | History plus conservative reservations for accepted output/staging |
+
+Each node has at most two simultaneous control requests, allowing a canceled poll to finish while its replacement starts. The administrator API allows four concurrent mutations and eight history reads; status/metrics retain a separate path. These admission bounds reject excess requests before decoding their bodies. Node status strings are individually bounded.
 
 Capacity exhaustion returns HTTP 503 for new submissions. Existing work can still complete and return results. These are application data bounds, not filesystem free-space guarantees; actual disk-full errors retain pending data and suppress successful acknowledgement. Existing history is never automatically deleted. Raise capacity deliberately when needed; do not remove history records behind the running Controller, since they are also needed to reconcile retries. History enumeration scans directory entries with bounded memory and becomes slower as disk history grows.
 
