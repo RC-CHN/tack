@@ -1,6 +1,6 @@
 # Task submission and result handling
 
-This guide describes the post-rc.4 implementation. Upgrade the Controller and CLI first, then Nodes. Management protocol v4 adds start deadlines, structured execution diagnostics and separate management/tunnel observations. Existing v1–v3 nodes still run ordinary tasks; deadline-bearing tasks wait for a v4 node and expire without execution if that upgrade does not happen in time. Node negotiation happens at startup.
+This guide describes Tack v0.1.1. Upgrade the Controller and CLI first, then Nodes. Management protocol v4 adds start deadlines, structured execution diagnostics and separate management/tunnel observations. Existing v1–v3 nodes still run ordinary tasks; deadline-bearing tasks wait for a v4 node and expire without execution if that upgrade does not happen in time. Node negotiation happens at startup.
 
 ## Submit once, retry safely
 

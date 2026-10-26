@@ -12,6 +12,8 @@
 
 ## Start here
 
+- [Stable release v0.1.1](https://github.com/RC-CHN/tack/releases/tag/tack-v0.1.1): platform downloads and upgrade notes.
+- [Task operations](docs/task-operations.md): safe retries, decoded results, bounded waiting and scoped operator credentials.
 - [Design and implementation stages](docs/tack-design.md): architecture, credential boundaries, legacy platforms, BusyBox and release protection.
 - [Build and operation guide](management/README.md): build the three Tack commands, provision a node, host the control plane and submit a task.
 - [Deployment skill](skills/tack-deploy/SKILL.md): choose paths and startup persistence for Linux, Windows, NAS and embedded systems.
@@ -20,11 +22,11 @@
 
 ## Current scope
 
-The first-stage development baseline supports independent node credentials, HTTPS communication, a private administrator listener, per-node task queues, output limits, execution journaling, timeout and cancellation. The link extension adds configurable long heartbeats with immediate command delivery over HTTPS long polling, independent resumable output uploads and private metrics. Commands can use direct execution or an explicitly selected shell, with a configured BusyBox fallback for POSIX tasks.
+Tack supports independent node credentials, HTTPS communication, a private administrator listener, per-node task queues, output limits, execution journaling, timeout and cancellation. The link extension adds configurable long heartbeats with immediate command delivery over HTTPS long polling, independent resumable output uploads and private metrics. Commands can use direct execution or an explicitly selected shell, with a configured BusyBox fallback for POSIX tasks.
 
 The customer runtime is one executable and one foreground process: `tack-node` embeds the Chisel client and management worker. Configure its `tunnel` section to run both; no separate Chisel client executable or service is needed. Deployment chooses configuration, state and work paths and configures startup externally. See [the unified client guide](docs/unified-node.md).
 
-Windows and Linux are targets. The same unified client has Modern and Linux Legacy artifacts; the Legacy artifact has passed shell/tunnel checks on a real CentOS 6 kernel in QEMU. ARM/MIPS devices and vendor storage still need their own validation. See [compatibility and artifact selection](docs/legacy-compatibility.md), including the Legacy packing exception and Windows minimum version. Certificate enrollment/rotation, customer RBAC, dynamic tunnel configuration, bundled BusyBox and signed commercial releases remain later-stage work.
+Windows and Linux are targets. The same unified client has Modern and Linux Legacy artifacts; the Legacy artifact has passed shell/tunnel checks on a real CentOS 6 kernel in QEMU. ARM/MIPS devices and vendor storage still need their own validation. See [compatibility and artifact selection](docs/legacy-compatibility.md), including the Legacy packing exception and Windows minimum version. Certificate enrollment/rotation, tenant isolation, dynamic tunnel configuration, bundled BusyBox and signed commercial releases remain later-stage work.
 
 ## Repository layout
 
