@@ -130,6 +130,14 @@ func (a *Node) sync(ctx context.Context, report *p.Report, metrics p.NodeMetrics
 }
 
 func (a *Node) syncRetention(ctx context.Context, report *p.Report, metrics p.NodeMetrics, high uint64, receipts []string) (p.SyncResponse, error) {
+	var status *p.NodeStatus
+	if a.version >= p.OperationsVersion {
+		status = a.statusSnapshot(metrics)
+	}
+	return a.syncSnapshot(ctx, report, metrics, high, receipts, status)
+}
+
+func (a *Node) syncSnapshot(ctx context.Context, report *p.Report, metrics p.NodeMetrics, high uint64, receipts []string, status *p.NodeStatus) (p.SyncResponse, error) {
 	host, _ := os.Hostname()
 	input := p.SyncRequest{Version: a.version, InstanceID: a.instance, Node: p.Node{ID: a.config.NodeID, Hostname: host, OS: runtime.GOOS, Arch: runtime.GOARCH, Modes: a.runner.Modes(), StatePersistence: a.config.StatePersistence}, Report: report}
 	if a.version == p.Version && report != nil && report.Result != nil {
@@ -169,7 +177,7 @@ func (a *Node) syncRetention(ctx context.Context, report *p.Report, metrics p.No
 	}
 	if a.version >= p.OperationsVersion {
 		path = p.NodeOperationsPath
-		input.Node.Status = a.statusSnapshot(metrics)
+		input.Node.Status = status
 	}
 	var output p.SyncResponse
 	if err := a.request(ctx, &client, path, input, &output); err != nil {

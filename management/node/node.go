@@ -405,6 +405,12 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 		a.statusMu.Lock()
 		a.currentTask = active
 		a.statusMu.Unlock()
+		// Capture status with the report and admission metrics on the owning
+		// goroutine. A later disk failure must not alter an already queued poll.
+		var status *p.NodeStatus
+		if a.version >= p.OperationsVersion {
+			status = a.statusSnapshot(metrics)
+		}
 		var receipts []string
 		if a.version >= p.RetentionVersion {
 			receipts = receiptBatch(records)
@@ -416,7 +422,7 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 		workers.Add(1)
 		go func() {
 			defer workers.Done()
-			response, err := a.syncRetention(callCtx, report, metrics, watermark, receipts)
+			response, err := a.syncSnapshot(callCtx, report, metrics, watermark, receipts, status)
 			syncedCh <- synced{response: response, report: report, err: err, receipts: receipts}
 		}()
 	}

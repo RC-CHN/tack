@@ -766,3 +766,20 @@ All 27 process reports pass. Combined mode median idle/maximum RSS is
 visible in the report. All short idle windows observe zero traffic, CPU-tick and
 write increments. No throughput improvement or real-world censorship success rate
 is inferred. The older protected/fixed-template archives remain unchanged.
+
+## Control status snapshot consistency — 2026-10-26
+
+The v0.1.1 tag preflight exposed a macOS failure in
+`TestDiskFailureIsReportedWithoutRerunningCommand`: a queued running report could
+read a later persistence-failure observation when its background sender finally
+built the request. The Node now captures status alongside the report and admission
+metrics on the owning goroutine, before starting that sender. A deterministic
+regression changes the live diagnosis before encoding and verifies that the queued
+request remains coherent while the new failure is still available separately.
+
+The original disk-failure assertions remain unchanged. The original fault test and
+new snapshot regression passed 50 consecutive race-enabled runs with Go 1.26.3;
+these tests and the v3 diagnostic-fallback test also passed 10 consecutive runs
+with Go 1.23.12. Each fault run verifies a single execution marker and successful
+result recovery after storage is repaired. The failed tag preflight was stopped
+before any release was created; publication requires a new successful preflight.

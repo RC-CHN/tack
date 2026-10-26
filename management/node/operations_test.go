@@ -144,3 +144,37 @@ func TestEscapedDiagnosticsFitSpoolHeader(t *testing.T) {
 		t.Fatal("escaped metadata escaped bounds", len(b))
 	}
 }
+
+func TestQueuedControlSnapshotDoesNotMixLaterDiskFailure(t *testing.T) {
+	a, err := New(testConfig(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.connections.close()
+	a.version = p.OperationsVersion
+	a.currentTask = "task-one"
+	metrics := p.NodeMetrics{AcceptingTasks: false}
+	queued := a.statusSnapshot(metrics)
+	report := &p.Report{TaskID: "task-one", State: "running"}
+	// The worker has not encoded the queued poll yet, while the executor has
+	// already finished and discovered that its result cannot be persisted.
+	a.setTransfer("task-one", "result_write_failed", "persist", "disk failure")
+	a.client = &http.Client{Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
+		var in p.SyncRequest
+		if err := p.Decode(r.Body, &in); err != nil {
+			return nil, err
+		}
+		status := in.Node.Status
+		if status == nil || status.Transfer != nil || status.CurrentTask != "task-one" || status.BacklogReason != "task_running" || in.Report == nil || in.Report.State != "running" {
+			t.Fatalf("queued request changed after disk failure: %+v report=%+v", status, in.Report)
+		}
+		return response(p.SyncResponse{Version: p.OperationsVersion}), nil
+	})}
+	if _, err := a.syncSnapshot(context.Background(), report, metrics, 1, nil, queued); err != nil {
+		t.Fatal(err)
+	}
+	latest := a.statusSnapshot(metrics)
+	if latest.Transfer == nil || latest.Transfer.ErrorCode != "result_write_failed" {
+		t.Fatal("new failure observation was lost")
+	}
+}
