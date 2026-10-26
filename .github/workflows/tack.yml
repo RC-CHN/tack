@@ -79,6 +79,8 @@ jobs:
       - name: Test unified Legacy graph and retained upstream SSH regressions
         run: |
           set -eu
+          export GOTOOLCHAIN=go1.23.12
+          test "$(go env GOVERSION)" = "$GOTOOLCHAIN"
           python3 -B scripts/prepare-legacy.py
           go test -mod=readonly -modfile=go.legacy.mod -race ./...
           go vet -mod=readonly -modfile=go.legacy.mod ./...
@@ -89,6 +91,8 @@ jobs:
       - name: Cross-compile unified Legacy Node
         run: |
           set -eu
+          export GOTOOLCHAIN=go1.23.12
+          test "$(go env GOVERSION)" = "$GOTOOLCHAIN"
           mkdir -p build/tack-cross
           for arch in amd64 386 arm arm64 mips mipsle mips64 mips64le; do
             CGO_ENABLED=0 GOOS=linux GOARCH="$arch" GOARM=5 GOMIPS=softfloat GOMIPS64=softfloat \

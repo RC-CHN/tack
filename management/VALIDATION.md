@@ -817,3 +817,9 @@ These local binaries were development builds, not uploaded release assets.
 The complete 33-target matrix and exact protected Modern/Legacy qualification
 remain mandatory tag-workflow gates. Platform support and endurance limits are
 unchanged; cross-compilation does not establish ARM/MIPS or vendor NAS support.
+
+The first v0.1.2 candidate also exposed an inherited CI environment issue:
+`setup-go` set `GOTOOLCHAIN=local` after the job-level Legacy selection, so a
+modern compiler tested the Legacy module file. Each Legacy test/cross-build step
+now explicitly selects Go 1.23.12 and asserts `go env GOVERSION` before work.
+Release packaging already sets and verifies the toolchain independently.
