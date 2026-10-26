@@ -3,9 +3,9 @@ on:
   push:
     branches: [master]
     tags: ["tack-v*"]
-    paths: ["management/**", "transport/**", "go.mod", "go.sum", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**", "test/**"]
+    paths: ["cmd/**", "internal/**", "compat/**", "management/**", "transport/**", "go*.mod", "go*.sum", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**", "test/**"]
   pull_request:
-    paths: ["management/**", "transport/**", "go.mod", "go.sum", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**", "test/**"]
+    paths: ["cmd/**", "internal/**", "compat/**", "management/**", "transport/**", "go*.mod", "go*.sum", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**", "test/**"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -29,6 +29,7 @@ jobs:
           python3 -B -m unittest discover -s scripts -p test_fixture_coverage.py
           python3 -B -m unittest discover -s scripts -p test_release_protection.py
           python3 -B -m unittest discover -s scripts -p test_transport_qualification.py
+          python3 -B -m unittest discover -s scripts -p test_legacy_support.py
           (cd test/fixtures && go test -race -short ./... && go vet ./...)
           for module in protocol control node integration; do
             (cd "management/$module" && go test -race ./... && go vet ./...)
@@ -42,7 +43,7 @@ jobs:
           set -euo pipefail
           mkdir -p build/tack
           (cd management/control && go build -trimpath -o ../../build/tack/ ./cmd/tack-control ./cmd/tack)
-          (cd management/node && go build -trimpath -o ../../build/tack/ ./cmd/tack-node)
+          GOTOOLCHAIN=local go build -trimpath -o build/tack/ ./cmd/tack-node
   browser-experiment:
     runs-on: ubuntu-latest
     steps:
@@ -60,34 +61,42 @@ jobs:
           (cd management/integration && TACK_TRAFFIC_SHAPING=bounded-v1 go test -race -count=1 -run 'Test(BlockedUploadStillDispatchesAndCancelsWithLongHeartbeat|NodeRestartResumesOutputWithoutReexecution|IdleControlOutlivesShortServerWriteTimeout|ManagementThroughImpairedTransport)$/http1' .)
   legacy:
     runs-on: ubuntu-latest
+    env:
+      GOTOOLCHAIN: go1.23.12
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
-          go-version: 1.23.12
+          go-version: 1.26.3
           cache: false
-      - name: Test legacy-compatible modules on the CI host
+      - name: Test unified Legacy graph and retained upstream SSH regressions
         run: |
           set -eu
+          python3 -B scripts/prepare-legacy.py
+          go test -mod=readonly -modfile=go.legacy.mod -race ./...
+          go vet -mod=readonly -modfile=go.legacy.mod ./...
+          (cd bin/legacy-deps/crypto && go test -race ./ssh ./chacha20 ./curve25519 ./internal/poly1305)
           (cd management/protocol && go test ./...)
           (cd management/node && go test ./...)
           (cd test/fixtures && go test -short ./...)
-      - name: Cross-compile Node targets (not native device validation)
-        working-directory: management/node
+      - name: Cross-compile unified Legacy Node
         run: |
           set -eu
-          mkdir -p ../../build/tack-cross
+          mkdir -p build/tack-cross
           for arch in amd64 386 arm arm64 mips mipsle mips64 mips64le; do
             CGO_ENABLED=0 GOOS=linux GOARCH="$arch" GOARM=5 GOMIPS=softfloat GOMIPS64=softfloat \
-              go build -trimpath -o "../../build/tack-cross/tack-node-linux-$arch" ./cmd/tack-node
+              go build -mod=readonly -modfile=go.legacy.mod -trimpath -o "build/tack-cross/tack-node-linux-$arch" ./cmd/tack-node
           done
           for arm in 6 7; do
             CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM="$arm" \
-              go build -trimpath -o "../../build/tack-cross/tack-node-linux-armv$arm" ./cmd/tack-node
+              go build -mod=readonly -modfile=go.legacy.mod -trimpath -o "build/tack-cross/tack-node-linux-armv$arm" ./cmd/tack-node
           done
+      - name: Cross-compile modern Windows Node
+        run: |
+          set -eu
           for arch in amd64 386 arm64; do
-            CGO_ENABLED=0 GOOS=windows GOARCH="$arch" \
-              go build -trimpath -o "../../build/tack-cross/tack-node-windows-$arch.exe" ./cmd/tack-node
+            GOTOOLCHAIN=go1.26.3 CGO_ENABLED=0 GOOS=windows GOARCH="$arch" \
+              go build -trimpath -o "build/tack-cross/tack-node-windows-$arch.exe" ./cmd/tack-node
           done
   soak:
     if: startsWith(github.ref, 'refs/tags/tack-v') || github.event_name == 'workflow_dispatch'
@@ -113,11 +122,10 @@ jobs:
         with:
           name: resource-http2-${{ matrix.http2 }}
           path: management/integration/resource-report.json
-      - name: Build a separate Node without race instrumentation
-        working-directory: management/node
+      - name: Build the unified Node without race instrumentation
         run: |
-          mkdir -p ../../build
-          go build -trimpath -o ../../build/tack-resource-node ./cmd/tack-node
+          mkdir -p build
+          GOTOOLCHAIN=local go build -trimpath -o build/tack-resource-node ./cmd/tack-node
       - name: Gate idle, blocked upload, outage and recovered Node footprint
         working-directory: management/integration
         env:
@@ -183,6 +191,7 @@ jobs:
           python3 -B scripts/verify-release.py "$RUNNER_TEMP/protected" --extract-node "$RUNNER_TEMP/protected-node" \
             --require-packed-node --extract-native "$RUNNER_TEMP/protected-bin"
           python3 -B scripts/smoke-protected.py --bin-dir "$RUNNER_TEMP/protected-bin" --report "$RUNNER_TEMP/protected-functional.json"
+          python3 -B scripts/smoke-unified.py --bin-dir "$RUNNER_TEMP/protected-bin" --report "$RUNNER_TEMP/protected-unified.json"
           export TACK_NODE_BINARY="$RUNNER_TEMP/protected-node/tack-node"
           export TACK_NODE_BUILD_RECORD="$RUNNER_TEMP/protected-node/BUILD.json"
           export GOMAXPROCS=2 TACK_RESOURCE_SECONDS=5 TACK_RESOURCE_MAX_OUTPUT=1
@@ -194,6 +203,13 @@ jobs:
             export TACK_SEVERE_REPORT="$RUNNER_TEMP/protected-severe-$http2.json"
             go test -run '^TestNode(LowFootprint|SevereLink)$' -count=1 -timeout=8m -v .
           done
+      - name: Qualify final Legacy Node and both directions of runtime replacement
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 busybox cpio netcat-openbsd
+          python3 -B scripts/qualify-legacy.py --artifacts "$RUNNER_TEMP/protected" \
+            --output "$RUNNER_TEMP/legacy-qualification" --fixture-dir "$RUNNER_TEMP/legacy-vm" --download
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -201,6 +217,8 @@ jobs:
           path: |
             ${{ runner.temp }}/protected/manifest.json
             ${{ runner.temp }}/protected-*.json
+            ${{ runner.temp }}/legacy-qualification/*.json
+            ${{ runner.temp }}/legacy-qualification/*.log
   release:
     if: startsWith(github.ref, 'refs/tags/tack-v')
     needs: [test, legacy, soak, benchmarks, protection]
@@ -224,6 +242,13 @@ jobs:
           python3 -B scripts/verify-release.py dist/tack --commit "$GITHUB_SHA" --extract-node "$RUNNER_TEMP/release-node" \
             --require-packed-node --extract-native "$RUNNER_TEMP/release-bin"
           python3 -B scripts/smoke-protected.py --bin-dir "$RUNNER_TEMP/release-bin" --report "$RUNNER_TEMP/release-functional.json"
+          python3 -B scripts/smoke-unified.py --bin-dir "$RUNNER_TEMP/release-bin" --report "$RUNNER_TEMP/release-unified.json"
+      - name: Qualify the exact Legacy Node included in this release
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 busybox cpio netcat-openbsd
+          python3 -B scripts/qualify-legacy.py --artifacts dist/tack \
+            --output "$RUNNER_TEMP/release-legacy" --fixture-dir "$RUNNER_TEMP/legacy-vm" --download
       - name: Test the exact Node included in this release
         working-directory: management/integration
         env:
@@ -238,6 +263,13 @@ jobs:
           for http2 in 0 1; do
             TACK_RESOURCE_HTTP2="$http2" go test -run '^TestNode(LowFootprint|SevereLink)$' -count=1 -timeout=8m -v . || exit 1
           done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-legacy-qualification
+          path: |
+            ${{ runner.temp }}/release-legacy/*.json
+            ${{ runner.temp }}/release-legacy/*.log
       - name: Create draft with verified artifacts
         env:
           GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,12 @@
+{
+  "format": "tack-legacy-vm-v1",
+  "kernel_release": "2.6.32-754.el6.x86_64",
+  "downloads": {
+    "kernel.rpm": {"url": "https://vault.centos.org/6.10/os/x86_64/Packages/kernel-2.6.32-754.el6.x86_64.rpm", "sha256": "b033f5f28a51f6fa334a44d3b244f43865a9f3a8a9bd3e074db885c2bdca866b"},
+    "busybox": {"url": "https://www.busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox", "sha256": "6e123e7f3202a8c1e9b1f94d8941580a25135382b99e8d3e34fb858bba311348"}
+  },
+  "rpm_members": {
+    "boot/vmlinuz-2.6.32-754.el6.x86_64": {"name": "kernel", "sha256": "a14c8a035bc29858f870ee3673fa772fe9e350f707a4500163914d8af50ee88f"},
+    "lib/modules/2.6.32-754.el6.x86_64/kernel/drivers/net/e1000/e1000.ko": {"name": "e1000.ko", "sha256": "c1e6eb2e3e54536fcd447f8d08c8c1337d5763c1dcc4775b6fbc4076a31b8e9f"}
+  }
+}
