@@ -7,6 +7,12 @@ on:
   pull_request:
     paths: ["cmd/**", "internal/**", "compat/**", "management/**", "transport/**", "go*.mod", "go*.sum", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**", "test/**"]
   workflow_dispatch:
+    inputs:
+      release_version:
+        description: Optional complete release rehearsal version; never creates a draft without a tag
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -28,6 +34,7 @@ jobs:
           python3 scripts/check-fixture-coverage.py --require-complete
           python3 -B -m unittest discover -s scripts -p test_fixture_coverage.py
           python3 -B -m unittest discover -s scripts -p test_release_protection.py
+          python3 -B -m unittest discover -s scripts -p test_release_matrix.py
           python3 -B -m unittest discover -s scripts -p test_transport_qualification.py
           python3 -B -m unittest discover -s scripts -p test_legacy_support.py
           (cd test/fixtures && go test -race -short ./... && go vet ./...)
@@ -42,8 +49,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build/tack
-          (cd management/control && go build -trimpath -o ../../build/tack/ ./cmd/tack-control ./cmd/tack)
-          GOTOOLCHAIN=local go build -trimpath -o build/tack/ ./cmd/tack-node
+          (cd management/control && go build -trimpath -o ../../build/tack/ ./cmd/tack)
+          GOTOOLCHAIN=local go build -trimpath -o build/tack/ ./cmd/tack-node ./cmd/tack-control
   browser-experiment:
     runs-on: ubuntu-latest
     steps:
@@ -190,7 +197,6 @@ jobs:
           set -euo pipefail
           python3 -B scripts/verify-release.py "$RUNNER_TEMP/protected" --extract-node "$RUNNER_TEMP/protected-node" \
             --require-packed-node --extract-native "$RUNNER_TEMP/protected-bin"
-          python3 -B scripts/smoke-protected.py --bin-dir "$RUNNER_TEMP/protected-bin" --report "$RUNNER_TEMP/protected-functional.json"
           python3 -B scripts/smoke-unified.py --bin-dir "$RUNNER_TEMP/protected-bin" --report "$RUNNER_TEMP/protected-unified.json"
           export TACK_NODE_BINARY="$RUNNER_TEMP/protected-node/tack-node"
           export TACK_NODE_BUILD_RECORD="$RUNNER_TEMP/protected-node/BUILD.json"
@@ -219,12 +225,55 @@ jobs:
             ${{ runner.temp }}/protected-*.json
             ${{ runner.temp }}/legacy-qualification/*.json
             ${{ runner.temp }}/legacy-qualification/*.log
-  release:
-    if: startsWith(github.ref, 'refs/tags/tack-v')
-    needs: [test, legacy, soak, benchmarks, protection]
+  release-plan:
+    if: startsWith(github.ref, 'refs/tags/tack-v') || (github.event_name == 'workflow_dispatch' && inputs.release_version != '')
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      version: ${{ steps.matrix.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.26.3
+          cache: false
+      - id: matrix
+        name: Select the complete unified release matrix
+        env:
+          INPUT_RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, re, subprocess
+          version = (os.environ["GITHUB_REF_NAME"][6:] if os.environ["GITHUB_REF"].startswith("refs/tags/tack-v")
+                     else os.environ["INPUT_RELEASE_VERSION"])
+          if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?", version):
+              raise SystemExit("invalid release version")
+          matrix = subprocess.check_output(["python3", "-B", "scripts/release_matrix.py"], text=True).strip()
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("matrix=" + matrix + "\nversion=" + version + "\n")
+          PYTHON
+      - name: Install pinned build tools once for all Linux build workers
+        run: |
+          set -eu
+          python3 -B scripts/install-build-tools.py --output "$RUNNER_TEMP/protection-tools"
+          tar -czf "$RUNNER_TEMP/tools.tar.gz" -C "$RUNNER_TEMP" protection-tools
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-build-tools
+          path: ${{ runner.temp }}/tools.tar.gz
+          compression-level: 0
+          retention-days: 7
+  release-build:
+    name: build ${{ matrix.id }}
+    if: startsWith(github.ref, 'refs/tags/tack-v') || (github.event_name == 'workflow_dispatch' && inputs.release_version != '')
+    needs: release-plan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix: ${{ fromJSON(needs.release-plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -232,23 +281,83 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-go@v6
         with:
+          go-version: ${{ matrix.go_version }}
+          cache: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-build-tools
+          path: ${{ runner.temp }}/release-build-tools
+      - name: Build and verify one exact release target
+        env:
+          RELEASE_SHARD: ${{ matrix.id }}
+          RELEASE_VERSION: ${{ needs.release-plan.outputs.version }}
+        run: |
+          set -eu
+          tar -xzf "$RUNNER_TEMP/release-build-tools/tools.tar.gz" -C "$RUNNER_TEMP"
+          python3 -B scripts/build-release.py --version "$RELEASE_VERSION" \
+            --shard "$RELEASE_SHARD" --output dist/tack \
+            --tools "$RUNNER_TEMP/protection-tools" --require-clean
+          python3 -B scripts/verify-release.py dist/tack --commit "$GITHUB_SHA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-shard-${{ matrix.id }}
+          path: dist/tack/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+  release-assemble:
+    if: startsWith(github.ref, 'refs/tags/tack-v') || (github.event_name == 'workflow_dispatch' && inputs.release_version != '')
+    needs: [release-plan, release-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-shard-*
+          path: ${{ runner.temp }}/release-shards
+      - name: Reject missing or mixed shards and assemble exact archives
+        env:
+          RELEASE_VERSION: ${{ needs.release-plan.outputs.version }}
+        run: |
+          python3 -B scripts/merge-release.py --shards "$RUNNER_TEMP/release-shards" \
+            --output dist/tack --commit "$GITHUB_SHA" --version "$RELEASE_VERSION"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-archives
+          path: dist/tack/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+  release-modern:
+    if: startsWith(github.ref, 'refs/tags/tack-v') || (github.event_name == 'workflow_dispatch' && inputs.release_version != '')
+    needs: release-assemble
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        http2: ["0", "1"]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
           go-version: 1.26.3
           cache: false
-      - name: Build, integrity-check, and checksum exact release archives
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-archives
+          path: dist/tack
+      - name: Verify and extract the exact final Modern artifacts
         run: |
-          python3 -B scripts/install-build-tools.py --output "$RUNNER_TEMP/protection-tools"
-          python3 -B scripts/build-release.py --version "${GITHUB_REF_NAME#tack-v}" --output dist/tack \
-            --tools "$RUNNER_TEMP/protection-tools" --require-clean
-          python3 -B scripts/verify-release.py dist/tack --commit "$GITHUB_SHA" --extract-node "$RUNNER_TEMP/release-node" \
-            --require-packed-node --extract-native "$RUNNER_TEMP/release-bin"
-          python3 -B scripts/smoke-protected.py --bin-dir "$RUNNER_TEMP/release-bin" --report "$RUNNER_TEMP/release-functional.json"
+          python3 -B scripts/verify-release.py dist/tack --commit "$GITHUB_SHA" --require-complete \
+            --extract-node "$RUNNER_TEMP/release-node" --require-packed-node --extract-native "$RUNNER_TEMP/release-bin"
+      - name: Exercise the final unified services and reconnect behavior
+        if: matrix.http2 == '0'
+        run: |
           python3 -B scripts/smoke-unified.py --bin-dir "$RUNNER_TEMP/release-bin" --report "$RUNNER_TEMP/release-unified.json"
-      - name: Qualify the exact Legacy Node included in this release
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 busybox cpio netcat-openbsd
-          python3 -B scripts/qualify-legacy.py --artifacts dist/tack \
-            --output "$RUNNER_TEMP/release-legacy" --fixture-dir "$RUNNER_TEMP/legacy-vm" --download
       - name: Test the exact Node included in this release
         working-directory: management/integration
         env:
@@ -257,12 +366,41 @@ jobs:
           GOMAXPROCS: "2"
           TACK_RESOURCE_SECONDS: "5"
           TACK_RESOURCE_MAX_OUTPUT: "1"
+          TACK_RESOURCE_HTTP2: ${{ matrix.http2 }}
+          TACK_RESOURCE_REPORT: ${{ runner.temp }}/release-footprint.json
           TACK_SEVERE_SECONDS: "120"
           TACK_SEVERE_REQUIRE_COMPLETE: "1"
+          TACK_SEVERE_REPORT: ${{ runner.temp }}/release-severe.json
+        run: go test -run '^TestNode(LowFootprint|SevereLink)$' -count=1 -timeout=8m -v .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-modern-qualification-http2-${{ matrix.http2 }}
+          path: ${{ runner.temp }}/release-*.json
+  release-legacy:
+    if: startsWith(github.ref, 'refs/tags/tack-v') || (github.event_name == 'workflow_dispatch' && inputs.release_version != '')
+    needs: release-assemble
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.26.3
+          cache: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-archives
+          path: dist/tack
+      - name: Verify complete archives before Legacy qualification
+        run: python3 -B scripts/verify-release.py dist/tack --commit "$GITHUB_SHA" --require-complete
+      - name: Qualify the exact Legacy Node included in this release
         run: |
-          for http2 in 0 1; do
-            TACK_RESOURCE_HTTP2="$http2" go test -run '^TestNode(LowFootprint|SevereLink)$' -count=1 -timeout=8m -v . || exit 1
-          done
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 busybox cpio netcat-openbsd
+          python3 -B scripts/qualify-legacy.py --artifacts dist/tack \
+            --output "$RUNNER_TEMP/release-legacy" --fixture-dir "$RUNNER_TEMP/legacy-vm" --download
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -270,7 +408,23 @@ jobs:
           path: |
             ${{ runner.temp }}/release-legacy/*.json
             ${{ runner.temp }}/release-legacy/*.log
-      - name: Create draft with verified artifacts
+  release:
+    if: startsWith(github.ref, 'refs/tags/tack-v')
+    needs: [test, legacy, soak, benchmarks, protection, browser-experiment, release-modern, release-legacy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-archives
+          path: dist/tack
+      - name: Recheck complete verified assets without rebuilding
+        run: python3 -B scripts/verify-release.py dist/tack --commit "$GITHUB_SHA" --require-complete
+      - name: Create draft only after every independent gate passes
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

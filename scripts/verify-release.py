@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Verify exact release archives and optionally extract the native Node for tests."""
 import argparse
+import gzip
 import hashlib
 import json
 from pathlib import Path
@@ -10,9 +11,11 @@ import tempfile
 import zipfile
 
 from release_support import sha256, verify_target, version_output
+from release_matrix import validate_matrix
 
 
-def verify(directory, commit=None, extract_node=None, require_packed_node=False, extract_native=None, node_runtime="modern"):
+def verify(directory, commit=None, extract_node=None, require_packed_node=False, extract_native=None,
+           node_runtime="modern", require_complete=False, execute_native=True):
     if node_runtime not in ("modern", "legacy"):
         raise ValueError("invalid Node runtime selection")
     checks = {}
@@ -29,6 +32,10 @@ def verify(directory, commit=None, extract_node=None, require_packed_node=False,
     manifest = json.loads((directory / "manifest.json").read_text())
     if manifest["format"] != "tack-release-v2" or (commit and manifest["commit"] != commit):
         raise ValueError("unexpected release format/commit")
+    # Older manifests remain readable, while new publication requires the
+    # complete unified matrix. A shard can never pass this publication gate.
+    if require_complete or "matrix_id" in manifest:
+        validate_matrix(manifest, complete=require_complete)
     entries = manifest["artifacts"]
     names = [a["file"] for a in entries]
     if len(set(names)) != len(names) or set(names) | {"manifest.json"} != set(checks):
@@ -65,6 +72,9 @@ def verify(directory, commit=None, extract_node=None, require_packed_node=False,
                         raise ValueError("invalid ZIP members/CRC")
                     contents = {n: package.read(n) for n in members}
             else:
+                with gzip.open(archive, "rb") as compressed:
+                    while compressed.read(1024 * 1024):
+                        pass
                 with tarfile.open(archive) as package:
                     if (len(package.getmembers()) != 4 or set(package.getnames()) != members
                             or not all(m.isfile() for m in package.getmembers())):
@@ -93,7 +103,8 @@ def verify(directory, commit=None, extract_node=None, require_packed_node=False,
                     selected_node = True
                 if selected and require_packed_node and entry["component"] == "tack-node" and record["protection"] != "packed":
                     raise ValueError("native Node unexpectedly fell back from packing")
-                version_output(binary, entry["component"], manifest["version"])
+                if execute_native:
+                    version_output(binary, entry["component"], manifest["version"])
                 if extract_native and selected:
                     target = extract_native / executable
                     if target.exists():
@@ -123,8 +134,10 @@ def main():
     parser.add_argument("--require-packed-node", action="store_true")
     parser.add_argument("--extract-native", type=Path)
     parser.add_argument("--node-runtime", choices=("modern", "legacy"), default="modern")
+    parser.add_argument("--require-complete", action="store_true", help="require the clean complete unified release matrix")
     args = parser.parse_args()
-    manifest = verify(args.directory.resolve(), args.commit, args.extract_node, args.require_packed_node, args.extract_native, args.node_runtime)
+    manifest = verify(args.directory.resolve(), args.commit, args.extract_node, args.require_packed_node,
+                      args.extract_native, args.node_runtime, args.require_complete)
     print(f"Verified {len(manifest['artifacts'])} archives at {manifest['commit']}")
 
 

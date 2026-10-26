@@ -16,6 +16,7 @@ import secrets
 import shutil
 import socket
 import stat
+import struct
 import subprocess
 import tempfile
 import time
@@ -51,16 +52,34 @@ def port():
         return stream.getsockname()[1]
 
 
+
+def require_static_node(path):
+    """Catch a development build needing a host loader before starting QEMU."""
+    data = Path(path).read_bytes()
+    if len(data) < 64 or data[:6] != b"\x7fELF\x02\x01" or struct.unpack_from("<H", data, 18)[0] != 62:
+        raise RuntimeError("old-kernel fixture requires a Linux amd64 ELF64 Node")
+    offset = struct.unpack_from("<Q", data, 32)[0]
+    size, count = struct.unpack_from("<HH", data, 54)
+    if not count or size < 56 or offset + size * count > len(data):
+        raise RuntimeError("invalid Node ELF program headers")
+    if any(struct.unpack_from("<I", data, offset + i * size)[0] == 3 for i in range(count)):
+        raise RuntimeError("Legacy Node requires a dynamic loader; rebuild with CGO_ENABLED=0")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--bin-dir", type=Path, required=True, help="Legacy Node plus modern tack, tack-control and chisel")
+    parser.add_argument("--bin-dir", type=Path, required=True, help="Legacy Node plus modern tack and unified tack-control")
     parser.add_argument("--fixture-dir", type=Path, required=True)
     parser.add_argument("--download", action="store_true")
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
     fixture = args.fixture_dir.resolve()
     lock = fixtures.prepare(fixture, args.download)
-    binaries = {name: str((args.bin_dir / name).resolve()) for name in ("tack", "tack-node", "tack-control", "chisel")}
+    binaries = {name: str((args.bin_dir / name).resolve()) for name in ("tack", "tack-node", "tack-control")}
+    standalone = (args.bin_dir / "chisel").is_file()
+    if standalone:
+        binaries["chisel"] = str((args.bin_dir / "chisel").resolve())
+    require_static_node(binaries["tack-node"])
     report = {"passed": False, "kernel_release": lock["kernel_release"], "fixture_lock_sha256": fixtures.sha(fixtures.LOCK),
               "binary_sha256": {name: fixtures.sha(path) for name, path in binaries.items()},
               "scope": "CentOS 6 kernel with BusyBox initramfs; not full vendor OS/persistence qualification"}
@@ -80,7 +99,7 @@ def main():
                 def cli(*flags):
                     return subprocess.check_output([binaries["tack"], *map(str, flags)], env=env, stderr=subprocess.PIPE, timeout=20)
 
-                def wait(check, timeout=90):
+                def wait(check, timeout=90, phase="functional check"):
                     deadline = time.monotonic() + timeout
                     while time.monotonic() < deadline:
                         if any(p.poll() is not None for p in processes):
@@ -92,33 +111,48 @@ def main():
                         except (OSError, subprocess.SubprocessError):
                             pass
                         time.sleep(0.2)
-                    raise RuntimeError("old-kernel functional check timed out")
+                    raise RuntimeError(f"old-kernel {phase} timed out")
 
                 try:
                     cert, key = root / "ca.pem", root / "server.key"
                     subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-sha256", "-nodes", "-days", "1",
                                     "-subj", "/CN=legacy-fixture", "-addext", "subjectAltName=IP:127.0.0.1,IP:10.0.2.100",
                                     "-keyout", str(key), "-out", str(cert)], check=True, timeout=30, stdout=servers, stderr=servers)
-                    subprocess.run([binaries["chisel"], "server", "--keygen", str(root / "ssh.key")],
+                    keygen = ([binaries["chisel"], "server", "--keygen"] if standalone
+                              else [binaries["tack-control"], "-tunnel-keygen"])
+                    subprocess.run([*keygen, str(root / "ssh.key")],
                                    env=env, check=True, timeout=20, stdout=servers, stderr=servers)
                     control, admin, tunnel, forward = port(), port(), port(), port()
                     credential = "legacy:" + secrets.token_hex(16)
                     (root / "users.json").write_text(json.dumps({credential: ["R:127.0.0.1:" + str(forward)]}))
-                    launch([binaries["chisel"], "server", "--reverse", "--host", "127.0.0.1", "--port", tunnel,
-                            "--keyfile", root / "ssh.key", "--authfile", root / "users.json",
-                            "--tls-cert", cert, "--tls-key", key], stdout=servers, stderr=servers)
+                    tunnel_config = {"listen": f"127.0.0.1:{tunnel}", "key_file": str(root / "ssh.key"),
+                                     "auth_file": str(root / "users.json"), "reverse": True,
+                                     "tls_cert": str(cert), "tls_key": str(key)}
+                    if standalone:
+                        launch([binaries["chisel"], "server", "--reverse", "--host", "127.0.0.1", "--port", tunnel,
+                                "--keyfile", root / "ssh.key", "--authfile", root / "users.json",
+                                "--tls-cert", cert, "--tls-key", key], stdout=servers, stderr=servers)
 
                     def fingerprint():
                         match = re.search(r"Fingerprint (\S+)", (root / "servers.log").read_text(errors="replace"))
                         return match.group(1) if match else None
 
-                    fp = wait(fingerprint)
+                    if standalone:
+                        fp = wait(fingerprint)
+                    else:
+                        (root / "fingerprint.json").write_text(json.dumps({"tunnel": tunnel_config}))
+                        fp = subprocess.check_output([binaries["tack-control"], "-config", str(root / "fingerprint.json"),
+                                                      "-tunnel-fingerprint"], env=env, timeout=20).decode().strip()
                     (root / "tunnel.json").write_text(json.dumps({"server": f"https://10.0.2.100:{tunnel}",
                         "auth": credential, "fingerprint": fp, "ca_file": "/ca.pem", "keep_alive_seconds": 0,
                         "remotes": [f"R:127.0.0.1:{forward}:127.0.0.1:7777"]}))
                     cli("provision", "-config", root / "control.json", "-node-config", root / "node.json", "-node", "legacy-vm",
                         "-server", f"https://10.0.2.100:{control}", "-state-dir", "/state", "-work-dir", "/work",
                         "-state-persistence", "volatile", "-node-ca", "/ca.pem", "-tunnel-config", root / "tunnel.json")
+                    if not standalone:
+                        config = json.loads((root / "control.json").read_text())
+                        config["tunnel"] = tunnel_config
+                        (root / "control.json").write_text(json.dumps(config))
                     launch([binaries["tack-control"], "-config", root / "control.json", "-state", root / "tasks.json",
                             "-listen", f"127.0.0.1:{control}", "-admin-listen", f"127.0.0.1:{admin}",
                             "-tls-cert", cert, "-tls-key", key], stdout=servers, stderr=servers)
@@ -160,7 +194,8 @@ poweroff -f
                                  "-nic", network, "-kernel", fixture / "kernel", "-initrd", ramdisk,
                                  "-append", "console=ttyS0 panic=1 quiet rdinit=/init"], stdin=subprocess.PIPE, stdout=console, stderr=console)
                     common = ["-server", f"http://127.0.0.1:{admin}", "-config", root / "control.json", "-allow-insecure-loopback"]
-                    wait(lambda: json.loads(cli("nodes", *common)))
+                    wait(lambda: any(node.get("id") == "legacy-vm" and node.get("online")
+                                     for node in json.loads(cli("nodes", *common))), phase="Node management sync")
                     payload = bytes(range(256)) * 256
 
                     def transfer():

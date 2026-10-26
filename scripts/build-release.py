@@ -15,21 +15,11 @@ import time
 import zipfile
 import importlib.util
 
+from release_matrix import (MATRIX_ID, MODERN, LEGACY, NODE_TARGETS, CONTROL_TARGETS, TOOL_TARGETS,
+                            targets as release_targets, validate_matrix)
 from release_support import GARBLE, OBFUSCATION_SCOPE, UPX_VERSION, build_env, protect, sha256, tool, verify_target, version_output
 
 ROOT = Path(__file__).resolve().parents[1]
-MODERN = "go1.26.3"
-LEGACY = "go1.23.12"
-NODE_TARGETS = [
-    ("linux", "amd64", ""), ("linux", "386", ""),
-    ("linux", "arm", "5"), ("linux", "arm", "6"), ("linux", "arm", "7"),
-    ("linux", "arm64", ""), ("linux", "mips", ""), ("linux", "mipsle", ""),
-    ("linux", "mips64", ""), ("linux", "mips64le", ""),
-    ("windows", "amd64", ""), ("windows", "386", ""), ("windows", "arm64", ""),
-]
-TOOL_TARGETS = [("linux", "amd64", ""), ("linux", "arm64", ""),
-                ("darwin", "amd64", ""), ("darwin", "arm64", ""),
-                ("windows", "amd64", ""), ("windows", "386", ""), ("windows", "arm64", "")]
 
 
 def command(*args, cwd=ROOT, env=None):
@@ -77,7 +67,9 @@ def main():
     parser.add_argument("--native-only", action="store_true", help="local packaging smoke test only")
     parser.add_argument("--protection", choices=("plain", "obfuscated", "packed"), default="packed")
     parser.add_argument("--tools", type=Path, default=ROOT / "bin/build-tools")
-    parser.add_argument("--components", nargs="+", choices=("tack-node", "tack", "tack-control", "chisel"))
+    parser.add_argument("--components", nargs="+", choices=("tack-node", "tack", "tack-control"))
+    parser.add_argument("--shard", choices=[target["id"] for target in release_targets()],
+                        help="build one exact CI target; aggregate every shard before publication")
     parser.add_argument("--node-runtime", choices=("modern", "legacy", "both"), default="both",
                         help="Node runtime variants; Legacy is an additional Linux single-binary build")
     parser.add_argument("--require-clean", action="store_true", help="required for publication")
@@ -90,8 +82,10 @@ def main():
         parser.error("output directory must be empty; existing artifacts are never overwritten")
     commit = command("git", "rev-parse", "HEAD")
     dirty = bool(command("git", "status", "--porcelain"))
+    if args.shard and (args.native_only or args.components or args.node_runtime != "both"):
+        parser.error("--shard cannot be combined with smoke-test filters")
     if args.require_clean and (dirty or args.native_only or args.components or args.node_runtime != "both"):
-        parser.error("publication requires a clean source tree and the complete target matrix")
+        parser.error("publication requires a clean source tree and an unfiltered matrix or exact shard")
     sources = command("git", "ls-files", "--cached", "--others", "--exclude-standard").splitlines()
     inputs = {name: sha256(ROOT / name) for name in sorted(set(sources))
               if (ROOT / name).is_file() and not name.startswith("management/validation/")
@@ -102,14 +96,13 @@ def main():
     native_arch = command("go", "env", "GOHOSTARCH", env={**os.environ, "GOTOOLCHAIN": "local"})
     components = [
         ("tack", "management/control", "./cmd/tack", MODERN, TOOL_TARGETS, "modern"),
-        ("tack-control", "management/control", "./cmd/tack-control", MODERN,
-         [("linux", "amd64", ""), ("linux", "arm64", ""), ("windows", "amd64", "")], "modern"),
-        ("chisel", ".", ".", MODERN, NODE_TARGETS, "modern"),
+        ("tack-control", ".", "./cmd/tack-control", MODERN, CONTROL_TARGETS, "modern"),
     ]
     if args.node_runtime in ("modern", "both"):
         components.insert(0, ("tack-node", ".", "./cmd/tack-node", MODERN, NODE_TARGETS, "modern"))
+    shard = next((target for target in release_targets() if target["id"] == args.shard), None)
     legacy_record = None
-    if args.node_runtime in ("legacy", "both") and (not args.components or "tack-node" in args.components):
+    if (not shard or shard["runtime"] == "legacy") and args.node_runtime in ("legacy", "both") and (not args.components or "tack-node" in args.components):
         if not args.native_only or native_os == "linux":
             spec = importlib.util.spec_from_file_location("tack_prepare_legacy", ROOT / "scripts/prepare-legacy.py")
             adapter = importlib.util.module_from_spec(spec)
@@ -122,7 +115,11 @@ def main():
     manifest = {"format": "tack-release-v2", "version": args.version, "commit": commit,
                 "source_date_epoch": epoch, "source_dirty": dirty, "source_sha256": source_hash,
                 "native_only": args.native_only, "node_runtime": args.node_runtime,
-                "requested_protection": args.protection, "artifacts": []}
+                "requested_protection": args.protection, "artifacts": [], "matrix_id": MATRIX_ID,
+                "release_scope": "shard" if shard else ("smoke" if args.native_only or args.components
+                                                        or args.node_runtime != "both" else "complete")}
+    if shard:
+        manifest["shard"] = shard["id"]
     suffix = ".exe" if os.name == "nt" else ""
     tools = args.tools.resolve()
     checked_tools = {}
@@ -132,11 +129,15 @@ def main():
         for component, module, package, toolchain, targets, runtime_profile in components:
             if args.components and component not in args.components:
                 continue
+            if shard and (component, runtime_profile) != (shard["component"], shard["runtime"]):
+                continue
             garble_dir, garble_version = GARBLE[toolchain]
             garble = tools / garble_dir / ("garble" + suffix)
             if args.protection != "plain" and garble_dir not in checked_tools:
                 checked_tools[garble_dir] = tool(garble, "mvdan.cc/garble " + garble_version, "version")
             for goos, goarch, arm in targets:
+                if shard and (goos, goarch, arm) != (shard["os"], shard["arch"], shard["arm"]):
+                    continue
                 if args.native_only and (goos, goarch) != (native_os, native_arch):
                     continue
                 label = goarch if not arm else "armv" + arm
@@ -147,13 +148,12 @@ def main():
                 env = build_env(toolchain, goos, goarch, arm)
                 if command("go", "env", "GOVERSION", env=env) != toolchain:
                     raise RuntimeError("Go toolchain does not match the pinned version")
-                symbol = ("github.com/jpillora/chisel/share.BuildVersion" if component == "chisel"
-                          else "tack.local/management/protocol.BuildVersion")
-                flags = ["-trimpath", "-ldflags", f"-s -w -X {symbol}={args.version}"]
-                if component == "tack-node":
+                symbol = "tack.local/management/protocol.BuildVersion"
+                flags = ["-mod=readonly", "-trimpath", "-ldflags", f"-s -w -X {symbol}={args.version}"]
+                if component in ("tack-node", "tack-control"):
                     flags[-1] += f" -X github.com/jpillora/chisel/share.BuildVersion={args.version}"
                 if runtime_profile == "legacy":
-                    flags.extend(["-mod=readonly", "-modfile=go.legacy.mod"])
+                    flags.append("-modfile=go.legacy.mod")
                     # Garble 0.14's recursive go-list calls do not forward the
                     # command-line modfile flag. Keep every subprocess on the
                     # same module graph via GOFLAGS as well.
@@ -198,6 +198,8 @@ def main():
                 record["runtime_profile"] = runtime_profile
                 if component == "tack-node":
                     record["capabilities"] = ["management", "embedded-chisel"]
+                elif component == "tack-control":
+                    record["capabilities"] = ["management", "embedded-chisel-server"]
                 if runtime_profile == "legacy":
                     record["legacy_adapter"] = legacy_record
                     record["compatibility"] = {"linux_kernel_floor": {"amd64": "2.6.32", "386": "2.6.32", "arm": "3.1", "mips64le": "4.8"}.get(goarch),
@@ -222,6 +224,9 @@ def main():
                 print(f"Verified {name}", flush=True)
     if not manifest["artifacts"]:
         raise RuntimeError("no artifacts produced")
+    if args.require_clean and command("git", "status", "--porcelain"):
+        raise RuntimeError("source tree changed during the release build")
+    validate_matrix(manifest)
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     checksums = []
     for file in sorted(output.iterdir()):

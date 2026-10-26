@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise four final Linux artifacts together on disposable loopback listeners."""
+"""Exercise final artifacts; retain separate-relay fixtures for transport experiments."""
 import argparse
 import base64
 import hashlib
@@ -11,6 +11,7 @@ import secrets
 import socket
 import socketserver
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -29,6 +30,15 @@ def main():
     parser.add_argument("--obfuscation", action="store_true", help="exercise chrome-133 + bounded-v1 over verified TLS on both paths")
     parser.add_argument("--tls-profile", choices=("chrome-133", "personalized-v1"), default="chrome-133", help="profile used with --obfuscation")
     args = parser.parse_args()
+    # Current release archives contain three unified binaries. Browser transport
+    # experiments still supply management-only workers and a separate relay;
+    # retain their original path instead of giving those workers tunnel config.
+    if not (args.bin_dir / "chisel").is_file():
+        flags = (["--tls-profile", args.tls_profile, "--traffic-shaping", "bounded-v1"]
+                 if args.obfuscation else [])
+        subprocess.run([sys.executable, "-B", str(Path(__file__).with_name("smoke-unified.py")),
+                        "--bin-dir", str(args.bin_dir), "--report", str(args.report), *flags], check=True)
+        return
     binaries = {n: str((args.bin_dir / n).resolve()) for n in ("tack", "tack-node", "tack-control", "chisel")}
     report = {"passed": False, "binary_sha256": {n: hashlib.sha256(Path(p).read_bytes()).hexdigest() for n, p in binaries.items()}}
     report["transport"] = args.tls_profile+"+bounded-v1" if args.obfuscation else "loopback-http"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify one final Node provides shell tasks and a verified-TLS Chisel tunnel."""
+"""Verify final unified Node and Controller provide shell tasks and a TLS tunnel."""
 import argparse
 import base64
 import hashlib
@@ -26,9 +26,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bin-dir", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--tls-profile", choices=("go", "chrome-133", "personalized-v1"), default="go",
+                        help="management transport profile; tunnel retains its supported TLS profile")
+    parser.add_argument("--traffic-shaping", choices=("off", "bounded-v1"), default="off",
+                        help="management TLS listener framing")
     args = parser.parse_args()
     binaries = {name: str((args.bin_dir / name).resolve())
-                for name in ("tack", "tack-node", "tack-control", "chisel")}
+                for name in ("tack", "tack-node", "tack-control")}
+    # Older releases used a separate hosted relay. Current archives omit it.
+    standalone = (args.bin_dir / "chisel").is_file()
+    if standalone:
+        binaries["chisel"] = str((args.bin_dir / "chisel").resolve())
     report = {"passed": False, "binary_sha256": {
         name: hashlib.sha256(Path(path).read_bytes()).hexdigest() for name, path in binaries.items()}}
     processes = []
@@ -87,7 +95,9 @@ def main():
                                 "-subj", "/CN=localhost", "-addext", "subjectAltName=IP:127.0.0.1,DNS:localhost",
                                 "-keyout", str(key), "-out", str(cert)], check=True, timeout=20,
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                subprocess.run([binaries["chisel"], "server", "--keygen", str(root / "ssh.key")],
+                keygen = ([binaries["chisel"], "server", "--keygen"] if standalone
+                          else [binaries["tack-control"], "-tunnel-keygen"])
+                subprocess.run([*keygen, str(root / "ssh.key")],
                                env=env, check=True, timeout=15, stdout=server_log, stderr=server_log)
                 control_port, admin_port, tunnel_port, forward_port = port(), port(), port(), port()
                 auth = "node:" + secrets.token_hex(16)
@@ -96,13 +106,22 @@ def main():
                 tunnel_flags = ["server", "--host", "127.0.0.1", "--port", tunnel_port,
                                 "--keyfile", root / "ssh.key", "--authfile", root / "tunnel-users.json",
                                 "--tls-cert", cert, "--tls-key", key]
-                tunnel_server = launch("chisel", *tunnel_flags)
+                tunnel_config = {"listen": f"127.0.0.1:{tunnel_port}", "key_file": str(root / "ssh.key"),
+                                 "auth_file": str(root / "tunnel-users.json"),
+                                 "tls_cert": str(cert), "tls_key": str(key)}
+                if standalone:
+                    tunnel_server = launch("chisel", *tunnel_flags)
 
                 def fingerprint():
                     match = re.search(r"Fingerprint (\S+)", (root / "servers.log").read_text())
                     return match.group(1) if match else None
 
-                fp = wait(fingerprint)
+                if standalone:
+                    fp = wait(fingerprint)
+                else:
+                    (root / "fingerprint.json").write_text(json.dumps({"tunnel": tunnel_config}))
+                    fp = subprocess.check_output([binaries["tack-control"], "-config", str(root / "fingerprint.json"),
+                                                  "-tunnel-fingerprint"], env=env, timeout=15).decode().strip()
                 state, work = root / "state", root / "work"
                 state.mkdir()
                 work.mkdir()
@@ -119,9 +138,19 @@ def main():
                             "-node", "unified-test", "-server", f"https://127.0.0.1:{control_port}",
                             "-state-dir", state, "-work-dir", work, "-node-ca", cert,
                             "-tunnel-config", root / "tunnel.json")
-                        launch("tack-control", "-config", root / "control.json", "-state", root / "tasks.json",
-                               "-listen", f"127.0.0.1:{control_port}", "-admin-listen", f"127.0.0.1:{admin_port}",
-                               "-tls-cert", cert, "-tls-key", key)
+                        control_config = json.loads((root / "control.json").read_text())
+                        if not standalone:
+                            control_config["tunnel"] = tunnel_config
+                            (root / "control.json").write_text(json.dumps(control_config))
+                        node_config = json.loads((root / "node.json").read_text())
+                        if args.tls_profile != "go":
+                            node_config["tls_profile"] = args.tls_profile
+                        node_config["traffic_shaping"] = args.traffic_shaping
+                        (root / "node.json").write_text(json.dumps(node_config))
+                        controller_flags = ["-config", root / "control.json", "-state", root / "tasks.json",
+                                            "-listen", f"127.0.0.1:{control_port}", "-admin-listen", f"127.0.0.1:{admin_port}",
+                                            "-tls-cert", cert, "-tls-key", key, "-traffic-shaping", args.traffic_shaping]
+                        controller = launch("tack-control", *controller_flags)
                         node = launch("tack-node", "-config", root / "node.json")
                         common = ["-server", f"http://127.0.0.1:{admin_port}", "-config", root / "control.json", "-allow-insecure-loopback"]
                         wait(lambda: json.loads(cli("nodes", *common)))
@@ -154,9 +183,24 @@ def main():
 
                         wait(transfer)
                         task("unified-command-ok")
-                        stop(tunnel_server)
+                        if standalone:
+                            stop(tunnel_server)
+                        else:
+                            if not stop(controller) or controller.returncode != 0:
+                                raise RuntimeError("unified Controller failed graceful shutdown")
+                            control_config.pop("tunnel")
+                            (root / "control.json").write_text(json.dumps(control_config))
+                            controller = launch("tack-control", *controller_flags)
+                            wait(lambda: json.loads(cli("nodes", *common)))
                         task("command-during-tunnel-outage-ok")
-                        tunnel_server = launch("chisel", *tunnel_flags)
+                        if standalone:
+                            tunnel_server = launch("chisel", *tunnel_flags)
+                        else:
+                            if not stop(controller) or controller.returncode != 0:
+                                raise RuntimeError("management-only restart failed graceful shutdown")
+                            control_config["tunnel"] = tunnel_config
+                            (root / "control.json").write_text(json.dumps(control_config))
+                            controller = launch("tack-control", *controller_flags)
                         wait(transfer)
                         if node.poll() is not None:
                             raise RuntimeError("Node restarted during tunnel recovery")
@@ -177,7 +221,19 @@ def main():
                             released.bind(("127.0.0.1", forward_port))
                         if (root / "node.log").stat().st_size:
                             raise RuntimeError("default unified Node diagnostics were not quiet")
+                        if not standalone:
+                            if not stop(controller) or controller.returncode != 0:
+                                raise RuntimeError("unified Controller failed final graceful shutdown")
+                            for listen_port in (control_port, admin_port, tunnel_port):
+                                with socket.socket() as released:
+                                    released.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                                    released.bind(("127.0.0.1", listen_port))
+                            if (root / "servers.log").stat().st_size:
+                                raise RuntimeError("default unified Controller diagnostics were not quiet")
                         report.update(passed=True, client_processes=1, client_pid=node.pid,
+                                      hosted_processes=2 if standalone else 1,
+                                      management_transport=args.tls_profile+"+"+args.traffic_shaping,
+                                      tunnel_transport="verified TLS",
                                       verified_echo_bytes=2*len(payload), tasks_completed=2,
                                       management_during_tunnel_outage=True, tunnel_reconnected=True,
                                       graceful_shutdown=True, listener_released=True, default_diagnostics_bytes=0)
@@ -188,7 +244,7 @@ def main():
                 for process in list(reversed(processes)):
                     stop(process)
                 args.report.write_text(json.dumps(report, indent=2) + "\n")
-    print("One final Node passed shell, tunnel, outage, reconnect and shutdown checks")
+    print("Final Node and Controller passed shell, tunnel, outage, reconnect and shutdown checks")
 
 
 if __name__ == "__main__":
