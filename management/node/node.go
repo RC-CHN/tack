@@ -27,6 +27,13 @@ type journal struct {
 	Spool                *p.Manifest `json:"spool,omitempty"`
 }
 type Node struct {
+	// Set before Run. StatusChanged must be coalesced and must never be closed.
+	TunnelStatus     func() p.TunnelStatus
+	StatusChanged    <-chan struct{}
+	statusMu         sync.Mutex
+	statusWake       chan struct{}
+	transfer         *p.TransferStatus
+	currentTask      string
 	config           p.NodeConfig
 	client           *http.Client
 	uploadClient     *http.Client
@@ -142,7 +149,7 @@ func New(config p.NodeConfig) (*Node, error) {
 		}
 	}
 	meter := telemetry.New()
-	return &Node{connections: connections, uploadClient: uploadClient, meter: meter, writeJSON: meter.WriteJSON, config: config, client: client, origin: origin, instance: instance, runner: runner.Runner{WorkDir: config.WorkDir, BusyBox: config.BusyBox}, Logf: log.Printf}, nil
+	return &Node{statusWake: make(chan struct{}, 1), connections: connections, uploadClient: uploadClient, meter: meter, writeJSON: meter.WriteJSON, config: config, client: client, origin: origin, instance: instance, runner: runner.Runner{WorkDir: config.WorkDir, BusyBox: config.BusyBox}, Logf: log.Printf}, nil
 }
 
 // Run is a foreground worker. It never installs services or selects deployment paths.
@@ -244,7 +251,7 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 		}
 		if !p.Terminal(rec.Report.State) {
 			rec.Report.State = "unknown"
-			rec.Report.Result = &p.Result{FinishedAt: time.Now().UTC(), Error: "node restarted after execution intent; task will not be replayed"}
+			rec.Report.Result = &p.Result{FinishedAt: time.Now().UTC(), ErrorCode: "execution_unknown", Phase: "recovery", Error: "node restarted after execution intent; task will not be replayed"}
 			rec.MetadataAcknowledged, rec.Acknowledged = false, false
 			records[id] = rec
 		}
@@ -258,12 +265,23 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 	persist := func() error {
 		return a.persistJournal(path, records, retainedFormat)
 	}
-	persistResult := func() error {
+	persistResult := func(taskID string) error {
 		retry := time.Second
+		var reported time.Time
+		failed := false
 		for {
 			err := persist()
 			if err == nil {
+				if failed {
+					a.setTransfer(taskID, "", "persisted", "")
+				}
 				return nil
+			}
+			failed = true
+			a.setTransfer(taskID, "result_write_failed", "persist", "result remains in memory while disk persistence is retried")
+			if a.version >= p.OperationsVersion && time.Since(reported) >= 30*time.Second {
+				a.reportStorageFailure(ctx, a.nodeMetrics(records, ""))
+				reported = time.Now()
 			}
 			if ctx.Err() != nil {
 				return err
@@ -304,7 +322,7 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 	if err != nil {
 		return err
 	}
-	if a.version >= p.LatestVersion {
+	if a.version >= p.RetentionVersion {
 		retainedFormat = true
 		if err := persist(); err != nil {
 			return err
@@ -384,8 +402,11 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 			report = &v
 		}
 		metrics := a.nodeMetrics(records, active)
+		a.statusMu.Lock()
+		a.currentTask = active
+		a.statusMu.Unlock()
 		var receipts []string
-		if a.version >= p.LatestVersion {
+		if a.version >= p.RetentionVersion {
 			receipts = receiptBatch(records)
 		}
 		watermark := high
@@ -424,6 +445,14 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 		select {
 		case <-ctx.Done():
 			return nil
+		case <-a.StatusChanged:
+			if a.version >= p.OperationsVersion {
+				interruptSync()
+			}
+		case <-a.statusWake:
+			if a.version >= p.OperationsVersion {
+				interruptSync()
+			}
 		case <-timer.C:
 			startSync()
 		case done := <-finished:
@@ -432,7 +461,7 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 			records[done.id] = rec
 			cancelJob()
 			active, cancelJob = "", nil
-			if err := persistResult(); err != nil {
+			if err := persistResult(done.id); err != nil {
 				return err
 			}
 			interruptSync()
@@ -512,7 +541,7 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 				if existing, ok := records[task.ID]; ok {
 					if existing.Acknowledged {
 						existing.Report.State = "unknown"
-						existing.Report.Result = &p.Result{FinishedAt: time.Now().UTC(), Error: "task was already acknowledged; refusing replay"}
+						existing.Report.Result = &p.Result{FinishedAt: time.Now().UTC(), ErrorCode: "replay_rejected", Phase: "recovery", Error: "task was already acknowledged; refusing replay"}
 						existing.Acknowledged, existing.MetadataAcknowledged = false, false
 					}
 					existing.MetadataAcknowledged = false
@@ -522,10 +551,10 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 						return errors.New("journal capacity reached; retention upgrade required")
 					}
 					rec := journal{Task: *task, Report: p.Report{TaskID: task.ID, State: "running"}}
-					if a.version >= p.LatestVersion {
+					if a.version >= p.RetentionVersion {
 						if task.Sequence == 0 || task.Sequence <= high {
 							rec.Report.State = "unknown"
-							rec.Report.Result = &p.Result{FinishedAt: time.Now().UTC(), Error: "task is behind the durable replay watermark; refusing execution"}
+							rec.Report.Result = &p.Result{FinishedAt: time.Now().UTC(), ErrorCode: "replay_rejected", Phase: "recovery", Error: "task is behind the durable replay watermark; refusing execution"}
 						} else {
 							if err := a.saveReplay(task.Sequence); err != nil {
 								return err
@@ -549,7 +578,7 @@ func (a *Node) RunWithService(parent context.Context, service func(context.Conte
 						jobCtx, cancel := context.WithCancel(ctx)
 						active, cancelJob = task.ID, cancel
 						go func(t p.Task) {
-							state, result := a.runner.Run(jobCtx, t.Command)
+							state, result := a.runner.RunBefore(jobCtx, t.Command, t.StartBefore)
 							finished <- completed{id: t.ID, state: state, result: result}
 						}(*task)
 					}

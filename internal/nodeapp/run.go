@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	chclient "github.com/jpillora/chisel/client"
@@ -22,10 +23,27 @@ import (
 // Installation, startup registration and directory selection remain external.
 func Run(ctx context.Context, config p.NodeConfig, logging bool) error {
 	var service func(context.Context) error
+	var statusMu sync.Mutex
+	status := p.TunnelStatus{State: "disabled", UpdatedAt: time.Now().UTC()}
+	changed := make(chan struct{}, 1)
 	if config.Tunnel != nil {
 		client, err := newTunnel(*config.Tunnel, config.AllowInsecureLoopback, logging)
 		if err != nil {
 			return fmt.Errorf("tunnel: %w", err)
+		}
+		status.State = "connecting"
+		client.OnConnectionChange = func(connected bool) {
+			state := "disconnected"
+			if connected {
+				state = "connected"
+			}
+			statusMu.Lock()
+			status = p.TunnelStatus{State: state, UpdatedAt: time.Now().UTC()}
+			statusMu.Unlock()
+			select {
+			case changed <- struct{}{}:
+			default:
+			}
 		}
 		service = func(ctx context.Context) error {
 			if err := client.Start(ctx); err != nil {
@@ -40,6 +58,8 @@ func Run(ctx context.Context, config p.NodeConfig, logging bool) error {
 	if err != nil {
 		return err
 	}
+	a.TunnelStatus = func() p.TunnelStatus { statusMu.Lock(); defer statusMu.Unlock(); return status }
+	a.StatusChanged = changed
 	if !logging {
 		a.Logf = nil
 	}

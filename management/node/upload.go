@@ -11,6 +11,7 @@ import (
 )
 
 func (a *Node) upload(ctx context.Context, job journal) error {
+	a.setTransfer(job.Task.ID, "", "upload", "")
 	manifest := journalManifest(job)
 	// V3 reads immutable disk output one chunk at a time. Legacy sessions slice
 	// their in-memory output without making a second concatenated result copy.
@@ -113,6 +114,7 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 			}
 		}
 		if err == nil {
+			a.setTransfer(job.Task.ID, "", "uploaded", "")
 			return nil
 		}
 		if body != nil {
@@ -124,6 +126,7 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
+		a.setTransfer(job.Task.ID, "result_upload_failed", "upload", "output retained locally; upload will retry")
 		if a.Logf != nil {
 			a.Logf("result upload: %v", err)
 		}

@@ -11,7 +11,8 @@ import (
 
 const Version = 1
 const TransferVersion = 2
-const LatestVersion = 3
+const RetentionVersion = 3
+const LatestVersion = OperationsVersion
 
 // NodeSyncPath retains the version 1 wire endpoint across the Tack rename.
 const NodeSyncPath = "/v1/agent/sync"
@@ -87,41 +88,50 @@ func (c Command) Validate() error {
 }
 
 type Task struct {
-	ID              string      `json:"id"`
-	Sequence        uint64      `json:"sequence,omitempty"`
-	NodeID          string      `json:"node_id"`
-	Command         Command     `json:"command"`
-	CreatedAt       time.Time   `json:"created_at"`
-	State           string      `json:"state"`
-	CancelRequested bool        `json:"cancel_requested"`
-	Result          *Result     `json:"result,omitempty"`
-	ResultPending   bool        `json:"result_pending,omitempty"`
-	Upload          *Manifest   `json:"upload,omitempty"`
-	Timing          *TaskTiming `json:"timing,omitempty"`
+	ID              string          `json:"id"`
+	Sequence        uint64          `json:"sequence,omitempty"`
+	NodeID          string          `json:"node_id"`
+	RequestID       string          `json:"request_id,omitempty"`
+	CallerID        string          `json:"caller_id,omitempty"`
+	Owner           string          `json:"owner,omitempty"`
+	StartBefore     *time.Time      `json:"start_before,omitempty"`
+	Command         Command         `json:"command"`
+	CreatedAt       time.Time       `json:"created_at"`
+	State           string          `json:"state"`
+	CancelRequested bool            `json:"cancel_requested"`
+	Result          *Result         `json:"result,omitempty"`
+	ResultPending   bool            `json:"result_pending,omitempty"`
+	Upload          *Manifest       `json:"upload,omitempty"`
+	Timing          *TaskTiming     `json:"timing,omitempty"`
+	Transfer        *TransferStatus `json:"transfer,omitempty"`
 }
 
 type Result struct {
-	MetadataTruncated bool      `json:"metadata_truncated,omitempty"`
-	StartedAt         time.Time `json:"started_at"`
-	FinishedAt        time.Time `json:"finished_at"`
-	Executable        string    `json:"executable,omitempty"`
-	ExitCode          *int      `json:"exit_code,omitempty"`
-	Stdout            []byte    `json:"stdout,omitempty"`
-	Stderr            []byte    `json:"stderr,omitempty"`
-	StdoutTruncated   bool      `json:"stdout_truncated"`
-	StderrTruncated   bool      `json:"stderr_truncated"`
-	Error             string    `json:"error,omitempty"`
+	ErrorCode         string         `json:"error_code,omitempty"`
+	Phase             string         `json:"phase,omitempty"`
+	Cleanup           *CleanupResult `json:"cleanup,omitempty"`
+	MetadataTruncated bool           `json:"metadata_truncated,omitempty"`
+	StartedAt         time.Time      `json:"started_at"`
+	FinishedAt        time.Time      `json:"finished_at"`
+	Executable        string         `json:"executable,omitempty"`
+	ExitCode          *int           `json:"exit_code,omitempty"`
+	Stdout            []byte         `json:"stdout,omitempty"`
+	Stderr            []byte         `json:"stderr,omitempty"`
+	StdoutTruncated   bool           `json:"stdout_truncated"`
+	StderrTruncated   bool           `json:"stderr_truncated"`
+	Error             string         `json:"error,omitempty"`
 }
 
 func Terminal(state string) bool {
 	switch state {
-	case "succeeded", "failed", "timed_out", "canceled", "unknown":
+	case "succeeded", "failed", "timed_out", "canceled", "unknown", "expired":
 		return true
 	}
 	return false
 }
 
 type Node struct {
+	Status           *NodeStatus  `json:"status,omitempty"`
 	ID               string       `json:"id"`
 	Hostname         string       `json:"hostname"`
 	OS               string       `json:"os"`
@@ -166,8 +176,11 @@ type SyncResponse struct {
 }
 
 type CreateTask struct {
-	NodeID  string  `json:"node_id"`
-	Command Command `json:"command"`
+	RequestID   string     `json:"request_id,omitempty"`
+	CallerID    string     `json:"caller_id,omitempty"`
+	StartBefore *time.Time `json:"start_before,omitempty"`
+	NodeID      string     `json:"node_id"`
+	Command     Command    `json:"command"`
 }
 
 type NodeCredential struct {

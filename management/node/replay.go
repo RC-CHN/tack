@@ -191,7 +191,7 @@ func (a *Node) openReplay(ctx context.Context, records map[string]journal) (uint
 	var cp replayCheckpoint
 	err := p.ReadJSON(a.replayPath(), &cp)
 	if err == nil {
-		if cp.Version != 1 || cp.NodeID != a.config.NodeID || a.version < p.LatestVersion {
+		if cp.Version != 1 || cp.NodeID != a.config.NodeID || a.version < p.RetentionVersion {
 			return 0, errors.New("replay checkpoint requires this node identity and protocol v3; unsafe downgrade refused")
 		}
 		for _, rec := range records {
@@ -204,19 +204,19 @@ func (a *Node) openReplay(ctx context.Context, records map[string]journal) (uint
 	if !os.IsNotExist(err) {
 		return 0, err
 	}
-	if a.version < p.LatestVersion {
+	if a.version < p.RetentionVersion {
 		return 0, nil
 	}
 	var high uint64
 	if len(records) != 0 {
 		// Old nodes did not retain sequence numbers. Fence every task already
 		// allocated by the controller before discarding any legacy tombstone.
-		in := p.SyncRequest{Version: p.LatestVersion, InstanceID: a.instance, Node: p.Node{ID: a.config.NodeID}, ReplayInit: true, LeaseSeconds: a.config.LeaseSeconds}
+		in := p.SyncRequest{Version: p.RetentionVersion, InstanceID: a.instance, Node: p.Node{ID: a.config.NodeID}, ReplayInit: true, LeaseSeconds: a.config.LeaseSeconds}
 		var out p.SyncResponse
 		if err := a.request(ctx, a.client, p.NodeRetentionPath, in, &out); err != nil {
 			return 0, err
 		}
-		if out.Version != p.LatestVersion || out.ReplayFloor == nil || out.Task != nil {
+		if out.Version != p.RetentionVersion || out.ReplayFloor == nil || out.Task != nil {
 			return 0, errors.New("invalid replay migration fence")
 		}
 		high = *out.ReplayFloor

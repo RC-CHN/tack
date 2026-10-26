@@ -63,6 +63,8 @@ type TLSConfig struct {
 
 // Client represents a client instance
 type Client struct {
+	// Set before Start. Called only on authenticated transport state changes.
+	OnConnectionChange func(bool)
 	*cio.Logger
 	config      *Config
 	computed    settings.Config

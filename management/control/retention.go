@@ -22,7 +22,7 @@ func copySequences(in map[string]uint64) map[string]uint64 {
 }
 
 func validateReceipts(in p.SyncRequest, version int) error {
-	if version < p.LatestVersion && (in.ReplayInit || in.ReplayHigh != 0 || len(in.Receipts) != 0) {
+	if version < p.RetentionVersion && (in.ReplayInit || in.ReplayHigh != 0 || len(in.Receipts) != 0) {
 		return errors.New("retention requires protocol v3")
 	}
 	if len(in.Receipts) > 128 || (in.ReplayInit && (in.Report != nil || len(in.Receipts) != 0 || in.AcceptTask)) {
@@ -307,6 +307,9 @@ func (s *Server) pruneHistory(extra *p.Task) (err error) {
 			return nil
 		}
 		if !active[v.id] {
+			if err := s.retireRequest(v.id); err != nil {
+				return err
+			}
 			if err := os.Remove(s.releasedPath(v.id)); err != nil {
 				c.valid = false
 				return err
@@ -326,5 +329,8 @@ func (s *Server) Maintain() error {
 	s.tx.Lock()
 	defer s.tx.Unlock()
 	s.evictions.valid = false
+	if err := s.expireQueued(time.Now()); err != nil {
+		return err
+	}
 	return s.pruneHistory(nil)
 }

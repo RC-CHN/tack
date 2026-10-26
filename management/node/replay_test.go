@@ -27,13 +27,13 @@ func runRetainedTask(t *testing.T, cfg p.NodeConfig, task p.Task, wantState stri
 	seen, dispatched, receipt := false, false, false
 	a.client = &http.Client{Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
 		if r.URL.Path == "/health" {
-			return response(map[string]int{"protocol_version": p.LatestVersion}), nil
+			return response(map[string]int{"protocol_version": p.RetentionVersion}), nil
 		}
 		var in p.SyncRequest
 		if err := p.Decode(r.Body, &in); err != nil {
 			return nil, err
 		}
-		out := p.SyncResponse{Version: p.LatestVersion, Receipts: in.Receipts}
+		out := p.SyncResponse{Version: p.RetentionVersion, Receipts: in.Receipts}
 		if in.ReplayInit {
 			out.ReplayFloor = &fence
 			return response(out), nil

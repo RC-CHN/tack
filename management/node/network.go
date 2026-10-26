@@ -108,8 +108,11 @@ func (a *Node) negotiate(ctx context.Context) error {
 			if health.Version >= p.TransferVersion {
 				a.version = p.TransferVersion
 			}
-			if health.Version >= p.LatestVersion {
-				a.version = p.LatestVersion
+			if health.Version >= p.RetentionVersion {
+				a.version = p.RetentionVersion
+			}
+			if health.Version >= p.OperationsVersion {
+				a.version = p.OperationsVersion
 			}
 			return nil
 		}
@@ -129,6 +132,13 @@ func (a *Node) sync(ctx context.Context, report *p.Report, metrics p.NodeMetrics
 func (a *Node) syncRetention(ctx context.Context, report *p.Report, metrics p.NodeMetrics, high uint64, receipts []string) (p.SyncResponse, error) {
 	host, _ := os.Hostname()
 	input := p.SyncRequest{Version: a.version, InstanceID: a.instance, Node: p.Node{ID: a.config.NodeID, Hostname: host, OS: runtime.GOOS, Arch: runtime.GOARCH, Modes: a.runner.Modes(), StatePersistence: a.config.StatePersistence}, Report: report}
+	if a.version == p.Version && report != nil && report.Result != nil {
+		copy := *report
+		result := *report.Result
+		result.ErrorCode, result.Phase, result.Cleanup = "", "", nil
+		copy.Result = &result
+		input.Report = &copy
+	}
 	path := p.NodeSyncPath
 	client := *a.client // Same control transport, with a timeout covering this long poll.
 	if a.version >= p.TransferVersion {
@@ -145,15 +155,21 @@ func (a *Node) syncRetention(ctx context.Context, report *p.Report, metrics p.No
 				manifest = *report.Upload
 			}
 			metadata.Stdout, metadata.Stderr = nil, nil
-			metadata.Error, metadata.MetadataTruncated = boundedMetadata(metadata.Error, 8192, metadata.MetadataTruncated)
-			metadata.Executable, metadata.MetadataTruncated = boundedMetadata(metadata.Executable, 4096, metadata.MetadataTruncated)
+			boundResultMetadata(&metadata)
+			if a.version < p.OperationsVersion {
+				metadata.ErrorCode, metadata.Phase, metadata.Cleanup = "", "", nil
+			}
 			value.Result, value.Upload = &metadata, &manifest
 			input.Report = &value
 		}
 	}
-	if a.version >= p.LatestVersion {
+	if a.version >= p.RetentionVersion {
 		path = p.NodeRetentionPath
 		input.ReplayHigh, input.Receipts = high, receipts
+	}
+	if a.version >= p.OperationsVersion {
+		path = p.NodeOperationsPath
+		input.Node.Status = a.statusSnapshot(metrics)
 	}
 	var output p.SyncResponse
 	if err := a.request(ctx, &client, path, input, &output); err != nil {

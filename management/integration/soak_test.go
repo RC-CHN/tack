@@ -99,7 +99,7 @@ func TestManagementResourceSoak(t *testing.T) {
 					return
 				}
 			}
-			if r.URL.Path == p.NodeRetentionPath {
+			if r.URL.Path == p.NodeRetentionPath || r.URL.Path == p.NodeOperationsPath {
 				seq := controls.Add(1)
 				if churn.Load() {
 					switch seq % 4 {

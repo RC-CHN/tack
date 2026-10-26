@@ -11,7 +11,7 @@ import (
 	p "tack.local/management/protocol"
 )
 
-func v3Sync(id string) p.SyncRequest { in := v2Sync(id); in.Version = p.LatestVersion; return in }
+func v3Sync(id string) p.SyncRequest { in := v2Sync(id); in.Version = p.RetentionVersion; return in }
 
 func TestReceiptRequiredBeforeEvictionAndRestart(t *testing.T) {
 	s, c, path := fixture(t)

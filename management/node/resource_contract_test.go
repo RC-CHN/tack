@@ -247,7 +247,7 @@ func TestNegotiationRejectsOldVersionAndBoundsNewVersion(t *testing.T) {
 			}
 			continue
 		}
-		if err != nil || a.version != min(version, p.LatestVersion) {
+		if err != nil || a.version != min(version, p.OperationsVersion) {
 			t.Fatal("invalid negotiated version", version, a.version, err)
 		}
 	}

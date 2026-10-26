@@ -241,8 +241,7 @@ func (a *Node) spoolRecord(rec journal) (journal, error) {
 		return rec, nil
 	}
 	result := *rec.Report.Result
-	result.Error, result.MetadataTruncated = boundedMetadata(result.Error, 8192, result.MetadataTruncated)
-	result.Executable, result.MetadataTruncated = boundedMetadata(result.Executable, 4096, result.MetadataTruncated)
+	boundResultMetadata(&result)
 	if len(result.Stdout)+len(result.Stderr) == 0 {
 		rec.Task = compactTask(rec.Task)
 		rec.Report.Result = &result

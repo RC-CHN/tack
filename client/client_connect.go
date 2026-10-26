@@ -166,6 +166,10 @@ func (c *Client) connectionOnce(ctx context.Context) (connected bool, err error)
 	}
 	c.Infof("Connected (Latency %s)", time.Since(t0))
 	//connected, handover ssh connection for tunnel to use, and block
+	if c.OnConnectionChange != nil {
+		c.OnConnectionChange(true)
+		defer c.OnConnectionChange(false)
+	}
 	err = c.tunnel.BindSSH(ctx, sshConn, reqs, chans)
 	c.Infof("Disconnected")
 	connected = time.Since(t0) > 5*time.Second

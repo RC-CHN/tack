@@ -18,9 +18,10 @@ import (
 )
 
 type state struct {
-	Version   int               `json:"storage_version"`
-	Tasks     map[string]p.Task `json:"tasks"`
-	Sequences map[string]uint64 `json:"sequences,omitempty"`
+	RequestFloor int64             `json:"request_floor,omitempty"`
+	Version      int               `json:"storage_version"`
+	Tasks        map[string]p.Task `json:"tasks"`
+	Sequences    map[string]uint64 `json:"sequences,omitempty"`
 }
 type liveNode struct {
 	info     p.Node
@@ -29,6 +30,8 @@ type liveNode struct {
 
 // Server is a single-controller durable task queue. Run one process per state file.
 type Server struct {
+	operators    map[string]storedOperator
+	polls        map[string]int
 	tx           sync.Mutex // Serializes durable mutations; readers do not wait on disk writes.
 	mu           sync.Mutex
 	config       p.ControlConfig
@@ -72,8 +75,12 @@ func New(config p.ControlConfig, path string) (*Server, error) {
 		return nil, err
 	}
 	storageDefaults(&config)
-	s := &Server{config: config, path: path, state: state{Version: 2, Tasks: map[string]p.Task{}, Sequences: map[string]uint64{}}, nodes: map[string]liveNode{}, meter: telemetry.New(), changed: make(chan struct{})}
+	s := &Server{config: config, path: path, state: state{Version: 3, Tasks: map[string]p.Task{}, Sequences: map[string]uint64{}}, nodes: map[string]liveNode{}, meter: telemetry.New(), changed: make(chan struct{})}
 	s.writeJSON = s.meter.WriteJSON
+	s.polls = map[string]int{}
+	if err := s.openOperators(); err != nil {
+		return nil, err
+	}
 	s.controlSlots = make(map[string]chan struct{}, len(config.Nodes))
 	for _, n := range config.Nodes {
 		s.controlSlots[n.ID] = make(chan struct{}, 2)
@@ -119,7 +126,8 @@ func respond(w http.ResponseWriter, code int, value any) {
 	json.NewEncoder(w).Encode(value)
 }
 func failure(w http.ResponseWriter, code int, msg string) {
-	respond(w, code, map[string]string{"error": msg})
+	reply := errorReply(code, msg)
+	respond(w, reply.code, reply.value)
 }
 
 // NodeHandler exposes no administrator routes, even with an administrator token.
@@ -151,7 +159,7 @@ func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 }
 
 func nodePath(path string) bool {
-	return path == p.NodeSyncPath || path == p.NodeControlPath || path == p.NodeRetentionPath || path == p.NodeResultPath
+	return path == p.NodeOperationsPath || path == p.NodeSyncPath || path == p.NodeControlPath || path == p.NodeRetentionPath || path == p.NodeResultPath
 }
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if nodePath(r.URL.Path) {
@@ -170,7 +178,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/health" && r.Method == "GET" {
-		respond(w, 200, map[string]int{"protocol_version": p.LatestVersion})
+		respond(w, 200, map[string]int{"protocol_version": p.OperationsVersion})
 		return
 	}
 	header := r.Header.Get("Authorization")
@@ -205,15 +213,24 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 401, "invalid node credential")
 		return
 	}
-	if !equalToken(token, s.config.AdminToken) {
-		failure(w, 401, "invalid administrator credential")
+	identity, authorized := s.authenticate(token)
+	if !authorized {
+		failure(w, 401, "invalid operator credential")
 		return
 	}
-	if r.Method == "POST" {
+	if r.Method == "POST" || r.Method == "DELETE" {
 		if !takeSlot(w, s.adminSlots) {
 			return
 		}
 		defer func() { <-s.adminSlots }()
+	}
+	r = withPrincipal(r, identity)
+	if s.operatorAPI(w, r) {
+		return
+	}
+	if (r.Method == "GET" && !identity.read) || (r.Method != "GET" && !identity.execute) {
+		failure(w, 403, "operation is not permitted")
+		return
 	}
 	if s.readAdministrator(w, r) {
 		return
@@ -224,6 +241,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	if r.URL.Path == "/v1/tasks" && r.Method == "POST" && !identity.allows(input.NodeID) {
+		failure(w, 403, "node is not permitted")
+		return
+	}
 	response := s.adminResponse(r, input)
 	respond(w, response.code, response.value)
 }
@@ -233,6 +254,22 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *Server) adminResponse(r *http.Request, input p.CreateTask) apiReply {
 	s.tx.Lock()
 	defer s.tx.Unlock()
+	input.Command.Defaults()
+	if input.StartBefore != nil {
+		t := input.StartBefore.UTC()
+		input.StartBefore = &t
+	}
+	if r.URL.Path == "/v1/tasks" && r.Method == "POST" {
+		if len(input.CallerID) > 96 || (input.CallerID != "" && !p.ValidID(input.CallerID)) {
+			return errorReply(400, "invalid caller_id")
+		}
+		if reply, handled := s.repeatedRequest(r, input); handled {
+			return reply
+		}
+		if err := input.Command.Validate(); err != nil {
+			return errorReply(400, err.Error())
+		}
+	}
 	var archived p.Task
 	if strings.HasPrefix(r.URL.Path, "/v1/tasks/") {
 		id := strings.Split(strings.TrimPrefix(r.URL.Path, "/v1/tasks/"), "/")[0]
@@ -257,7 +294,13 @@ func (s *Server) adminResponse(r *http.Request, input p.CreateTask) apiReply {
 		if err != nil {
 			return errorReply(500, "cannot create task identity")
 		}
-		t := p.Task{ID: id, NodeID: input.NodeID, Command: input.Command, CreatedAt: time.Now().UTC(), State: "queued"}
+		if input.RequestID != "" {
+			id = requestTaskID(principalFor(r).id, input.RequestID)
+		}
+		t := p.Task{ID: id, NodeID: input.NodeID, Command: input.Command, RequestID: input.RequestID, CallerID: input.CallerID, Owner: principalFor(r).id, StartBefore: input.StartBefore, CreatedAt: time.Now().UTC(), State: "queued"}
+		if p.DeadlineExpired(t.StartBefore, time.Now()) {
+			return problemReply(400, "start_deadline_exceeded", "submit", "start_before must be in the future")
+		}
 		if s.state.Sequences[input.NodeID] == ^uint64(0) {
 			return errorReply(503, "task sequence exhausted")
 		}
@@ -276,6 +319,9 @@ func (s *Server) adminResponse(r *http.Request, input p.CreateTask) apiReply {
 			t, ok = archived, true
 		}
 		if !ok {
+			return errorReply(404, "task not found")
+		}
+		if !principalFor(r).allows(t.NodeID) {
 			return errorReply(404, "task not found")
 		}
 		if len(parts) == 2 && parts[1] == "cancel" && r.Method == "POST" {
@@ -304,7 +350,7 @@ func (s *Server) adminResponse(r *http.Request, input p.CreateTask) apiReply {
 func (s *Server) commit(t p.Task) error {
 	// The caller holds tx and mu. Publish a new immutable snapshot only after
 	// persistence; releasing mu here keeps status/readers responsive to slow disk.
-	next := state{Version: 2, Tasks: make(map[string]p.Task, len(s.state.Tasks)+1), Sequences: copySequences(s.state.Sequences)}
+	next := state{Version: 3, Tasks: make(map[string]p.Task, len(s.state.Tasks)+1), Sequences: copySequences(s.state.Sequences), RequestFloor: s.state.RequestFloor}
 	if t.Sequence > next.Sequences[t.NodeID] {
 		next.Sequences[t.NodeID] = t.Sequence
 	}
@@ -337,7 +383,7 @@ func (s *Server) commit(t p.Task) error {
 func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 	var input p.SyncRequest
 	limit := p.MaxBody
-	if r.URL.Path == p.NodeControlPath || r.URL.Path == p.NodeRetentionPath {
+	if r.URL.Path == p.NodeControlPath || r.URL.Path == p.NodeRetentionPath || r.URL.Path == p.NodeOperationsPath {
 		limit = 128 * 1024
 	}
 	if err := p.Decode(http.MaxBytesReader(w, r.Body, int64(limit)), &input); err != nil {
@@ -349,7 +395,10 @@ func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 		version = p.TransferVersion
 	}
 	if r.URL.Path == p.NodeRetentionPath {
-		version = p.LatestVersion
+		version = p.RetentionVersion
+	}
+	if r.URL.Path == p.NodeOperationsPath {
+		version = p.OperationsVersion
 	}
 	if input.Version != version {
 		failure(w, 400, "unsupported protocol version")
@@ -371,6 +420,10 @@ func (s *Server) syncNode(w http.ResponseWriter, r *http.Request, id string) {
 		// Bound the response deadline per authenticated long poll; body/header limits remain short.
 		_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(time.Duration(input.WaitSeconds+20) * time.Second))
 	}
+	s.mu.Lock()
+	s.polls[id]++
+	s.mu.Unlock()
+	defer func() { s.mu.Lock(); s.polls[id]--; s.mu.Unlock() }()
 	seen := time.Now().UTC()
 	timer := time.NewTimer(time.Duration(input.WaitSeconds) * time.Second)
 	defer timer.Stop()
@@ -404,6 +457,9 @@ func (s *Server) syncOnce(w http.ResponseWriter, r *http.Request, id string, inp
 func (s *Server) syncState(id string, input p.SyncRequest, version int, seen time.Time, wait bool) (reply apiReply, changed <-chan struct{}) {
 	s.tx.Lock()
 	defer s.tx.Unlock()
+	if err := s.expireQueued(time.Now()); err != nil {
+		return errorReply(500, "cannot persist queue expiration"), nil
+	}
 	var archived p.Task
 	if input.Report != nil {
 		var err error
@@ -420,6 +476,12 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 		reply = errorReply(409, "another node instance is active for this node")
 		return reply, nil
 	}
+	if input.Node.Status != nil {
+		copy := *input.Node.Status
+		input.Node.Status = &copy
+		copy.Management = "connected"
+		copy.UpdatedAt = seen
+	}
 	input.Node.LastSeen = seen
 	lease := 30
 	if version >= p.TransferVersion {
@@ -431,7 +493,7 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 		s.nodes[id] = liveNode{info: input.Node, instance: input.InstanceID}
 	}
 	response := p.SyncResponse{Version: version}
-	if version >= p.LatestVersion {
+	if version >= p.RetentionVersion {
 		if err := s.advanceReplay(id, input.ReplayHigh); err != nil {
 			return errorReply(500, "cannot persist replay watermark"), nil
 		}
@@ -474,7 +536,7 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 			return reply, nil
 		}
 		if version >= p.TransferVersion && p.Terminal(report.State) {
-			if report.Upload == nil || report.Upload.Validate(t.Command.OutputLimit) != nil || len(report.Result.Stdout) != 0 || len(report.Result.Stderr) != 0 || len(report.Result.Error) > 8192 || len(report.Result.Executable) > 4096 {
+			if report.Upload == nil || report.Upload.Validate(t.Command.OutputLimit) != nil || len(report.Result.Stdout) != 0 || len(report.Result.Stderr) != 0 || len(report.Result.Error) > 8192 || len(report.Result.Executable) > 4096 || !validResultMetadata(report.Result) {
 				reply = errorReply(400, "terminal report requires a valid manifest and bounded metadata without output")
 				return reply, nil
 			}
@@ -542,7 +604,18 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 		}
 	}
 	if selected != nil {
-		if selected.State == "queued" && version >= p.TransferVersion && !input.AcceptTask {
+		if selected.State == "queued" && ((version >= p.TransferVersion && !input.AcceptTask) || (selected.StartBefore != nil && version < p.OperationsVersion)) {
+			if selected.StartBefore != nil && version < p.OperationsVersion {
+				n := s.nodes[id]
+				status := p.NodeStatus{Tunnel: p.TunnelStatus{State: "unknown"}, UpdatedAt: seen}
+				if n.info.Status != nil {
+					status = *n.info.Status
+				}
+				status.AcceptingTasks = false
+				status.BacklogReason = "deadline_capability_required"
+				n.info.Status = &status
+				s.nodes[id] = n
+			}
 			if wait && response.Acknowledged == "" && len(response.Receipts) == 0 {
 				return reply, s.changed
 			}
@@ -562,8 +635,11 @@ func (s *Server) syncState(id string, input p.SyncRequest, version int, seen tim
 		if version == p.Version {
 			selected.Timing, selected.Upload, selected.ResultPending = nil, nil, false
 		}
-		if version < p.LatestVersion {
+		if version < p.RetentionVersion {
 			selected.Sequence = 0
+		}
+		if version < p.OperationsVersion {
+			selected.RequestID, selected.CallerID, selected.Owner, selected.StartBefore = "", "", "", nil
 		}
 		response.Task = selected
 		if selected.CancelRequested {
@@ -607,5 +683,9 @@ type apiReply struct {
 }
 
 func errorReply(code int, message string) apiReply {
-	return apiReply{code, map[string]string{"error": message}}
+	name := map[int]string{400: "invalid_request", 401: "unauthenticated", 403: "permission_denied", 404: "not_found", 405: "method_not_allowed", 409: "conflict", 410: "request_retired", 500: "storage_io_failed", 503: "capacity_unavailable"}[code]
+	if name == "" {
+		name = "request_failed"
+	}
+	return problemReply(code, name, "control", message)
 }

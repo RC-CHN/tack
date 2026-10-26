@@ -90,7 +90,7 @@ func reservation(t p.Task) int64 {
 // another durable mutation. Historical payloads are never cached in memory.
 func (s *Server) archive(t p.Task) error {
 	path := s.historyPath(t.ID)
-	if t.State == "canceled" && (t.Timing == nil || t.Timing.DispatchedAt.IsZero()) {
+	if (t.State == "canceled" || t.State == "expired") && (t.Timing == nil || t.Timing.DispatchedAt.IsZero()) {
 		path = s.releasedPath(t.ID)
 		// rc.1 stored never-dispatched cancellations in the root directory.
 		// Move an existing archive before rewriting it so migration cannot
@@ -209,9 +209,17 @@ func (s *Server) openStorage() error {
 	versionSeen := false
 	storageVersion := 0
 	sequencesSeen := false
+	floorSeen := false
 	var activeBytes int64
 	for d.More() {
 		key, err := d.Token()
+		if err == nil && key == "request_floor" && !floorSeen {
+			if err := d.Decode(&s.state.RequestFloor); err != nil || s.state.RequestFloor < 0 {
+				return errors.New("invalid request watermark")
+			}
+			floorSeen = true
+			continue
+		}
 		if err == nil && key == "sequences" && !sequencesSeen {
 			if err := d.Decode(&s.state.Sequences); err != nil {
 				return err
@@ -229,7 +237,7 @@ func (s *Server) openStorage() error {
 		}
 		if err == nil && key == "storage_version" && !versionSeen {
 			var version int
-			if err := d.Decode(&version); err != nil || (version != 1 && version != 2) {
+			if err := d.Decode(&version); err != nil || (version != 1 && version != 2 && version != 3) {
 				return errors.New("unsupported storage version")
 			}
 			versionSeen = true
@@ -401,6 +409,9 @@ func taskSummary(t p.Task) p.Task {
 // Pagination is ordered by opaque task ID, not submission time. The directory
 // scan uses constant memory; only one bounded page of task summaries is read.
 func (s *Server) taskPage(after string, limit int) (p.TaskPage, error) {
+	return s.filteredPage(after, limit, taskFilter{principal: principal{admin: true}})
+}
+func (s *Server) filteredPage(after string, limit int, filter taskFilter) (p.TaskPage, error) {
 	s.mu.Lock()
 	active := make(map[string]p.Task, len(s.state.Tasks))
 	for id, t := range s.state.Tasks {
@@ -426,12 +437,33 @@ func (s *Server) taskPage(after string, limit int) (p.TaskPage, error) {
 			ids = ids[:limit+1]
 		}
 	}
-	for id := range active {
-		add(id)
+	for id, t := range active {
+		if filter.matches(t) {
+			add(id)
+		}
 	}
 	if err := s.walkHistory(func(_ string, e os.DirEntry) error {
 		id := strings.TrimSuffix(e.Name(), ".json")
-		if !e.IsDir() && strings.HasSuffix(e.Name(), ".json") && p.ValidID(id) {
+		if !e.IsDir() && strings.HasSuffix(e.Name(), ".json") && p.ValidID(id) && id > after {
+			if filter.enabled() {
+				if _, ok := active[id]; ok {
+					return nil
+				}
+				data, ok, err := s.historyJSON(id)
+				if err != nil {
+					return err
+				}
+				if !ok {
+					return nil
+				}
+				meta, err := summaryMetadata(data)
+				if err != nil {
+					return err
+				}
+				if !filter.matches(meta) {
+					return nil
+				}
+			}
 			add(id)
 		}
 		return nil
@@ -475,14 +507,40 @@ func (s *Server) readAdministrator(w http.ResponseWriter, r *http.Request) bool 
 		s.mu.Lock()
 		nodes := make([]p.Node, 0, len(s.config.Nodes))
 		for _, n := range s.config.Nodes {
+			if !principalFor(r).allows(n.ID) {
+				continue
+			}
 			v := s.nodes[n.ID].info
 			v.ID = n.ID
 			v.Online = v.LeaseExpiresAt != nil && time.Now().Before(*v.LeaseExpiresAt)
+			status := p.NodeStatus{Tunnel: p.TunnelStatus{State: "unknown"}, BacklogReason: "status_unavailable"}
+			if v.Status != nil {
+				status = *v.Status
+			}
+			status.Management = "never_seen"
+			if !v.LastSeen.IsZero() {
+				status.Management = "offline"
+			}
+			if v.Online {
+				status.Management = "lease_valid"
+			}
+			if s.polls[n.ID] > 0 {
+				status.Management = "connected"
+			}
+			if !v.Online {
+				status.AcceptingTasks = false
+				status.BacklogReason = "management_offline"
+			}
+			v.Status = &status
 			nodes = append(nodes, v)
 		}
 		s.mu.Unlock()
 		sort.Slice(nodes, func(i, j int) bool { return nodes[i].ID < nodes[j].ID })
 		if r.URL.Path == "/v1/metrics" {
+			if !principalFor(r).admin {
+				failure(w, 403, "controller metrics require administrator permission")
+				return true
+			}
 			respond(w, 200, p.MetricsSnapshot{Controller: s.meter.Snapshot(), Nodes: nodes})
 		} else {
 			respond(w, 200, nodes)
@@ -502,7 +560,12 @@ func (s *Server) readAdministrator(w http.ResponseWriter, r *http.Request) bool 
 			failure(w, 400, "invalid cursor")
 			return true
 		}
-		page, err := s.taskPage(after, limit)
+		filter, err := parseFilter(r)
+		if err != nil {
+			failure(w, 400, err.Error())
+			return true
+		}
+		page, err := s.filteredPage(after, limit, filter)
 		if err != nil {
 			failure(w, 500, "cannot read task history")
 			return true
@@ -517,8 +580,15 @@ func (s *Server) readAdministrator(w http.ResponseWriter, r *http.Request) bool 
 		id := strings.TrimPrefix(r.URL.Path, "/v1/tasks/")
 		s.mu.Lock()
 		t, active := s.state.Tasks[id]
+		if active {
+			t = s.deliveryStatus(t)
+		}
 		s.mu.Unlock()
 		if active {
+			if !principalFor(r).allows(t.NodeID) {
+				failure(w, 404, "task not found")
+				return true
+			}
 			respond(w, 200, t)
 			break
 		}
@@ -528,6 +598,15 @@ func (s *Server) readAdministrator(w http.ResponseWriter, r *http.Request) bool 
 		} else if !ok {
 			failure(w, 404, "task not found")
 		} else {
+			meta, err := summaryMetadata(data)
+			if err != nil {
+				failure(w, 500, "cannot read task")
+				return true
+			}
+			if !principalFor(r).allows(meta.NodeID) {
+				failure(w, 404, "task not found")
+				return true
+			}
 			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("Cache-Control", "no-store")
 			w.WriteHeader(200)

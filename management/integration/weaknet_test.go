@@ -213,7 +213,7 @@ func TestBlockedUploadStillDispatchesAndCancelsWithLongHeartbeat(t *testing.T) {
 	var controls atomic.Int64
 	f := newNetworkFixture(t, func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == p.NodeRetentionPath {
+			if r.URL.Path == p.NodeRetentionPath || r.URL.Path == p.NodeOperationsPath {
 				controls.Add(1)
 			}
 			if r.URL.Path != p.NodeResultPath {

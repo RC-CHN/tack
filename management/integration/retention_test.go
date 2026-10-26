@@ -38,7 +38,7 @@ func TestRetentionChurnLostAcksAndControllerRollback(t *testing.T) {
 							return
 						}
 					}
-					if r.URL.Path == p.NodeRetentionPath && capture.Code == 200 {
+					if (r.URL.Path == p.NodeRetentionPath || r.URL.Path == p.NodeOperationsPath) && capture.Code == 200 {
 						var ack p.SyncResponse
 						json.Unmarshal(capture.Body.Bytes(), &ack)
 						if len(ack.Receipts) > 0 && lostReceipt.CompareAndSwap(false, true) {
