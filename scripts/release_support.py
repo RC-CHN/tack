@@ -28,7 +28,7 @@ def build_env(toolchain, goos, goarch, arm=""):
     # Ambient GOFLAGS must never silently introduce race instrumentation, tags,
     # alternate architectures or a different obfuscation scope into the record.
     return dict(os.environ, GOTOOLCHAIN=toolchain, CGO_ENABLED="0", GOOS=goos,
-                GOARCH=goarch, GOARM=arm or "5", GOAMD64="v1", GOMIPS="softfloat",
+                GOARCH=goarch, GOARM=arm or "5", GOAMD64="v1", GO386="sse2", GOARM64="v8.0", GOMIPS="softfloat",
                 GOMIPS64="softfloat", GOFLAGS="", GOEXPERIMENT="", GOWORK="off",
                 GOGARBLE=OBFUSCATION_SCOPE)
 

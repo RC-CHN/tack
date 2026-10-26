@@ -13,6 +13,7 @@ import tarfile
 import tempfile
 import time
 import zipfile
+import importlib.util
 
 from release_support import GARBLE, OBFUSCATION_SCOPE, UPX_VERSION, build_env, protect, sha256, tool, verify_target, version_output
 
@@ -77,6 +78,8 @@ def main():
     parser.add_argument("--protection", choices=("plain", "obfuscated", "packed"), default="packed")
     parser.add_argument("--tools", type=Path, default=ROOT / "bin/build-tools")
     parser.add_argument("--components", nargs="+", choices=("tack-node", "tack", "tack-control", "chisel"))
+    parser.add_argument("--node-runtime", choices=("modern", "legacy", "both"), default="both",
+                        help="Node runtime variants; Legacy is an additional Linux single-binary build")
     parser.add_argument("--require-clean", action="store_true", help="required for publication")
     args = parser.parse_args()
     if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?", args.version):
@@ -87,33 +90,46 @@ def main():
         parser.error("output directory must be empty; existing artifacts are never overwritten")
     commit = command("git", "rev-parse", "HEAD")
     dirty = bool(command("git", "status", "--porcelain"))
-    if args.require_clean and (dirty or args.native_only or args.components):
+    if args.require_clean and (dirty or args.native_only or args.components or args.node_runtime != "both"):
         parser.error("publication requires a clean source tree and the complete target matrix")
     sources = command("git", "ls-files", "--cached", "--others", "--exclude-standard").splitlines()
     inputs = {name: sha256(ROOT / name) for name in sorted(set(sources))
               if (ROOT / name).is_file() and not name.startswith("management/validation/")
-              and (name.endswith((".go", ".mod", ".sum", ".py", ".sh")))}
+              and (name.endswith((".go", ".mod", ".sum", ".py", ".sh")) or name.startswith("compat/legacy/"))}
     source_hash = hashlib.sha256(json.dumps(inputs, sort_keys=True).encode()).hexdigest()
     epoch = int(command("git", "show", "-s", "--format=%ct", "HEAD"))
     native_os = command("go", "env", "GOHOSTOS", env={**os.environ, "GOTOOLCHAIN": "local"})
     native_arch = command("go", "env", "GOHOSTARCH", env={**os.environ, "GOTOOLCHAIN": "local"})
     components = [
-        ("tack-node", "management/node", "./cmd/tack-node", LEGACY, NODE_TARGETS),
-        ("tack", "management/control", "./cmd/tack", MODERN, TOOL_TARGETS),
+        ("tack", "management/control", "./cmd/tack", MODERN, TOOL_TARGETS, "modern"),
         ("tack-control", "management/control", "./cmd/tack-control", MODERN,
-         [("linux", "amd64", ""), ("linux", "arm64", ""), ("windows", "amd64", "")]),
-        ("chisel", ".", ".", MODERN, NODE_TARGETS),
+         [("linux", "amd64", ""), ("linux", "arm64", ""), ("windows", "amd64", "")], "modern"),
+        ("chisel", ".", ".", MODERN, NODE_TARGETS, "modern"),
     ]
+    if args.node_runtime in ("modern", "both"):
+        components.insert(0, ("tack-node", ".", "./cmd/tack-node", MODERN, NODE_TARGETS, "modern"))
+    legacy_record = None
+    if args.node_runtime in ("legacy", "both") and (not args.components or "tack-node" in args.components):
+        if not args.native_only or native_os == "linux":
+            spec = importlib.util.spec_from_file_location("tack_prepare_legacy", ROOT / "scripts/prepare-legacy.py")
+            adapter = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(adapter)
+            prepared = adapter.prepare()
+            legacy_record = {k: prepared[k] for k in ("format", "generator_sha256", "lock_sha256", "upstream", "limitations")}
+            legacy_record["manifest_sha256"] = sha256(adapter.DEST / "manifest.json")
+            components.append(("tack-node", ".", "./cmd/tack-node", LEGACY,
+                               [t for t in NODE_TARGETS if t[0] == "linux"], "legacy"))
     manifest = {"format": "tack-release-v2", "version": args.version, "commit": commit,
                 "source_date_epoch": epoch, "source_dirty": dirty, "source_sha256": source_hash,
-                "native_only": args.native_only, "requested_protection": args.protection, "artifacts": []}
+                "native_only": args.native_only, "node_runtime": args.node_runtime,
+                "requested_protection": args.protection, "artifacts": []}
     suffix = ".exe" if os.name == "nt" else ""
     tools = args.tools.resolve()
     checked_tools = {}
     if args.protection == "packed":
         checked_tools["upx"] = tool(tools / ("upx" + suffix), "upx " + UPX_VERSION, "--version")
     with tempfile.TemporaryDirectory(prefix="tack-release-") as temp:
-        for component, module, package, toolchain, targets in components:
+        for component, module, package, toolchain, targets, runtime_profile in components:
             if args.components and component not in args.components:
                 continue
             garble_dir, garble_version = GARBLE[toolchain]
@@ -134,6 +150,14 @@ def main():
                 symbol = ("github.com/jpillora/chisel/share.BuildVersion" if component == "chisel"
                           else "tack.local/management/protocol.BuildVersion")
                 flags = ["-trimpath", "-ldflags", f"-s -w -X {symbol}={args.version}"]
+                if component == "tack-node":
+                    flags[-1] += f" -X github.com/jpillora/chisel/share.BuildVersion={args.version}"
+                if runtime_profile == "legacy":
+                    flags.extend(["-mod=readonly", "-modfile=go.legacy.mod"])
+                    # Garble 0.14's recursive go-list calls do not forward the
+                    # command-line modfile flag. Keep every subprocess on the
+                    # same module graph via GOFLAGS as well.
+                    env["GOFLAGS"] = "-mod=readonly -modfile=go.legacy.mod"
                 compiler = ["go"] if args.protection == "plain" else [str(garble), "-literals"]
                 subprocess.run(compiler + ["build"] + flags + ["-o", str(binary), package],
                                cwd=ROOT / module, env=env, check=True)
@@ -150,8 +174,12 @@ def main():
                 packing = {"attempted": False, "status": "disabled"}
                 actual = args.protection
                 if args.protection == "packed":
-                    packing = protect(binary, tools / ("upx" + suffix), native,
-                                      component, args.version, goos, goarch)
+                    if runtime_profile == "legacy":
+                        packing = {"attempted": False, "status": "exception", "tool_version": UPX_VERSION,
+                                   "reason": "Legacy kernel qualification: UPX 5.0.2 amd64 loaders exit 139 on CentOS 6 kernel 2.6.32-754; retain obfuscation until each Legacy target's packed loader is qualified"}
+                    else:
+                        packing = protect(binary, tools / ("upx" + suffix), native,
+                                          component, args.version, goos, goarch)
                     if packing["status"] != "packed":
                         actual = "obfuscated"
                 native_version = version_output(binary, component, args.version) if native else None
@@ -167,11 +195,25 @@ def main():
                           "validation": "native-version-smoke" if native else "compile-and-format",
                           "native_version": native_version,
                           "tools": {"garble": checked_tools.get(garble_dir), "upx": checked_tools.get("upx")}}
+                record["runtime_profile"] = runtime_profile
+                if component == "tack-node":
+                    record["capabilities"] = ["management", "embedded-chisel"]
+                if runtime_profile == "legacy":
+                    record["legacy_adapter"] = legacy_record
+                    record["compatibility"] = {"linux_kernel_floor": {"amd64": "2.6.32", "386": "2.6.32", "arm": "3.1", "mips64le": "4.8"}.get(goarch),
+                                               "glibc_required": False, "browser_tls_profiles": False,
+                                               "ssh_mlkem": False, "fips140": False,
+                                               "old_kernel_validation": "separate functional qualification required"}
                 extension = ".zip" if goos == "windows" else ".tar.gz"
-                name = f"{component}_{args.version}_{goos}_{label}{extension}"
+                variant = "_legacy" if runtime_profile == "legacy" else ""
+                name = f"{component}_{args.version}_{goos}_{label}{variant}{extension}"
+                readme = (ROOT / "management/README.md").read_bytes()
+                if runtime_profile == "legacy":
+                    readme += b"\n\n## Legacy dependency license\n\n"
+                    readme += (ROOT / "bin/legacy-deps/crypto/LICENSE").read_bytes()
                 files = {executable: (binary.read_bytes(), 0o755),
                          "LICENSE": ((ROOT / "LICENSE").read_bytes(), 0o644),
-                         "README.md": ((ROOT / "management/README.md").read_bytes(), 0o644),
+                         "README.md": (readme, 0o644),
                          "BUILD.json": ((json.dumps(record, indent=2) + "\n").encode(), 0o644)}
                 archive(output / name, files, epoch)
                 manifest["artifacts"].append({"file": name, "component": component,

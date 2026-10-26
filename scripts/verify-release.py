@@ -12,7 +12,9 @@ import zipfile
 from release_support import sha256, verify_target, version_output
 
 
-def verify(directory, commit=None, extract_node=None, require_packed_node=False, extract_native=None):
+def verify(directory, commit=None, extract_node=None, require_packed_node=False, extract_native=None, node_runtime="modern"):
+    if node_runtime not in ("modern", "legacy"):
+        raise ValueError("invalid Node runtime selection")
     checks = {}
     for line in (directory / "SHA256SUMS").read_text().splitlines():
         digest, name = line.split("  ", 1)
@@ -33,11 +35,20 @@ def verify(directory, commit=None, extract_node=None, require_packed_node=False,
         raise ValueError("manifest does not match uploaded files")
     host = (platform.system().lower(), {"x86_64": "amd64", "AMD64": "amd64", "aarch64": "arm64", "arm64": "arm64"}.get(platform.machine()))
     extracted = False
+    selected_node = False
     if extract_native:
         extract_native.mkdir(parents=True, exist_ok=False)
     with tempfile.TemporaryDirectory(prefix="tack-verify-") as temp:
         for entry in entries:
             record = entry["build"]
+            runtime_profile = record.get("runtime_profile", "modern")
+            if runtime_profile not in ("modern", "legacy") or (runtime_profile == "legacy" and entry["component"] != "tack-node"):
+                raise ValueError("invalid runtime profile")
+            if runtime_profile == "legacy":
+                if (record.get("go_version") != "go1.23.12" or record.get("os") != "linux"
+                        or not {"management", "embedded-chisel"}.issubset(record.get("capabilities", []))
+                        or record.get("legacy_adapter", {}).get("format") != "tack-legacy-adapters-v1"):
+                    raise ValueError("invalid unified Legacy build record")
             if entry["component"] not in ("tack-node", "tack", "tack-control", "chisel"):
                 raise ValueError("unknown release component")
             label = "armv" + record["arm"] if record["arch"] == "arm" else record["arch"]
@@ -75,15 +86,22 @@ def verify(directory, commit=None, extract_node=None, require_packed_node=False,
             binary.chmod(0o755)
             verify_target(binary, record["os"], record["arch"])
             if (record["os"], record["arch"]) == host:
-                if require_packed_node and entry["component"] == "tack-node" and record["protection"] != "packed":
+                selected = entry["component"] != "tack-node" or runtime_profile == node_runtime
+                if selected and entry["component"] == "tack-node":
+                    if selected_node:
+                        raise ValueError("duplicate native Node selection")
+                    selected_node = True
+                if selected and require_packed_node and entry["component"] == "tack-node" and record["protection"] != "packed":
                     raise ValueError("native Node unexpectedly fell back from packing")
                 version_output(binary, entry["component"], manifest["version"])
-                if extract_native:
+                if extract_native and selected:
                     target = extract_native / executable
+                    if target.exists():
+                        raise ValueError("duplicate native artifact selection")
                     target.write_bytes(contents[executable])
                     target.chmod(0o755)
                     (extract_native / (entry["component"] + ".BUILD.json")).write_bytes(contents["BUILD.json"])
-                if entry["component"] == "tack-node" and extract_node:
+                if selected and entry["component"] == "tack-node" and extract_node:
                     extract_node.mkdir(parents=True, exist_ok=False)
                     for name in (executable, "BUILD.json"):
                         (extract_node / name).write_bytes(contents[name])
@@ -92,6 +110,8 @@ def verify(directory, commit=None, extract_node=None, require_packed_node=False,
             print("Verified", entry["file"], record["protection"], flush=True)
     if extract_node and not extracted:
         raise ValueError("native Node was not present")
+    if (require_packed_node or (extract_native and node_runtime == "legacy")) and not selected_node:
+        raise ValueError("selected native Node was not present")
     return manifest
 
 
@@ -102,8 +122,9 @@ def main():
     parser.add_argument("--extract-node", type=Path)
     parser.add_argument("--require-packed-node", action="store_true")
     parser.add_argument("--extract-native", type=Path)
+    parser.add_argument("--node-runtime", choices=("modern", "legacy"), default="modern")
     args = parser.parse_args()
-    manifest = verify(args.directory.resolve(), args.commit, args.extract_node, args.require_packed_node, args.extract_native)
+    manifest = verify(args.directory.resolve(), args.commit, args.extract_node, args.require_packed_node, args.extract_native, args.node_runtime)
     print(f"Verified {len(manifest['artifacts'])} archives at {manifest['commit']}")
 
 

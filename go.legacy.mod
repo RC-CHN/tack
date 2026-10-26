@@ -1,0 +1,52 @@
+module github.com/jpillora/chisel
+
+go 1.23.0
+
+require (
+	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5
+	github.com/fsnotify/fsnotify v1.10.1
+	github.com/gorilla/websocket v1.5.3
+	github.com/jpillora/backoff v1.0.0
+	github.com/jpillora/opts v1.8.1
+	github.com/jpillora/requestlog v1.0.0
+	github.com/jpillora/sizestr v1.0.0
+	github.com/txthinking/socks5 v0.0.0-20260601051520-339b044ab0eb
+	golang.org/x/crypto v0.55.0
+	golang.org/x/net v0.57.0
+	golang.org/x/sync v0.22.0
+	golang.org/x/sys v0.47.0
+	golang.org/x/term v0.45.0
+	tack.local/management/node v0.0.0
+	tack.local/management/protocol v0.0.0
+	tack.local/testfixtures v0.0.0
+)
+
+require (
+	github.com/andrew-d/go-termutil v0.0.0-20150726205930-009166a695a2 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/jpillora/ansi v1.0.3 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	github.com/posener/complete v1.2.3 // indirect
+	github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce // indirect
+	github.com/txthinking/runnergroup v0.0.0-20210608031112-152c7c4432bf // indirect
+	golang.org/x/text v0.41.0 // indirect
+)
+
+replace tack.local/management/node => ./management/node
+
+replace tack.local/management/protocol => ./management/protocol
+
+replace tack.local/testfixtures => ./test/fixtures
+
+replace golang.org/x/crypto => ./bin/legacy-deps/crypto
+
+replace golang.org/x/net => ./bin/legacy-deps/net
+
+replace golang.org/x/sync => ./bin/legacy-deps/sync
+
+replace golang.org/x/sys => ./bin/legacy-deps/sys
+
+replace golang.org/x/term => ./bin/legacy-deps/term
+
+replace golang.org/x/text => ./bin/legacy-deps/text

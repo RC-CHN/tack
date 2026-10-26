@@ -24,7 +24,8 @@ def save(path, value):
 def extract(directory, dest, profile):
     manifest = json.loads((directory / "manifest.json").read_text())
     entries = [a for a in manifest["artifacts"] if a["component"] == "tack-node"
-               and a["os"] == "linux" and a["arch"] == "amd64"]
+               and a["os"] == "linux" and a["arch"] == "amd64"
+               and a["build"].get("runtime_profile", "modern") == "modern"]
     if len(entries) != 1:
         raise RuntimeError("comparison requires exactly one Linux amd64 Node archive")
     entry = entries[0]

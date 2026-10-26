@@ -26,9 +26,10 @@ class ProtectionTests(unittest.TestCase):
                 verify_target(binary, "linux", "amd64")
 
     def test_ambient_flags_cannot_invalidate_build_record(self):
-        with mock.patch.dict("os.environ", {"GOFLAGS": "-race", "GOGARBLE": "none", "CGO_ENABLED": "1"}):
+        with mock.patch.dict("os.environ", {"GOFLAGS": "-race", "GOGARBLE": "none", "CGO_ENABLED": "1", "GOARM64": "v9.0", "GOAMD64": "v4"}):
             env = build_env("go1.23.12", "linux", "arm", "6")
         self.assertEqual((env["GOFLAGS"], env["GOGARBLE"], env["CGO_ENABLED"], env["GOARM"]), ("", OBFUSCATION_SCOPE, "0", "6"))
+        self.assertEqual((env["GOAMD64"], env["GOARM64"], env["GO386"]), ("v1", "v8.0", "sse2"))
 
     def test_only_known_packer_rejections_allow_recorded_fallback(self):
         with tempfile.TemporaryDirectory() as directory:

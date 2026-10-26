@@ -1,0 +1,11 @@
+{
+  "format": "tack-legacy-modules-v1",
+  "modules": {
+    "golang.org/x/crypto": {"version": "v0.55.0", "sum": "h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M="},
+    "golang.org/x/net": {"version": "v0.57.0", "sum": "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE="},
+    "golang.org/x/sync": {"version": "v0.22.0", "sum": "h1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek="},
+    "golang.org/x/sys": {"version": "v0.47.0", "sum": "h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs="},
+    "golang.org/x/term": {"version": "v0.45.0", "sum": "h1:NwWyBmoJCbfTHpxrWoZ9C6/VxOf7ic219I8xZZFdrf0="},
+    "golang.org/x/text": {"version": "v0.41.0", "sum": "h1:vz/seA0lnX87Othu2f/0L24RcgrXD9/YFTSuGjj3rH8="}
+  }
+}
