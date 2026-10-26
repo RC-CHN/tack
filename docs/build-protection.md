@@ -8,7 +8,7 @@ unchanged; these changes do not publish a new version.
 
 | Component | Go | Garble |
 | --- | --- | --- |
-| Modern unified Node, Controller, operator CLI, Chisel | 1.26.3 | v0.17.0 |
+| Modern unified Node, unified Controller, operator CLI | 1.26.3 | v0.17.0 |
 | Linux Legacy unified Node | 1.23.12 | v0.14.2 |
 
 The release Node is built from root `./cmd/tack-node` and contains both the
@@ -18,6 +18,12 @@ binary. The Linux Legacy release uses the same entrypoint with the pinned
 `go.legacy.mod` adapter. The management-only module remains a development entrypoint.
 Earlier footprint/protection measurements below used
 that management-only binary and must not be presented as unified-client results.
+
+From v0.1.2 the release Controller builds from root `./cmd/tack-control` and
+contains both management and the Chisel server. Its build record lists
+`management` and `embedded-chisel-server`; transformations apply to the complete
+linked binary. The standalone Chisel command remains source-buildable for
+compatibility but is not part of this release matrix.
 
 Legacy deliberately skips UPX and records an obfuscated platform exception:
 UPX 5.0.2 amd64 loaders exited 139 on the real CentOS 6 2.6.32 kernel, including
@@ -46,15 +52,17 @@ costs; they do not provide credential protection or change network behavior.
 
 ```sh
 python3 -B scripts/install-build-tools.py --output bin/build-tools
-python3 -B scripts/build-release.py --version 0.1.0-rc.4 --output dist/protected
+python3 -B scripts/build-release.py --version 0.1.2 --output dist/protected
 python3 -B scripts/verify-release.py dist/protected --extract-node /tmp/protected-node
 ```
 
 `--native-only`, `--components tack-node` and `--node-runtime modern|legacy|both`
 are useful for local comparisons. Runtime selection defaults to `both`; the
-complete matrix has 46 archives. `verify-release.py --node-runtime legacy`
+complete v0.1.2 matrix has 33 archives; standalone Chisel is no longer packaged. `verify-release.py --node-runtime legacy`
 extracts the Legacy Node explicitly, avoiding an overwrite by the Modern variant.
-`--require-clean` rejects a dirty checkout or partial matrix for publication.
+`--require-clean` rejects a dirty checkout or arbitrary filtered build. An exact
+`--shard` build is permitted for CI, but cannot be published by itself: the
+assembler and `verify-release.py --require-complete` require the whole matrix.
 macOS can install Garble with `--without-upx` and run the `obfuscated` profile;
 the complete release matrix is packaged on Linux. Tools are installed into the
 specified directory, never over system binaries. If an existing tool has the

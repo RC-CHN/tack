@@ -7,6 +7,7 @@ The accepted requirements and remaining stages are in [the design](../docs/tack-
 ## Implemented behavior
 
 - One customer executable and foreground process combining the management worker and Chisel client; see [configuration and compatibility](../docs/unified-node.md).
+- One hosted executable and foreground process combining the Controller and optional Chisel server; see [server configuration and migration](../docs/unified-control.md).
 - Separate Node and administrator HTTP handlers and listeners; the administrator listener is restricted to literal loopback addresses.
 - Per-node credentials, explicit node selection, durable task queue, cancellation, bounded final stdout/stderr and exit status.
 - Bounded active queue, disk-backed completed history, paginated task summaries and reserved result capacity.
@@ -30,12 +31,14 @@ Run from the repository root with a compatible Go toolchain:
 
 ```sh
 mkdir -p build/tack
-(cd management/control && go build -trimpath -o ../../build/tack/tack-control ./cmd/tack-control)
+GOTOOLCHAIN=go1.26.3 CGO_ENABLED=0 go build -trimpath -o build/tack/tack-control ./cmd/tack-control
 (cd management/control && go build -trimpath -o ../../build/tack/tack ./cmd/tack)
 GOTOOLCHAIN=go1.26.3 CGO_ENABLED=0 go build -trimpath -o build/tack/tack-node ./cmd/tack-node
 ```
 
 The unified Node is built from the root module. Releases provide a Go 1.26.3 Modern build and a Go 1.23.12 Linux Legacy build using the pinned compatibility adapter; both contain command execution and Chisel. See [artifact selection, supported boundaries and rollback](../docs/legacy-compatibility.md). The Legacy amd64 artifact has passed functional tests on a CentOS 6 kernel in QEMU; other devices need their own acceptance checks. Building `management/node/cmd/tack-node` still produces a management-only development worker that rejects tunnel configuration and must not replace the unified release.
+
+The unified Controller also builds from the root module, using the Modern toolchain. `management/control/cmd/tack-control` remains a management-only development entrypoint and rejects a configured tunnel. It is not the hosted release binary. The operator CLI continues to build from `management/control`.
 
 Tack modules use `tack.local/management/...` with relative `replace` directives. This is a local module namespace, not a download address; build from this checkout. Chisel's upstream module path remains attached to the tunnel component.
 
@@ -43,7 +46,7 @@ Tack modules use `tack.local/management/...` with relative `replace` directives.
 
 Replace the old management executables with `tack-control`, `tack-node` and `tack`, and update the external startup definitions to their selected paths. Keep the same configuration files, node identities and state directories. The new binaries read existing configuration and journals and retain the version 1 endpoint `/v1/agent/sync` and `agent.lock`. Protocol v3 writes a versioned Node journal and replay watermark; see the upgrade limits below before rolling binaries back. Do not delete or move the journal merely to rename the software.
 
-New provisioning uses `-node-config` and `-node-ca`. The CLI still accepts `-agent-config` and `-agent-ca` as deprecated aliases. The deployment skill is now `tack-deploy`. `chisel` remains available for the hosted tunnel server and standalone compatibility use; the customer client is embedded in `tack-node`.
+New provisioning uses `-node-config` and `-node-ca`. The CLI still accepts `-agent-config` and `-agent-ca` as deprecated aliases. The deployment skill is now `tack-deploy`. From v0.1.2, the release Controller embeds the tunnel server, just as the release Node embeds the client. The inherited standalone `chisel` command remains source-buildable for compatibility but is no longer a release asset.
 
 ## Provision and start the Controller
 
@@ -75,7 +78,7 @@ Supply an existing certificate valid for the advertised hostname:
   -tls-key /path/to/private-key.pem
 ```
 
-Only the Node listener is customer-facing. Keep the administrator listener private; operate `tack` locally on the control server or through an administrator SSH forwarding arrangement. If using a reverse proxy, publish only the Node listener and apply the long-poll timeouts below. Restart the Controller after provisioning another node; tasks remain in its state file. Remove a node's entry and restart to revoke its management credential. Already running local tasks continue until cancellation is received or their local timeout expires.
+The Node management listener and, when configured, the tunnel listener are customer-facing. Keep the administrator listener private; operate `tack` locally on the control server or through an administrator SSH forwarding arrangement. If using a reverse proxy, publish only the intended customer listeners and apply the long-poll timeouts below. Restart the Controller after provisioning another node; tasks remain in its state file. A unified Controller restart also disconnects its tunnels until Nodes reconnect. Remove a node's entry and restart to revoke its management credential. Already running local tasks continue until cancellation is received or their local timeout expires. Configure separate tunnel accounts and ACLs using [the unified hosted server guide](../docs/unified-control.md).
 
 ## Start a customer Node
 
@@ -280,4 +283,4 @@ See the [validation record](VALIDATION.md) for checks actually run in this works
 
 ## Release artifacts
 
-See [release procedure](../docs/releases.md) for the pinned toolchains, artifact matrix, archive checks and draft-to-published process. `tack version`, `tack-control -version` and `tack-node -version` report the stamped version. Tack v0.1.1 is the first stable release. Its documented platform qualification and unsigned-binary limits still apply; see the [release notes](https://github.com/RC-CHN/tack/releases/tag/tack-v0.1.1) and [task operation upgrade requirements](../docs/task-operations.md).
+See [release procedure](../docs/releases.md) for the pinned toolchains, artifact matrix, archive checks and draft-to-published process. `tack version`, `tack-control -version` and `tack-node -version` report the stamped version. Tack v0.1.1 was the first stable release; v0.1.2 adds the unified hosted server and parallel release matrix. The documented platform qualification and unsigned-binary limits still apply; see the [release notes](https://github.com/RC-CHN/tack/releases/tag/tack-v0.1.2) and [task operation upgrade requirements](../docs/task-operations.md).

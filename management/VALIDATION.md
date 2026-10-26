@@ -783,3 +783,37 @@ these tests and the v3 diagnostic-fallback test also passed 10 consecutive runs
 with Go 1.23.12. Each fault run verifies a single execution marker and successful
 result recovery after storage is repaired. The failed tag preflight was stopped
 before any release was created; publication requires a new successful preflight.
+
+## Unified hosted server and parallel packaging — 2026-10-26
+
+The v0.1.2 hosted entrypoint combines management and the tunnel server. Local
+root, Controller, protocol and integration suites passed `go test -race ./...`
+and `go vet ./...` with Go 1.26.3; integration completed in 53.309 seconds.
+Go 1.23.12 also passed the affected server/settings/Node application tests and
+the complete Legacy package-graph check. Regression cases cover bad TLS/auth
+configuration, occupied listeners, management-only compatibility, state-lock
+reuse, independent credentials, empty-account denial, stalled SSH handshakes and
+authorization watcher shutdown.
+
+Actual development executables completed two targeted tasks, 512 KiB of verified
+tunnel traffic, combined Controller restarts, Node reconnection without process
+replacement, quiet diagnostics and released ports. Native management framing and
+the retained four-binary browser experiment also passed their separate smoke
+paths. The ordinary release Node continues to reject uncompiled browser profiles.
+The static Legacy Node and unified Controller passed TLS, shell, a 64 KiB reverse
+tunnel transfer and quiet shutdown on the pinned CentOS 6
+`2.6.32-754.el6.x86_64` kernel. That fixture now checks an actual online Node and
+rejects an ELF requiring a dynamic loader before starting QEMU.
+
+Twenty-two Python release/compatibility checks passed, including seven new
+matrix/assembly tests for complete, missing, duplicate, corrupted, mixed-source
+and insufficiently protected shards. Real local shard builds verified a packed
+unified Linux amd64 Controller (4,267,756 bytes), a plain CLI and a plain static
+Legacy Node. Workflow lint, spelling, deployment-skill validation and local
+documentation links passed. Independent review found and corrected the old
+browser-smoke compatibility regression and redundant unified smoke invocation.
+
+These local binaries were development builds, not uploaded release assets.
+The complete 33-target matrix and exact protected Modern/Legacy qualification
+remain mandatory tag-workflow gates. Platform support and endurance limits are
+unchanged; cross-compilation does not establish ARM/MIPS or vendor NAS support.
