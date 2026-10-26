@@ -3,9 +3,9 @@ on:
   push:
     branches: [master]
     tags: ["tack-v*"]
-    paths: ["management/**", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**", "test/**"]
+    paths: ["management/**", "transport/**", "go.mod", "go.sum", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**", "test/**"]
   pull_request:
-    paths: ["management/**", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**", "test/**"]
+    paths: ["management/**", "transport/**", "go.mod", "go.sum", "skills/tack-deploy/**", "scripts/**", ".github/workflows/tack.yml", "share/**", "client/**", "server/**", "test/**"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +27,8 @@ jobs:
           set -euo pipefail
           python3 scripts/check-fixture-coverage.py --require-complete
           python3 -B -m unittest discover -s scripts -p test_fixture_coverage.py
+          python3 -B -m unittest discover -s scripts -p test_release_protection.py
+          python3 -B -m unittest discover -s scripts -p test_transport_qualification.py
           (cd test/fixtures && go test -race -short ./... && go vet ./...)
           for module in protocol control node integration; do
             (cd "management/$module" && go test -race ./... && go vet ./...)
@@ -41,6 +43,21 @@ jobs:
           mkdir -p build/tack
           (cd management/control && go build -trimpath -o ../../build/tack/ ./cmd/tack-control ./cmd/tack)
           (cd management/node && go build -trimpath -o ../../build/tack/ ./cmd/tack-node)
+  browser-experiment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.26.3
+          cache: false
+      - name: Validate TLS profiles and integrated bounded shaping
+        run: |
+          set -eu
+          (cd transport/browser && go test -race ./... && go vet ./...)
+          GOTOOLCHAIN=local go test -race -tags browser ./client ./test/e2e
+          GOTOOLCHAIN=local go vet -tags browser ./client
+          (cd management/integration && TACK_TRAFFIC_SHAPING=bounded-v1 go test -race -count=1 -run 'Test(BlockedUploadStillDispatchesAndCancelsWithLongHeartbeat|NodeRestartResumesOutputWithoutReexecution|IdleControlOutlivesShortServerWriteTimeout|ManagementThroughImpairedTransport)$/http1' .)
   legacy:
     runs-on: ubuntu-latest
     steps:
@@ -133,9 +150,60 @@ jobs:
         with:
           name: tack-benchmarks
           path: ${{ runner.temp }}/tack-benchmarks
+  protection:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.26.3
+          cache: false
+      - name: Build and execute native protected artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          profile=packed
+          extra=()
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            profile=obfuscated
+            extra+=(--without-upx)
+          fi
+          python3 -B scripts/install-build-tools.py --output "$RUNNER_TEMP/protection-tools" "${extra[@]}"
+          python3 -B scripts/build-release.py --version 0.0.0-ci --native-only --protection "$profile" \
+            --tools "$RUNNER_TEMP/protection-tools" --output "$RUNNER_TEMP/protected"
+          python3 -B scripts/verify-release.py "$RUNNER_TEMP/protected" --commit "$GITHUB_SHA"
+      - name: Gate the final packed Node's resources and intermittent-link recovery
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B scripts/verify-release.py "$RUNNER_TEMP/protected" --extract-node "$RUNNER_TEMP/protected-node" \
+            --require-packed-node --extract-native "$RUNNER_TEMP/protected-bin"
+          python3 -B scripts/smoke-protected.py --bin-dir "$RUNNER_TEMP/protected-bin" --report "$RUNNER_TEMP/protected-functional.json"
+          export TACK_NODE_BINARY="$RUNNER_TEMP/protected-node/tack-node"
+          export TACK_NODE_BUILD_RECORD="$RUNNER_TEMP/protected-node/BUILD.json"
+          export GOMAXPROCS=2 TACK_RESOURCE_SECONDS=5 TACK_RESOURCE_MAX_OUTPUT=1
+          export TACK_SEVERE_SECONDS=120 TACK_SEVERE_REQUIRE_COMPLETE=1
+          cd management/integration
+          for http2 in 0 1; do
+            export TACK_RESOURCE_HTTP2="$http2"
+            export TACK_RESOURCE_REPORT="$RUNNER_TEMP/protected-footprint-$http2.json"
+            export TACK_SEVERE_REPORT="$RUNNER_TEMP/protected-severe-$http2.json"
+            go test -run '^TestNode(LowFootprint|SevereLink)$' -count=1 -timeout=8m -v .
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: protection-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/protected/manifest.json
+            ${{ runner.temp }}/protected-*.json
   release:
     if: startsWith(github.ref, 'refs/tags/tack-v')
-    needs: [test, legacy, soak, benchmarks]
+    needs: [test, legacy, soak, benchmarks, protection]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -149,7 +217,27 @@ jobs:
           go-version: 1.26.3
           cache: false
       - name: Build, integrity-check, and checksum exact release archives
-        run: python3 scripts/build-release.py --version "${GITHUB_REF_NAME#tack-v}" --output dist/tack
+        run: |
+          python3 -B scripts/install-build-tools.py --output "$RUNNER_TEMP/protection-tools"
+          python3 -B scripts/build-release.py --version "${GITHUB_REF_NAME#tack-v}" --output dist/tack \
+            --tools "$RUNNER_TEMP/protection-tools" --require-clean
+          python3 -B scripts/verify-release.py dist/tack --commit "$GITHUB_SHA" --extract-node "$RUNNER_TEMP/release-node" \
+            --require-packed-node --extract-native "$RUNNER_TEMP/release-bin"
+          python3 -B scripts/smoke-protected.py --bin-dir "$RUNNER_TEMP/release-bin" --report "$RUNNER_TEMP/release-functional.json"
+      - name: Test the exact Node included in this release
+        working-directory: management/integration
+        env:
+          TACK_NODE_BINARY: ${{ runner.temp }}/release-node/tack-node
+          TACK_NODE_BUILD_RECORD: ${{ runner.temp }}/release-node/BUILD.json
+          GOMAXPROCS: "2"
+          TACK_RESOURCE_SECONDS: "5"
+          TACK_RESOURCE_MAX_OUTPUT: "1"
+          TACK_SEVERE_SECONDS: "120"
+          TACK_SEVERE_REQUIRE_COMPLETE: "1"
+        run: |
+          for http2 in 0 1; do
+            TACK_RESOURCE_HTTP2="$http2" go test -run '^TestNode(LowFootprint|SevereLink)$' -count=1 -timeout=8m -v . || exit 1
+          done
       - name: Create draft with verified artifacts
         env:
           GH_TOKEN: ${{ github.token }}
