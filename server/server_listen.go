@@ -51,7 +51,7 @@ func (s *Server) listener(host, port string) (net.Listener, error) {
 		return nil, errors.New("traffic shaping requires TLS")
 	}
 	//tcp listen
-	l, err := net.Listen("tcp", host+":"+port)
+	l, err := net.Listen("tcp", net.JoinHostPort(host, port))
 	if err != nil {
 		return nil, err
 	}

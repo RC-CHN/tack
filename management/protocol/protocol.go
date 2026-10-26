@@ -189,14 +189,28 @@ type NodeCredential struct {
 }
 
 type ControlConfig struct {
-	AdminToken              string           `json:"admin_token"`
-	Nodes                   []NodeCredential `json:"nodes"`
-	MaxActiveTasks          int              `json:"max_active_tasks,omitempty"`
-	MaxActiveBytes          int64            `json:"max_active_bytes,omitempty"`
-	MaxHistoryTasks         int              `json:"max_history_tasks,omitempty"`
-	MaxHistoryBytes         int64            `json:"max_history_bytes,omitempty"`
-	MaxConcurrentUploads    int              `json:"max_concurrent_uploads,omitempty"`
-	HistoryRetentionSeconds int64            `json:"history_retention_seconds,omitempty"`
+	Tunnel                  *TunnelServerConfig `json:"tunnel,omitempty"`
+	AdminToken              string              `json:"admin_token"`
+	Nodes                   []NodeCredential    `json:"nodes"`
+	MaxActiveTasks          int                 `json:"max_active_tasks,omitempty"`
+	MaxActiveBytes          int64               `json:"max_active_bytes,omitempty"`
+	MaxHistoryTasks         int                 `json:"max_history_tasks,omitempty"`
+	MaxHistoryBytes         int64               `json:"max_history_bytes,omitempty"`
+	MaxConcurrentUploads    int                 `json:"max_concurrent_uploads,omitempty"`
+	HistoryRetentionSeconds int64               `json:"history_retention_seconds,omitempty"`
+}
+
+// TunnelServerConfig configures the relay embedded in the hosted controller.
+// Its key and reloadable ACL file are independent of management credentials.
+type TunnelServerConfig struct {
+	Listen           string `json:"listen"`
+	KeyFile          string `json:"key_file"`
+	AuthFile         string `json:"auth_file"`
+	TLSCert          string `json:"tls_cert,omitempty"`
+	TLSKey           string `json:"tls_key,omitempty"`
+	Reverse          bool   `json:"reverse,omitempty"`
+	Socks5           bool   `json:"socks5,omitempty"`
+	KeepAliveSeconds *int   `json:"keep_alive_seconds,omitempty"`
 }
 
 type TaskPage struct {

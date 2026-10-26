@@ -17,6 +17,7 @@ require (
 	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
 	tack.local/management/protocol v0.0.0
+	tack.local/management/control v0.0.0
 	tack.local/management/node v0.0.0
 	tack.local/testfixtures v0.0.0
 	tack.local/transport/browser v0.0.0
@@ -45,3 +46,5 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 )
+
+replace tack.local/management/control => ./management/control

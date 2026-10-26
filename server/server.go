@@ -4,11 +4,13 @@ import (
 	"context"
 	"crypto/subtle"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -24,15 +26,17 @@ import (
 
 // Config is the configuration for the chisel service
 type Config struct {
-	KeySeed   string        `opts:"name=key,short=-" help:"(deprecated use --keygen and --keyfile instead) An optional string to seed the generation of a ECDSA public and private key pair. All communications will be secured using this key pair. Share the subsequent fingerprint with clients to enable detection of man-in-the-middle attacks (defaults to the CHISEL_KEY environment variable, otherwise a new key is generate each run)."`
-	KeyFile   string        `opts:"name=keyfile,short=-" help:"An optional path to a PEM-encoded SSH private key. When this flag is set, the --key option is ignored, and the provided private key is used to secure all communications. (defaults to the CHISEL_KEY_FILE environment variable). Since ECDSA keys are short, you may also set keyfile to the inline key string itself, exactly as printed by --keygen (a base64 string with a \"ck-\" prefix); no extra base64 encoding is needed."`
-	AuthFile  string        `opts:"name=authfile,short=-" help:"An optional path to a users.json file. This file should be an object with users defined like:\n  {\n    \"<user:pass>\": [\"<addr-regex>\",\"<addr-regex>\"]\n  }\nwhen <user> connects, their <pass> will be verified and then each of the remote addresses will be compared against the list of address regular expressions for a match. Patterns are NOT anchored by default: \"10.0.0.1:80\" also matches \"210.0.0.1:8080\", and \".\" matches any character. Anchor your patterns, e.g. \"^10\\.0\\.0\\.1:80$\". The empty string \"\" matches every address. Addresses will always come in the form \"<remote-host>:<remote-port>\" for normal remotes, \"R:<local-interface>:<local-port>\" for reverse port forwarding remotes, and \"socks\" for SOCKS5 proxy access. Note that SOCKS5 access previously bypassed this list; existing authfiles which should allow SOCKS5 must add an entry matching \"socks\" (the empty wildcard \"\" matches everything, including \"socks\"). This file will be automatically reloaded on change. Reloads apply to new connections and to new tunnels of connected clients; established tunnels are not interrupted."`
-	Auth      string        `opts:"name=auth,short=-" help:"An optional string representing a single user with full access, in the form of <user:pass>. It is equivalent to creating an authfile with {\"<user:pass>\": [\"\"]}. If unset, it will use the environment variable AUTH."`
-	Proxy     string        `opts:"name=backend,short=-" help:"Specifies another HTTP server to proxy requests to when chisel receives a normal HTTP request. Useful for hiding chisel in plain sight. --proxy is accepted as an alias for this flag."`
-	Socks5    bool          `opts:"name=socks5,short=-" help:"Allow clients to access the internal SOCKS5 proxy. See chisel client --help for more information."`
-	Reverse   bool          `opts:"name=reverse,short=-" help:"Allow clients to specify reverse port forwarding remotes in addition to normal remotes."`
-	KeepAlive time.Duration `opts:"name=keepalive,short=-" help:"An optional keepalive interval. Since the underlying transport is HTTP, in many instances we'll be traversing through proxies, often these proxies will close idle connections. You must specify a time with a unit, for example '5s' or '2m'. Defaults to '25s' (set to 0s to disable)."`
-	TLS       TLSConfig     `opts:"mode=embedded"`
+	Logger      *cio.Logger   `opts:"-"`
+	RequireAuth bool          `opts:"-"`
+	KeySeed     string        `opts:"name=key,short=-" help:"(deprecated use --keygen and --keyfile instead) An optional string to seed the generation of a ECDSA public and private key pair. All communications will be secured using this key pair. Share the subsequent fingerprint with clients to enable detection of man-in-the-middle attacks (defaults to the CHISEL_KEY environment variable, otherwise a new key is generate each run)."`
+	KeyFile     string        `opts:"name=keyfile,short=-" help:"An optional path to a PEM-encoded SSH private key. When this flag is set, the --key option is ignored, and the provided private key is used to secure all communications. (defaults to the CHISEL_KEY_FILE environment variable). Since ECDSA keys are short, you may also set keyfile to the inline key string itself, exactly as printed by --keygen (a base64 string with a \"ck-\" prefix); no extra base64 encoding is needed."`
+	AuthFile    string        `opts:"name=authfile,short=-" help:"An optional path to a users.json file. This file should be an object with users defined like:\n  {\n    \"<user:pass>\": [\"<addr-regex>\",\"<addr-regex>\"]\n  }\nwhen <user> connects, their <pass> will be verified and then each of the remote addresses will be compared against the list of address regular expressions for a match. Patterns are NOT anchored by default: \"10.0.0.1:80\" also matches \"210.0.0.1:8080\", and \".\" matches any character. Anchor your patterns, e.g. \"^10\\.0\\.0\\.1:80$\". The empty string \"\" matches every address. Addresses will always come in the form \"<remote-host>:<remote-port>\" for normal remotes, \"R:<local-interface>:<local-port>\" for reverse port forwarding remotes, and \"socks\" for SOCKS5 proxy access. Note that SOCKS5 access previously bypassed this list; existing authfiles which should allow SOCKS5 must add an entry matching \"socks\" (the empty wildcard \"\" matches everything, including \"socks\"). This file will be automatically reloaded on change. Reloads apply to new connections and to new tunnels of connected clients; established tunnels are not interrupted."`
+	Auth        string        `opts:"name=auth,short=-" help:"An optional string representing a single user with full access, in the form of <user:pass>. It is equivalent to creating an authfile with {\"<user:pass>\": [\"\"]}. If unset, it will use the environment variable AUTH."`
+	Proxy       string        `opts:"name=backend,short=-" help:"Specifies another HTTP server to proxy requests to when chisel receives a normal HTTP request. Useful for hiding chisel in plain sight. --proxy is accepted as an alias for this flag."`
+	Socks5      bool          `opts:"name=socks5,short=-" help:"Allow clients to access the internal SOCKS5 proxy. See chisel client --help for more information."`
+	Reverse     bool          `opts:"name=reverse,short=-" help:"Allow clients to specify reverse port forwarding remotes in addition to normal remotes."`
+	KeepAlive   time.Duration `opts:"name=keepalive,short=-" help:"An optional keepalive interval. Since the underlying transport is HTTP, in many instances we'll be traversing through proxies, often these proxies will close idle connections. You must specify a time with a unit, for example '5s' or '2m'. Defaults to '25s' (set to 0s to disable)."`
+	TLS         TLSConfig     `opts:"mode=embedded"`
 }
 
 // Server represent a chisel service
@@ -45,6 +49,11 @@ type Server struct {
 	sessCount    int32
 	sshConfig    *ssh.ServerConfig
 	users        *settings.UserIndex
+	lifeMu       sync.Mutex
+	closing      bool
+	started      bool
+	cancel       context.CancelFunc
+	handlers     sync.WaitGroup
 }
 
 var upgrader = websocket.Upgrader{
@@ -60,8 +69,18 @@ func NewServer(c *Config) (*Server, error) {
 		httpServer: cnet.NewHTTPServer(),
 		Logger:     cio.NewLogger("server"),
 	}
-	server.Info = true
+	if c.Logger != nil {
+		server.Logger = c.Logger
+	} else {
+		server.Info = true
+	}
 	server.users = settings.NewUserIndex(server.Logger)
+	complete := false
+	defer func() {
+		if !complete {
+			server.users.Close()
+		}
+	}()
 	//pin the --auth user first so authfile reloads cannot drop it
 	if c.Auth != "" {
 		u := &settings.User{Addrs: []*regexp.Regexp{settings.UserAllowAll}}
@@ -141,6 +160,7 @@ func NewServer(c *Config) (*Server, error) {
 	if c.Reverse {
 		server.Infof("Reverse tunnelling enabled")
 	}
+	complete = true
 	return server, nil
 }
 
@@ -161,6 +181,18 @@ func (s *Server) Start(host, port string) error {
 // StartContext is responsible for kicking off the http server,
 // and can be closed by cancelling the provided context
 func (s *Server) StartContext(ctx context.Context, host, port string) error {
+	if ctx == nil {
+		return fmt.Errorf("context is required")
+	}
+	s.lifeMu.Lock()
+	if s.started || s.closing {
+		s.lifeMu.Unlock()
+		return fmt.Errorf("server already started or closed")
+	}
+	ctx, s.cancel = context.WithCancel(ctx)
+	s.started = true
+	s.httpServer.BaseContext = func(net.Listener) context.Context { return ctx }
+	s.lifeMu.Unlock()
 	s.Infof("Fingerprint %s", s.fingerprint)
 	if s.users.Len() > 0 {
 		s.Infof("User authentication enabled")
@@ -170,6 +202,7 @@ func (s *Server) StartContext(ctx context.Context, host, port string) error {
 	}
 	l, err := s.listener(host, port)
 	if err != nil {
+		s.Close()
 		return err
 	}
 	h := http.Handler(http.HandlerFunc(s.handleClientHandler))
@@ -186,11 +219,25 @@ func (s *Server) StartContext(ctx context.Context, host, port string) error {
 
 // Wait waits for the http server to close
 func (s *Server) Wait() error {
-	return s.httpServer.Wait()
+	err := s.httpServer.Wait()
+	s.Close()
+	s.handlers.Wait()
+	return err
 }
 
 // Close forcibly closes the http server
 func (s *Server) Close() error {
+	s.lifeMu.Lock()
+	s.closing = true
+	if s.cancel != nil {
+		s.cancel()
+	}
+	started := s.started
+	s.lifeMu.Unlock()
+	s.users.Close()
+	if !started {
+		return nil
+	}
 	return s.httpServer.Close()
 }
 
@@ -202,7 +249,7 @@ func (s *Server) GetFingerprint() string {
 // authUser is responsible for validating the ssh user / password combination
 func (s *Server) authUser(c ssh.ConnMetadata, password []byte) (*ssh.Permissions, error) {
 	// check if user authentication is enabled and if not, allow all
-	if s.users.Len() == 0 {
+	if s.users.Len() == 0 && !s.config.RequireAuth && s.config.AuthFile == "" && s.config.Auth == "" {
 		return nil, nil
 	}
 	// check the user exists and has matching password

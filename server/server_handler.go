@@ -1,6 +1,7 @@
 package chserver
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -50,6 +51,15 @@ func (s *Server) handleClientHandler(w http.ResponseWriter, r *http.Request) {
 
 // handleWebsocket is responsible for handling the websocket connection
 func (s *Server) handleWebsocket(w http.ResponseWriter, req *http.Request) {
+	s.lifeMu.Lock()
+	if s.closing {
+		s.lifeMu.Unlock()
+		http.Error(w, "server closing", http.StatusServiceUnavailable)
+		return
+	}
+	s.handlers.Add(1)
+	s.lifeMu.Unlock()
+	defer s.handlers.Done()
 	id := atomic.AddInt32(&s.sessCount, 1)
 	l := s.Fork("session#%d", id)
 	wsConn, err := upgrader.Upgrade(w, req, nil)
@@ -58,6 +68,11 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	conn := cnet.NewWebSocketConn(wsConn)
+	defer conn.Close()
+	// Hijacked connections are not closed by http.Server.Shutdown. Cancellation
+	// must interrupt even a peer stalled before its SSH handshake completes.
+	stopClose := context.AfterFunc(req.Context(), func() { conn.Close() })
+	defer stopClose()
 	// perform SSH handshake on net.Conn
 	l.Debugf("Handshaking with %s...", req.RemoteAddr)
 	sshConn, chans, reqs, err := ssh.NewServerConn(conn, s.sshConfig)

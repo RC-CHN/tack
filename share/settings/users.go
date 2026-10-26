@@ -78,6 +78,10 @@ type UserIndex struct {
 	*Users
 	configFile string
 	pinned     []*User
+	watchMu    sync.Mutex
+	watcher    *fsnotify.Watcher
+	watchDone  chan struct{}
+	closed     bool
 }
 
 // PinUser adds a user which survives configuration file
@@ -110,6 +114,11 @@ func (u *UserIndex) LoadUsers(configFile string) error {
 
 // addWatchEvents is responsible for watching for updates to the file and reloading
 func (u *UserIndex) addWatchEvents() error {
+	u.watchMu.Lock()
+	defer u.watchMu.Unlock()
+	if u.closed || u.watcher != nil {
+		return errors.New("user index is closed or already watching")
+	}
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
@@ -129,13 +138,17 @@ func (u *UserIndex) addWatchEvents() error {
 	}
 	//track the resolved path to catch symlink retargets
 	realPath, _ := filepath.EvalSymlinks(configPath)
+	u.watcher = watcher
+	u.watchDone = make(chan struct{})
 	go func() {
+		defer close(u.watchDone)
 		//collapse event bursts (truncate+write, remove+create) into a
 		//single reload once events settle, so half-written files are
 		//not loaded
 		const debounce = 100 * time.Millisecond
 		timer := time.NewTimer(debounce)
 		timer.Stop()
+		defer timer.Stop()
 		//fsnotify does not reliably deliver directory events for
 		//kubelet-style symlink swaps on every platform (notably
 		//macOS/kqueue), so reconcile the resolved path periodically
@@ -238,4 +251,18 @@ func (u *UserIndex) loadUserIndex() error {
 	//swap, keeping pinned users (pinned last: they win name clashes)
 	u.Reset(append(users, u.pinned...))
 	return nil
+}
+
+// Close releases the auth-file watcher and waits for any in-progress reload.
+func (u *UserIndex) Close() error {
+	u.watchMu.Lock()
+	u.closed = true
+	watcher, done := u.watcher, u.watchDone
+	u.watchMu.Unlock()
+	if watcher == nil {
+		return nil
+	}
+	err := watcher.Close()
+	<-done
+	return err
 }
