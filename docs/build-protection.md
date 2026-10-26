@@ -3,8 +3,7 @@
 The default release profile is `packed`: compile with Garble, attempt UPX packing,
 validate the transformed executable, and archive its exact bytes. `obfuscated`
 skips UPX; `plain` is the comparison baseline. All profiles keep CGO disabled and
-use the same release version, target and Go compiler. Existing rc.3 downloads are
-unchanged; these changes do not publish a new version.
+use the same release version, target and Go compiler.
 
 | Component | Go | Garble |
 | --- | --- | --- |
@@ -22,8 +21,7 @@ that management-only binary and must not be presented as unified-client results.
 From v0.1.2 the release Controller builds from root `./cmd/tack-control` and
 contains both management and the Chisel server. Its build record lists
 `management` and `embedded-chisel-server`; transformations apply to the complete
-linked binary. The standalone Chisel command remains source-buildable for
-compatibility but is not part of this release matrix.
+linked binary.
 
 Legacy deliberately skips UPX and records an obfuscated platform exception:
 UPX 5.0.2 amd64 loaders exited 139 on the real CentOS 6 2.6.32 kernel, including

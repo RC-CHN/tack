@@ -28,44 +28,31 @@ a separate, on-demand tool.
   independently. Draft creation still waits for every required check; no local
   or unverified partial build is published.
 
-## Deployment and upgrade
+## Deployment
 
-Use the [unified hosted server guide](https://github.com/RC-CHN/tack/blob/tack-v0.1.2/docs/unified-control.md).
-The new `tunnel` object is optional: a v0.1.1 Controller configuration without it
-keeps management-only operation, allowing an existing external relay to remain
-until deliberately migrated.
+Use the [unified hosted server guide](https://github.com/RC-CHN/tack/blob/master/docs/unified-control.md)
+for a new installation. Install one `tack-control` service on the hosted machine
+and one `tack-node` service on each customer machine; run `tack` as the operator CLI.
+Generate a persistent tunnel server SSH key, create node-specific tunnel accounts
+and destination ACLs, configure the Controller `tunnel` object and verified TLS,
+then provision each Node with its own credentials and the public fingerprint.
 
-To combine an existing deployment, preserve its tunnel server SSH key, account
-and destination ACL file, advertised address and TLS identity. Map supported
-options into the Controller configuration, stop the old listener before binding
-its port, and replace its external service definition. Do not regenerate the
-server key or change the fingerprint during routine migration. Check any
-additional standalone Chisel options before migrating; they are not implicitly
-imported. The inherited standalone command remains source-buildable with
-`go build .`, but is no longer packaged.
+A Controller restart interrupts both its management and tunnel connections.
+Nodes reconnect independently; locally executing commands and durable pending
+results retain their execution and recovery semantics. Verify a targeted harmless
+command and a real authorized tunnel transfer before installing startup entries.
+Updating an authorization file does not immediately disconnect an established
+authenticated tunnel.
 
-A unified Controller restart interrupts both its management and tunnel
-connections. Nodes reconnect independently; locally executing commands and
-durable pending results retain their existing semantics. Verify a targeted
-harmless command and a real authorized tunnel transfer after migration. Updating
-an authorization file is not a promise that an established authenticated tunnel
-will immediately disconnect.
+For subsequent updates, back up the full Controller state together with `.history`
+(including `released`), `.uploads` and `.operators.json`, plus its tunnel key,
+account file, TLS material and service configuration. Keep each Node's complete
+identity, journal, replay state, pending results and recovery files. Use matching
+release versions and preserve task request IDs across retries.
 
-Back up the full Controller state together with `.history` (including `released`),
-`.uploads` and `.operators.json`, plus the tunnel key, account file, TLS material
-and service configuration. Keep each Node's complete identity, journal, replay
-state, pending results and recovery files. v0.1.2 does not introduce a new task
-protocol or task-storage format relative to v0.1.1; older pre-v0.1.1 downgrade
-restrictions still apply. Preserve task request IDs across retries.
-
-Returning to v0.1.1 also requires a Controller configuration without the new
-server `tunnel` field and restoration of the separate relay service. Replacing
-only the binary does not preserve the new combined deployment.
-
-Deploy `tack-control` from the root `cmd/tack-control` release entrypoint. The
-management module's older development entrypoint is management-only and rejects
-tunnel configuration. The customer runtime remains the root `cmd/tack-node`.
-Installation paths and startup persistence remain external deployment choices.
+Build the unified Controller from root `cmd/tack-control` and the unified Node
+from root `cmd/tack-node`. Installation paths and startup persistence remain
+external deployment choices.
 
 ## Artifacts and qualification boundaries
 
@@ -104,6 +91,6 @@ is an explicit maintenance exception. Same-process management and tunneling do
 not provide process isolation or make local credentials inaccessible to root.
 
 See the [release procedure](https://github.com/RC-CHN/tack/blob/tack-v0.1.2/docs/releases.md),
-[compatibility guide](https://github.com/RC-CHN/tack/blob/tack-v0.1.2/docs/legacy-compatibility.md)
-and [deployment skill](https://github.com/RC-CHN/tack/blob/tack-v0.1.2/skills/tack-deploy/SKILL.md)
+[compatibility guide](https://github.com/RC-CHN/tack/blob/master/docs/legacy-compatibility.md)
+and [deployment skill](https://github.com/RC-CHN/tack/blob/master/skills/tack-deploy/SKILL.md)
 for the exact matrix and operating requirements.

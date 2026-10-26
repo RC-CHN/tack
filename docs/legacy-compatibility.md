@@ -37,17 +37,17 @@ python3 -B scripts/select-node-artifact.py /operator/release/manifest.json \
 
 若 Modern 在某台 ≥3.2 设备上存在已确认的启动兼容问题，可由部署者显式使用 `--runtime legacy` 重新选包并验收。不能因 DNS、密码、证书、ACL、磁盘或网络错误自动降级，更不能关闭 TLS/SSH 指纹验证。Node 内部没有自动下载、解包、重装或切换运行时的逻辑。
 
-## 已部署节点切换
+## 同版本运行时切换
 
 同一发行版本的 Modern 与 Legacy 使用相同协议和状态格式，可保留节点身份、配置及完整状态目录切换。先暂停派发并按任务策略排空运行中的命令，再停止旧进程、验证它已退出，才启动替换程序。绝不让两个实例共用状态目录，也不通过清空状态解决锁或恢复问题。
 
-必须保留 `journal`、`replay.json`、`results/`、身份与恢复文件；未确认结果需要恢复上传。二进制回退与数据格式降级是两件事：当前存储 v4 不能交给只认识旧格式的历史版本读取。跨发行版本需遵守原有升级与备份要求，不能仅依据 `_legacy` 文件名判断可回退。
+必须保留 `journal`、`replay.json`、`results/`、身份与恢复文件；未确认结果需要恢复上传。切换时选择同一发行版本的构建，按完整状态备份和任务排空流程操作。
 
 验证脚本会在上传被限制、结果积压的情况下替换 Modern→Legacy、Legacy→Modern，核对结果字节、实际执行次数、恢复与回收；这项测试针对同一代码版本的两个构建。它不能证明掉电后的任何文件系统都能恢复。
 
 ## 构建维护
 
-默认发布矩阵增加 10 个 Linux Legacy Node 包，总计 46 个归档。`--node-runtime modern|legacy|both` 控制本地构建，默认 `both`；正式发布必须构建完整矩阵。两种 Node 都包含 `management`、`embedded-chisel` capabilities，`runtime_profile` 区分运行时。
+发布矩阵包含 10 个 Linux Legacy Node 包，总计 33 个归档。`--node-runtime modern|legacy|both` 控制本地构建，默认 `both`；正式发布必须构建完整矩阵。两种 Node 都包含 `management`、`embedded-chisel` capabilities，`runtime_profile` 区分运行时。
 
 ```sh
 python3 -B scripts/prepare-legacy.py

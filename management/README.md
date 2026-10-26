@@ -7,7 +7,7 @@ The accepted requirements and remaining stages are in [the design](../docs/tack-
 ## Implemented behavior
 
 - One customer executable and foreground process combining the management worker and Chisel client; see [configuration and compatibility](../docs/unified-node.md).
-- One hosted executable and foreground process combining the Controller and optional Chisel server; see [server configuration and migration](../docs/unified-control.md).
+- One hosted executable and foreground process combining the Controller and optional Chisel server; see [server setup and configuration](../docs/unified-control.md).
 - Separate Node and administrator HTTP handlers and listeners; the administrator listener is restricted to literal loopback addresses.
 - Per-node credentials, explicit node selection, durable task queue, cancellation, bounded final stdout/stderr and exit status.
 - Bounded active queue, disk-backed completed history, paginated task summaries and reserved result capacity.
@@ -23,7 +23,7 @@ The accepted requirements and remaining stages are in [the design](../docs/tack-
 - Separate management and embedded tunnel status, including update times and backlog reasons.
 - Private `tack metrics` output for link failures, request durations, process resources, state writes and output backlog.
 
-Remaining work includes certificate enrollment/rotation, tenant isolation, online Node credential revocation, streaming output, operator-controlled history deletion, centrally updated tunnel configuration and native old-platform validation. Tunnel configuration is currently read at Node startup; no existing standalone Chisel installation is changed automatically.
+Remaining work includes certificate enrollment/rotation, tenant isolation, online Node credential revocation, streaming output, operator-controlled history deletion, centrally updated tunnel configuration and native old-platform validation. Tunnel configuration is currently read at Node startup.
 
 ## Build
 
@@ -36,17 +36,11 @@ GOTOOLCHAIN=go1.26.3 CGO_ENABLED=0 go build -trimpath -o build/tack/tack-control
 GOTOOLCHAIN=go1.26.3 CGO_ENABLED=0 go build -trimpath -o build/tack/tack-node ./cmd/tack-node
 ```
 
-The unified Node is built from the root module. Releases provide a Go 1.26.3 Modern build and a Go 1.23.12 Linux Legacy build using the pinned compatibility adapter; both contain command execution and Chisel. See [artifact selection, supported boundaries and rollback](../docs/legacy-compatibility.md). The Legacy amd64 artifact has passed functional tests on a CentOS 6 kernel in QEMU; other devices need their own acceptance checks. Building `management/node/cmd/tack-node` still produces a management-only development worker that rejects tunnel configuration and must not replace the unified release.
+The unified Node is built from the root module. Releases provide a Go 1.26.3 Modern build and a Go 1.23.12 Linux Legacy build using the pinned compatibility adapter; both contain command execution and Chisel. See [artifact selection and supported platforms](../docs/legacy-compatibility.md). The Legacy amd64 artifact has passed functional tests on a CentOS 6 kernel in QEMU; other devices need their own acceptance checks. Building `management/node/cmd/tack-node` still produces a management-only development worker that rejects tunnel configuration and must not replace the unified release.
 
 The unified Controller also builds from the root module, using the Modern toolchain. `management/control/cmd/tack-control` remains a management-only development entrypoint and rejects a configured tunnel. It is not the hosted release binary. The operator CLI continues to build from `management/control`.
 
 Tack modules use `tack.local/management/...` with relative `replace` directives. This is a local module namespace, not a download address; build from this checkout. Chisel's upstream module path remains attached to the tunnel component.
-
-## Renaming an existing development deployment
-
-Replace the old management executables with `tack-control`, `tack-node` and `tack`, and update the external startup definitions to their selected paths. Keep the same configuration files, node identities and state directories. The new binaries read existing configuration and journals and retain the version 1 endpoint `/v1/agent/sync` and `agent.lock`. Protocol v3 writes a versioned Node journal and replay watermark; see the upgrade limits below before rolling binaries back. Do not delete or move the journal merely to rename the software.
-
-New provisioning uses `-node-config` and `-node-ca`. The CLI still accepts `-agent-config` and `-agent-ca` as deprecated aliases. The deployment skill is now `tack-deploy`. From v0.1.2, the release Controller embeds the tunnel server, just as the release Node embeds the client. The inherited standalone `chisel` command remains source-buildable for compatibility but is no longer a release asset.
 
 ## Provision and start the Controller
 
@@ -147,11 +141,11 @@ Use the private administrator listener:
 
 `exec` uses `program` and `args`; script modes use `script`. `dir` sets the task working directory, otherwise a temporary task directory is used. `env` overlays inherited Node environment, so do not inject operator credentials or unrelated secrets into the Node environment. Every task runs as the Node's account. Explicit Bash/Zsh/PowerShell/CMD requests never fall back to another language. A failed script is never rerun automatically under BusyBox.
 
-The Node listener offers `POST /v4/node/sync` and `POST /v2/node/results`, retaining the v1–v3 synchronization endpoints for old nodes. The private administrator listener offers `GET /v1/nodes`, `GET /v1/metrics`, `GET/POST /v1/tasks`, `GET /v1/tasks/{id}`, `POST /v1/tasks/{id}/cancel`. `GET /health` advertises protocol version 4. New nodes negotiate at startup and use v1 polling with old controllers; restart a node to renegotiate after a controller upgrade. The CLI persists `request_id` in the task file before sending it; retry the same file after a lost response. Matching requests return the existing task; changed parameters conflict; retired identities never create new tasks. Direct legacy API submissions without an identity remain non-idempotent.
+The Node listener offers `POST /v4/node/sync` and `POST /v2/node/results`. The private administrator listener offers `GET /v1/nodes`, `GET /v1/metrics`, `GET/POST /v1/tasks`, `GET /v1/tasks/{id}`, `POST /v1/tasks/{id}/cancel`. `GET /health` advertises protocol version 4. Use matching release versions for Controller, CLI and Nodes. The CLI persists `request_id` in the task file before sending it; retry the same file after a lost response. Matching requests return the existing task; changed parameters conflict; retired identities never create new tasks. API callers must also supply a request identity to get submission idempotency.
 
 ## Output recovery and metrics
 
-The control connection sends terminal metadata plus output lengths and a SHA-256 digest of raw `stdout || stderr`. In protocol v3 sessions, the Node saves each nonempty result once in an immutable `results/<task-id>.out` file and retains only metadata in its journal. A distinct uploader probes the controller's durable offset and reads chunks of up to 64 KiB from that file using one reusable buffer. Legacy v1/v2 sessions retain the inline-output path. Duplicate chunks must match stored bytes. Final acknowledgement requires digest verification and persistence of the complete result. The Node flushes that acknowledgement to its journal before deleting the result file; receipt of metadata alone never discards output. Node or controller restarts resume from stored state without rerunning the command. Empty output follows the same final-acknowledgement rule.
+The control connection sends terminal metadata plus output lengths and a SHA-256 digest of raw `stdout || stderr`. The Node saves each nonempty result once in an immutable `results/<task-id>.out` file and retains only metadata in its journal. A distinct uploader probes the controller's durable offset and reads chunks of up to 64 KiB from that file using one reusable buffer. Duplicate chunks must match stored bytes. Final acknowledgement requires digest verification and persistence of the complete result. The Node flushes that acknowledgement to its journal before deleting the result file; receipt of metadata alone never discards output. Node or controller restarts resume from stored state without rerunning the command. Empty output follows the same final-acknowledgement rule.
 
 One uploader runs alongside one executor. Result limits stop new work while an upload backlog exists, leaving excess tasks queued; metrics expose the reason. Upload pacing applies to raw payload bytes, not TLS/JSON overhead, and is independent of the control connection. This is application-level isolation, not a reserved network lane: shared NIC bandwidth, filesystem latency and controller snapshot writes can still delay control traffic.
 
@@ -159,7 +153,7 @@ One uploader runs alongside one executor. Result limits stop new work while an u
 
 Process metrics include Go allocated heap (not RSS), goroutine count, cumulative process CPU time where supported, state JSON write attempts/failures/payload bytes/time and node output backlog. JSON counters include journal/snapshot writes, not raw Node result files, upload staging writes or physical disk/flash write amplification. Counters reset at process restart. Node metrics are self-reported snapshots, normally refreshed on the heartbeat/task transitions; they are not trusted for authentication or authorization. Metrics contain no tokens or task output.
 
-Existing configuration and v1 wire clients remain usable. Controller storage remains v2 and the wire protocol remains v3. Node journal storage v4 references separate result files and reads existing v3 journals one record at a time during migration. Older Nodes reject v4 state; a new Node with a replay checkpoint also refuses a v1/v2 Controller. Back up the complete state directory before upgrade and do not perform an in-place binary-only downgrade. Restoring a snapshot predating executed tasks can lose evidence; preserve the journal, `results/` and replay checkpoint and reconcile task history. A lost v1 result acknowledgement is reconciled when a node switches to v2.
+Controller storage is v3, Node journal storage is v4, and the current synchronization protocol is v4. Back up the complete state before updates. Keep the journal, `results/` and replay checkpoint together; restoring a snapshot predating executed tasks can lose execution evidence. See [task operations](../docs/task-operations.md) for backup and recovery requirements.
 
 ## Diagnostic logs and crash cleanup
 
@@ -172,8 +166,6 @@ Atomic state writes use one fixed `.tack-pending` name per destination. Before c
 ## Current operational limits
 
 The Controller is single-process. Its `-state` file holds the bounded active queue and durable replay/request watermarks; completed tasks are individual JSON files in `<state-file>.history` and are read on demand. Back up the state file **together with** `.history`, `.uploads` and `.operators.json` while the Controller is stopped. Partial output lives in `.uploads` until the completed history entry and active-state replacement are durable. Completed staging files are removed before final acknowledgement; a failed cleanup is retried on probe and known completed leftovers are removed at startup. Pending or unrecognized files are preserved; orphan staging files count against admission capacity. Completed results move into `.history/released` only after a Node receipt confirms it received the final acknowledgement. Never delete this directory independently of the rest of the state.
-
-Existing full snapshots migrate one task at a time at startup. The original snapshot is replaced only after historical entries have been flushed; interrupted migration can be retried. The new `storage_version` field intentionally makes older strict-decoding controllers reject the new state. Downgrades require a consistent pre-upgrade backup, not just replacing the binary.
 
 Optional Controller configuration limits:
 
@@ -192,9 +184,9 @@ Before accepting a task, the Controller automatically deletes the oldest receipt
 
 `tack tasks -limit 100 [-after CURSOR]` returns `{ "tasks": [...], "next_cursor": "..." }` via `/v2/tasks`; ordering is by opaque task ID, not chronological. Pages contain summaries, and `tack get -id ID` retrieves the original command and complete result. Maximum page size is 200. The older `/v1/tasks` route returns the first bounded summary page and exposes `X-Next-Cursor`; use the v2 route for new clients. Pagination is not a transactionally frozen snapshot during concurrent submissions.
 
-With protocol v3, the Controller allocates increasing task sequences per node. The Node flushes a monotonic replay watermark before execution intent. After final output acknowledgement it reduces the journal entry to a receipt, and removes that entry after the Controller durably accepts the receipt. Completed work therefore does not accumulate per-task tombstones. Sequence zero or a sequence behind the watermark without a live journal entry is reported as `unknown` and never executed. A crash between the watermark and execution can refuse an unstarted command; this is at-most-once execution, not a promise that every command runs. The bounded pending-result/receipt queue still applies when acknowledgements cannot be delivered. Old v1/v2 sessions retain their original tombstone limit and need upgrading for rolling retention.
+The Controller allocates increasing task sequences per node. The Node flushes a monotonic replay watermark before execution intent. After final output acknowledgement it reduces the journal entry to a receipt, and removes that entry after the Controller durably accepts the receipt. Completed work therefore does not accumulate per-task tombstones. Sequence zero or a sequence behind the watermark without a live journal entry is reported as `unknown` and never executed. A crash between the watermark and execution can refuse an unstarted command; this is at-most-once execution, not a promise that every command runs. The bounded pending-result/receipt queue still applies when acknowledgements cannot be delivered.
 
-Upgrade the Controller first, then the CLI and Nodes. Drain the queue before migrating legacy Nodes: the first v3 handshake fences every already allocated sequence before retiring legacy identities, so queued work from before migration may become `unknown`. Check the original side effects before deciding to resubmit. Keep the entire Node state directory together, including `identity.json`, `journal.json`, `replay.json`, `results/` and recovery files; deleting/restoring Node evidence to an older point cannot preserve replay protection. The Node advertises its retained watermark after Controller rollback, and completed archives take precedence over a stale active snapshot. See [retention invariants](../docs/tack-retention.md).
+For subsequent updates, upgrade the Controller first, then the CLI and Nodes, and drain running commands according to the task policy. Keep the entire Node state directory together, including `identity.json`, `journal.json`, `replay.json`, `results/` and recovery files. Deleting or restoring execution evidence to an earlier point can lose replay protection. See [retention invariants](../docs/tack-retention.md).
 
 Short network failures do not cancel tasks. Shutdown requests cancel the local task and save its result when possible; an unexpected restart converts unfinished intent to `unknown`. Process-group cleanup does not cover programs deliberately escaping the group. Job Object behavior requires Windows native validation. Filesystem crash durability, flash limits, device drivers and boot persistence require target-system testing.
 

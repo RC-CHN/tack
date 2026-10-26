@@ -39,4 +39,4 @@ Use explicit placeholders such as `NODE_EXE`, `CONFIG_FILE`, `STATE_DIR`, `WORK_
 NODE_EXE -config CONFIG_FILE
 ```
 
-Any mount waiting, directory preparation, privilege selection, restart or boot registration belongs to the external supervisor/wrapper. Check foreground execution before installing startup entries and preserve rollback instructions.
+Any mount waiting, directory preparation, privilege selection, restart or boot registration belongs to the external supervisor/wrapper. Check foreground execution before installing startup entries and record stop and uninstall instructions.

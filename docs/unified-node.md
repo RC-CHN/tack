@@ -2,7 +2,7 @@
 
 客户机器运行一个 `tack-node`（Windows 为 `tack-node.exe`），同一进程内包含管理执行器和 Chisel 客户端库。无需再安装或启动一个 Chisel 客户端。脚本仍由目标机已有的解释器执行；可选 BusyBox 是独立配套文件，并没有打进这个二进制。
 
-从 v0.1.2 起，托管侧也只运行一个 `tack-control`，通过其 `tunnel` 配置启用内嵌 Chisel 服务端；参见[托管端配置与迁移](unified-control.md)。管理 HTTPS 与隧道 HTTPS 仍使用各自的连接、监听器和凭据。Node 内两条连接独立重连；重启统一控制端会同时断开它托管的管理和隧道连接，Node 的本地任务按原超时与恢复语义继续。
+托管侧运行一个 `tack-control`，通过其 `tunnel` 配置启用内嵌 Chisel 服务端；参见[托管端安装与配置](unified-control.md)。管理 HTTPS 与隧道 HTTPS 仍使用各自的连接、监听器和凭据。Node 内两条连接独立重连；重启统一控制端会同时断开它托管的管理和隧道连接，Node 的本地任务按原超时与恢复语义继续。
 
 ## 配置与启动
 
@@ -33,7 +33,7 @@ tack provision \
   -tunnel-config /operator/config/customer-tunnel.json
 ```
 
-CLI 将对象写入生成配置的 `tunnel` 字段；不将隧道口令写进 Controller 的管理凭据列表，也不自动创建或修改 Chisel 服务端账号。已有节点可以直接为其私密 Node 配置增加同样的 `tunnel` 对象。省略该对象时，同一个二进制只运行管理功能，保留旧配置兼容性。
+CLI 将对象写入生成配置的 `tunnel` 字段；不将隧道口令写进 Controller 的管理凭据列表，也不自动创建或修改 Chisel 服务端账号。配置中的 `tunnel` 对象启用隧道功能；省略时只运行管理功能。
 
 客户机只接收它自己的 Node 配置及最终 `tack-node`，另外按需要提供 CA/BusyBox 文件。准备配置指定的状态与临时目录后运行：
 
@@ -63,7 +63,7 @@ GOTOOLCHAIN=go1.26.3 CGO_ENABLED=0 go build -trimpath -o build/tack-node ./cmd/t
 
 发布脚本也使用此入口，先将管理执行器和 Chisel 链接进同一个文件，再整体 Garble 混淆并尝试 UPX 加壳。`BUILD.json` 的 `capabilities` 包含 `management`、`embedded-chisel`，同时记录加壳结果与例外。v0.1.2 的隧道服务端同样编入 `tack-control`，不再单独发布 `chisel`。
 
-合并版提供 Modern 与 Linux Legacy 两种构建，均包含完整管理和隧道功能。Legacy 从同一入口通过 `go.legacy.mod` 构建，保留当前 SSH 修复；最终 amd64 混淆产物已在 CentOS 6 的 2.6.32 内核虚拟机进行功能验收。该旧内核无法启动已测试的 UPX 产物，因此 Legacy 明确保留混淆、跳过加壳。按目标系统选择一个包，流程、边界与同版本回退见[兼容说明](legacy-compatibility.md)。
+合并版提供 Modern 与 Linux Legacy 两种构建，均包含完整管理和隧道功能。Legacy 从同一入口通过 `go.legacy.mod` 构建，保留当前 SSH 修复；最终 amd64 混淆产物已在 CentOS 6 的 2.6.32 内核虚拟机进行功能验收。该旧内核无法启动已测试的 UPX 产物，因此 Legacy 明确保留混淆、跳过加壳。按目标系统选择一个包，选包流程与兼容边界见[兼容说明](legacy-compatibility.md)。
 
 `management/node/cmd/tack-node` 和 `transport/browser/cmd/tack-node` 保留为管理模块开发入口，配置了 `tunnel` 会明确报错，不能用它们替代统一客户端。Windows、ARM/MIPS 的交叉编译与真机验证分别记录；Legacy 不表示支持 Windows 7。
 
