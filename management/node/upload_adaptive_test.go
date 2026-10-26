@@ -3,6 +3,7 @@ package node
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -151,5 +152,113 @@ func TestProbeConfirmedProgressPreventsEscalatingBackoff(t *testing.T) {
 	}
 	if offset != total || probes != 6 {
 		t.Fatal("missing confirmed progress", offset, probes)
+	}
+}
+
+func TestRecentDurableProgressSurvivesBurstOfFailedProbes(t *testing.T) {
+	a, err := New(testConfig(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.connections.close()
+	a.Logf = nil
+	want := bytes.Repeat([]byte{'b'}, 2*p.MaxChunk)
+	offset, failures := 0, 0
+	a.uploadClient = &http.Client{Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
+		defer r.Body.Close()
+		var in p.ResultChunk
+		if err := p.Decode(r.Body, &in); err != nil {
+			return nil, err
+		}
+		if offset == p.MaxChunk && failures < 5 {
+			failures++
+			out := response(struct{}{})
+			out.StatusCode = 503
+			return out, nil
+		}
+		if !in.Probe {
+			if in.Offset != offset || !bytes.Equal(in.Data, want[offset:offset+len(in.Data)]) {
+				t.Fatal("replayed or corrupted burst recovery")
+			}
+			offset += len(in.Data)
+		}
+		return response(p.ChunkAck{Version: p.TransferVersion, TaskID: in.TaskID, Offset: offset, Complete: offset == len(want)}), nil
+	})}
+	// Five capped waits total at most 13.5s; unbounded exponential waits need
+	// at least 15.5s. This distinguishes the behavior independently of jitter.
+	ctx, cancel := context.WithTimeout(context.Background(), 14500*time.Millisecond)
+	defer cancel()
+	if err := a.upload(ctx, journal{Task: p.Task{ID: "burst-recovery"}, Report: p.Report{Result: &p.Result{Stdout: want}}}); err != nil {
+		t.Fatal(err)
+	}
+	if offset != len(want) || failures != 5 {
+		t.Fatal("incomplete recovery", offset, failures)
+	}
+}
+
+func TestProgressRetryWindowExpiresToQuietOfflineSchedule(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		for _, last := range []time.Time{{}, time.Now().Add(-21 * time.Second)} {
+			wait := uploadRetryDelay(30*time.Second, last, time.Time{}, nil)
+			if wait < 15*time.Second || wait > 45*time.Second {
+				t.Fatal("offline retry became aggressive", wait)
+			}
+		}
+		wait := uploadRetryDelay(30*time.Second, time.Now(), time.Time{}, nil)
+		if wait < time.Second || wait > 3*time.Second {
+			t.Fatal("recent progress did not bound retry", wait)
+		}
+	}
+}
+
+func TestVerifiedProbesBoundTransportRetriesBeforeFirstProgress(t *testing.T) {
+	a, err := New(testConfig(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.connections.close()
+	a.Logf = nil
+	want := bytes.Repeat([]byte{'v'}, p.MaxChunk+7)
+	offset, failures := 0, 0
+	a.uploadClient = &http.Client{Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
+		defer r.Body.Close()
+		var in p.ResultChunk
+		if err := p.Decode(r.Body, &in); err != nil {
+			return nil, err
+		}
+		if !in.Probe {
+			if failures < 5 {
+				failures++
+				return nil, errors.New("fixture connection reset")
+			}
+			if in.Offset != offset || !bytes.Equal(in.Data, want[offset:offset+len(in.Data)]) {
+				t.Fatal("invalid first-progress recovery")
+			}
+			offset += len(in.Data)
+		}
+		return response(p.ChunkAck{Version: p.TransferVersion, TaskID: in.TaskID, Offset: offset, Complete: offset == len(want)}), nil
+	})}
+	ctx, cancel := context.WithTimeout(context.Background(), 14500*time.Millisecond)
+	defer cancel()
+	if err := a.upload(ctx, journal{Task: p.Task{ID: "first-progress"}, Report: p.Report{Result: &p.Result{Stdout: want}}}); err != nil {
+		t.Fatal(err)
+	}
+	if offset != len(want) || failures != 5 {
+		t.Fatal("first progress never recovered", offset, failures)
+	}
+}
+
+func TestReachabilityDoesNotAccelerateApplicationOrTLSFailures(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		for _, err := range []error{errors.New("HTTP 503"), errors.New("invalid management response"), &requestFailure{kind: "tls"}, &requestFailure{kind: "canceled"}} {
+			wait := uploadRetryDelay(30*time.Second, time.Time{}, time.Now(), err)
+			if wait < 15*time.Second || wait > 45*time.Second {
+				t.Fatal("reachable but unhealthy server kept fast retries", wait, err)
+			}
+		}
+		wait := uploadRetryDelay(30*time.Second, time.Time{}, time.Now(), &requestFailure{kind: "transport"})
+		if wait < time.Second || wait > 3*time.Second {
+			t.Fatal("transport recovery window missing", wait)
+		}
 	}
 }

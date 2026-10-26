@@ -16,6 +16,7 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 	// their in-memory output without making a second concatenated result copy.
 	total := manifest.Total()
 	retry := time.Second
+	var lastProgress, lastResponse time.Time
 	nextSend := time.Now()
 	chunkLimit := p.MaxChunk
 	failedOffset, failedBytes := -1, 0
@@ -37,6 +38,9 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 		if err == nil {
 			err = ctx.Err()
 		}
+		if err == nil {
+			lastResponse = time.Now()
+		}
 		if err == nil && failedOffset >= 0 {
 			// A failed request may have committed its data and only lost the ACK.
 			// Reduce the checkpoint size only when a successful probe proves that
@@ -49,6 +53,8 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 				// otherwise repeated lost ACKs make a working link wait longer
 				// and longer even as the receiver accumulates valid output.
 				retry = time.Second
+				lastProgress = time.Now()
+				lastResponse = lastProgress
 			} else if failedBytes > 4*1024 {
 				chunkLimit = max(4*1024, failedBytes/4)
 			}
@@ -100,6 +106,8 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 			}
 			if err == nil {
 				retry = time.Second
+				lastProgress = time.Now()
+				lastResponse = lastProgress
 			} else {
 				failedOffset, failedBytes = input.Offset, len(input.Data)
 			}
@@ -119,11 +127,29 @@ func (a *Node) upload(ctx context.Context, job journal) error {
 		if a.Logf != nil {
 			a.Logf("result upload: %v", err)
 		}
-		if err := delay(ctx, retryDelay(retry)); err != nil {
+		if err := delay(ctx, uploadRetryDelay(retry, lastProgress, lastResponse, err)); err != nil {
 			return err
 		}
 		retry = nextRetry(retry)
 	}
+}
+
+// A few failed ACKs on an intermittent link must not turn recent durable
+// progress into a 15..45s pause. For 20s after confirmed progress, cap the
+// jitter's base at 2s. The underlying backoff continues growing, so a sustained
+// outage returns to the normal quiet retry schedule when that window expires.
+// A verified probe also demonstrates reachability when the next failure is a
+// broken transport. This matters before the very first data ACK. HTTP errors,
+// certificate errors and malformed replies cannot keep renewing that window.
+func uploadRetryDelay(base time.Duration, lastProgress, lastResponse time.Time, err error) time.Duration {
+	var failed *requestFailure
+	if errors.As(err, &failed) && (failed.kind == "transport" || failed.kind == "timeout" || failed.kind == "dns") && lastResponse.After(lastProgress) {
+		lastProgress = lastResponse
+	}
+	if !lastProgress.IsZero() && time.Since(lastProgress) < 20*time.Second {
+		base = min(base, 2*time.Second)
+	}
+	return retryDelay(base)
 }
 func (a *Node) chunk(ctx context.Context, input p.ResultChunk, total int) (p.ChunkAck, error) {
 	var ack p.ChunkAck

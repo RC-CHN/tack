@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
@@ -168,11 +169,40 @@ func TestRequestFailureClassificationRedactsAddressAndToken(t *testing.T) {
 	}{
 		{context.Canceled, "canceled"}, {&net.DNSError{Err: "secret", Name: "private-host", IsNotFound: true}, "dns"},
 		{&net.DNSError{Err: "secret", Name: "private-host", IsTimeout: true}, "timeout"}, {errors.New("private-host secret"), "transport"},
+		{x509.HostnameError{Certificate: &x509.Certificate{DNSNames: []string{"private-host"}}, Host: "secret"}, "tls"},
+		{x509.CertificateInvalidError{Cert: &x509.Certificate{}, Reason: x509.Expired}, "tls"},
 	} {
 		client := &http.Client{Transport: transportFunc(func(*http.Request) (*http.Response, error) { return nil, tc.err })}
 		err := a.request(context.Background(), client, "/health", nil, &struct{}{})
 		if err == nil || !strings.HasSuffix(err.Error(), tc.want) || strings.Contains(err.Error(), "secret") || strings.Contains(err.Error(), "private-host") {
 			t.Fatal(err)
+		}
+	}
+}
+
+func TestTruncatedBodyDoesNotConfuseMalformedOrOversizedResponses(t *testing.T) {
+	a, err := New(testConfig(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.connections.close()
+	for _, tc := range []struct {
+		body      string
+		length    int64
+		transport bool
+	}{
+		{"{", 10, true}, // Bytes promised by HTTP were never received.
+		{"{", 1, false}, // Completely delivered, but invalid JSON.
+		{"", 0, false},
+		{strings.Repeat(" ", p.MaxBody+1), p.MaxBody + 1, false},
+	} {
+		client := &http.Client{Transport: transportFunc(func(*http.Request) (*http.Response, error) {
+			return &http.Response{StatusCode: 200, ContentLength: tc.length, Body: io.NopCloser(strings.NewReader(tc.body))}, nil
+		})}
+		err := a.request(context.Background(), client, "/health", nil, &struct{}{})
+		var failed *requestFailure
+		if err == nil || errors.As(err, &failed) != tc.transport {
+			t.Fatal("wrong transport classification", tc.length, err)
 		}
 	}
 }

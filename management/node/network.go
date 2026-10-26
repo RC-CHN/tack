@@ -45,7 +45,7 @@ func (a *Node) request(ctx context.Context, client *http.Client, path string, in
 	resp, err := client.Do(req)
 	if err != nil {
 		kind = errorClass(err)
-		return fmt.Errorf("management request failed: %s", kind)
+		return &requestFailure{kind: kind}
 	}
 	defer resp.Body.Close()
 	status = resp.StatusCode
@@ -53,12 +53,25 @@ func (a *Node) request(ctx context.Context, client *http.Client, path string, in
 		kind = "http"
 		return fmt.Errorf("management request returned HTTP %d", status)
 	}
-	if err := p.Decode(io.LimitReader(resp.Body, p.MaxBody), output); err != nil {
+	limited := &io.LimitedReader{R: resp.Body, N: p.MaxBody}
+	if err := p.Decode(limited, output); err != nil {
+		var networkError net.Error
+		truncated := limited.N > 0 && resp.ContentLength > int64(p.MaxBody)-limited.N && (errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF))
+		if truncated || errors.As(err, &networkError) {
+			kind = errorClass(err)
+			return &requestFailure{kind: kind}
+		}
 		kind = "decode"
 		return errors.New("invalid management response")
 	}
 	return nil
 }
+
+// Preserve a redacted transport classification for retry policy, without
+// retaining the URL, credential, or provider's original error text.
+type requestFailure struct{ kind string }
+
+func (e *requestFailure) Error() string { return "management request failed: " + e.kind }
 func errorClass(err error) string {
 	if errors.Is(err, context.Canceled) {
 		return "canceled"
@@ -73,7 +86,9 @@ func errorClass(err error) string {
 	}
 	var cert *tls.CertificateVerificationError
 	var authority x509.UnknownAuthorityError
-	if errors.As(err, &cert) || errors.As(err, &authority) {
+	var hostname x509.HostnameError
+	var invalid x509.CertificateInvalidError
+	if errors.As(err, &cert) || errors.As(err, &authority) || errors.As(err, &hostname) || errors.As(err, &invalid) {
 		return "tls"
 	}
 	return "transport"
