@@ -17,9 +17,12 @@ The accepted requirements and remaining stages are in [the design](../docs/tack-
 - A single running task per Node, with an independent result uploader and bounded output backlog.
 - Version 2 HTTPS long polling: default application heartbeat is 30 minutes with ±50% jitter; queued commands and cancellations wake the waiting connection immediately.
 - Durable, offset-based output upload with digest verification and retry; separate control/upload connection pools.
+- Persistent submission identities, queue start deadlines, structured execution/cleanup errors, decoded CLI output and bounded `wait --check`.
+- Scoped operator credentials with online rotation/revocation, caller correlation and filtered task pages; see [task operations](../docs/task-operations.md).
+- Separate management and embedded tunnel status, including update times and backlog reasons.
 - Private `tack metrics` output for link failures, request durations, process resources, state writes and output backlog.
 
-Remaining work includes certificate enrollment/rotation, tenants and RBAC, online revocation, streaming output, operator-controlled history deletion, centrally updated tunnel configuration and native old-platform validation. Tunnel configuration is currently read at Node startup; no existing standalone Chisel installation is changed automatically.
+Remaining work includes certificate enrollment/rotation, tenant isolation, online Node credential revocation, streaming output, operator-controlled history deletion, centrally updated tunnel configuration and native old-platform validation. Tunnel configuration is currently read at Node startup; no existing standalone Chisel installation is changed automatically.
 
 ## Build
 
@@ -137,11 +140,11 @@ Use the private administrator listener:
 ./build/tack/tack cancel -server http://127.0.0.1:8081 -allow-insecure-loopback -config ./operator-config/controller.json -id TASK_ID
 ```
 
-JSON stdout/stderr are base64 byte strings. Decode according to the command's output encoding. `stdout_truncated` and `stderr_truncated` indicate omitted output. Each stream keeps its first ceil(limit/2) bytes and a circular tail of floor(limit/2) bytes; when truncated these are concatenated without an inserted text marker. Excess output is drained so the process does not block. Logs are returned after execution in this stage. A terminal task with `result_pending: true` has committed its exit metadata but is still transferring output; wait for that flag to clear before treating output as complete. `metadata_truncated` marks bounded diagnostic error/executable text (8192/4096 UTF-8 bytes respectively). The exit code is absent if the process never started or its final status is unknown.
+`get` / `wait` decode stdout/stderr by default; `--format json` returns decoded strings, `--format json-raw` retains protocol Base64, and `--stdout-file` / `--stderr-file` save exact bytes. See [task operations](../docs/task-operations.md) for exit statuses, safe submission retries and restricted credentials. `stdout_truncated` and `stderr_truncated` indicate omitted output. Each stream keeps its first ceil(limit/2) bytes and a circular tail of floor(limit/2) bytes; when truncated these are concatenated without an inserted text marker. Excess output is drained so the process does not block. Logs are returned after execution in this stage. A terminal task with `result_pending: true` has committed its exit metadata but is still transferring output; wait for that flag to clear before treating output as complete. `metadata_truncated` marks bounded diagnostic error/executable text (8192/4096 UTF-8 bytes respectively). The exit code is absent if the process never started or its final status is unknown.
 
 `exec` uses `program` and `args`; script modes use `script`. `dir` sets the task working directory, otherwise a temporary task directory is used. `env` overlays inherited Node environment, so do not inject operator credentials or unrelated secrets into the Node environment. Every task runs as the Node's account. Explicit Bash/Zsh/PowerShell/CMD requests never fall back to another language. A failed script is never rerun automatically under BusyBox.
 
-The Node listener offers `POST /v2/node/sync` and `POST /v2/node/results`, retaining `POST /v1/agent/sync` for old nodes. The private administrator listener offers `GET /v1/nodes`, `GET /v1/metrics`, `GET/POST /v1/tasks`, `GET /v1/tasks/{id}`, `POST /v1/tasks/{id}/cancel`. `GET /health` advertises protocol version 2. New nodes negotiate at startup and use v1 polling with old controllers; restart a node to renegotiate after a controller upgrade. A new `submit` always creates a new task; a lost submit response must be reconciled using `tasks` before manually retrying.
+The Node listener offers `POST /v4/node/sync` and `POST /v2/node/results`, retaining the v1–v3 synchronization endpoints for old nodes. The private administrator listener offers `GET /v1/nodes`, `GET /v1/metrics`, `GET/POST /v1/tasks`, `GET /v1/tasks/{id}`, `POST /v1/tasks/{id}/cancel`. `GET /health` advertises protocol version 4. New nodes negotiate at startup and use v1 polling with old controllers; restart a node to renegotiate after a controller upgrade. The CLI persists `request_id` in the task file before sending it; retry the same file after a lost response. Matching requests return the existing task; changed parameters conflict; retired identities never create new tasks. Direct legacy API submissions without an identity remain non-idempotent.
 
 ## Output recovery and metrics
 
