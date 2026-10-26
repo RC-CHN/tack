@@ -180,7 +180,7 @@ poweroff -f
                     submitted = json.loads(cli("submit", *common, "-file", root / "task.json"))
 
                     def result():
-                        task = json.loads(cli("get", *common, "-id", submitted["id"]))
+                        task = json.loads(cli("get", *common, "--format", "json-raw", "-id", submitted["id"]))
                         if task["state"] in ("failed", "unknown", "cancelled"):
                             raise RuntimeError("guest command did not succeed")
                         return task if task["state"] == "succeeded" and not task.get("result_pending") else None

@@ -93,7 +93,7 @@ def main():
                 task = json.loads(cli("submit", *common, "-file", task_file))
 
                 def completed():
-                    result = json.loads(cli("get", *common, "-id", task["id"]))
+                    result = json.loads(cli("get", *common, "--format", "json-raw", "-id", task["id"]))
                     return result if result["state"] == "succeeded" and not result.get("result_pending") else None
 
                 result = await_value(completed)

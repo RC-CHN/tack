@@ -1,17 +1,11 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"tack.local/management/control"
 	p "tack.local/management/protocol"
@@ -20,99 +14,8 @@ import (
 func main() {
 	if err := run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		os.Exit(exitCode(err))
 	}
-}
-
-func run(args []string) error {
-	if len(args) == 1 && (args[0] == "version" || args[0] == "-version" || args[0] == "--version") {
-		fmt.Println(p.BuildVersion)
-		return nil
-	}
-	if len(args) == 0 {
-		return errors.New("usage: tack provision|nodes|metrics|tasks|submit|get|cancel [options]")
-	}
-	if args[0] == "provision" {
-		return provision(args[1:])
-	}
-	f := flag.NewFlagSet(args[0], flag.ContinueOnError)
-	server := f.String("server", "", "controller HTTPS origin")
-	configPath := f.String("config", "", "local controller JSON config supplying administrator token")
-	ca := f.String("ca", "", "private CA file")
-	dev := f.Bool("allow-insecure-loopback", false, "allow HTTP on a literal loopback address for development")
-	id := f.String("id", "", "task ID")
-	file := f.String("file", "", "task JSON file for submit")
-	limit := f.Int("limit", 100, "task summary page size (1..200)")
-	after := f.String("after", "", "task page cursor returned by the previous page")
-	if err := f.Parse(args[1:]); err != nil {
-		return err
-	}
-	var config p.ControlConfig
-	if err := p.ReadJSON(*configPath, &config); err != nil {
-		return err
-	}
-	client, origin, err := p.HTTPClient(*server, *ca, *dev)
-	if err != nil {
-		return err
-	}
-	method, path := "GET", ""
-	var body []byte
-	switch args[0] {
-	case "nodes":
-		path = "/v1/nodes"
-	case "metrics":
-		path = "/v1/metrics"
-	case "tasks":
-		if *limit < 1 || *limit > 200 || (*after != "" && !p.ValidID(*after)) {
-			return errors.New("invalid task page limit/cursor")
-		}
-		path = "/v2/tasks?" + url.Values{"limit": {strconv.Itoa(*limit)}, "after": {*after}}.Encode()
-	case "get", "cancel":
-		if !p.ValidID(*id) {
-			return errors.New("valid -id required")
-		}
-		path = "/v1/tasks/" + *id
-		if args[0] == "cancel" {
-			method = "POST"
-			path += "/cancel"
-		}
-	case "submit":
-		var task p.CreateTask
-		if err := p.ReadJSON(*file, &task); err != nil {
-			return err
-		}
-		task.Command.Defaults()
-		if err := task.Command.Validate(); err != nil {
-			return err
-		}
-		body, err = json.Marshal(task)
-		if err != nil {
-			return err
-		}
-		method, path = "POST", "/v1/tasks"
-	default:
-		return fmt.Errorf("unknown command %q", args[0])
-	}
-	req, err := http.NewRequest(method, origin+path, bytes.NewReader(body))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Authorization", "Bearer "+config.AdminToken)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	b, err := io.ReadAll(io.LimitReader(resp.Body, 16*p.MaxBody))
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode >= 300 {
-		return fmt.Errorf("controller returned %d: %s", resp.StatusCode, b)
-	}
-	_, err = os.Stdout.Write(b)
-	return err
 }
 
 func provision(args []string) error {

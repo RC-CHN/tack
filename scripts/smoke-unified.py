@@ -132,7 +132,7 @@ def main():
                             submitted = json.loads(cli("submit", *common, "-file", root / "task.json"))
 
                             def complete():
-                                result = json.loads(cli("get", *common, "-id", submitted["id"]))
+                                result = json.loads(cli("get", *common, "--format", "json-raw", "-id", submitted["id"]))
                                 return result if result["state"] == "succeeded" and not result.get("result_pending") else None
 
                             result = wait(complete)
