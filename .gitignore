@@ -34,3 +34,5 @@ _testmain.go
 *.prof
 .rcoder/
 __pycache__/
+management/validation/*
+!management/validation/go.mod

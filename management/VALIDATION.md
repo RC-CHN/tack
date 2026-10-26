@@ -640,3 +640,127 @@ small-chunk requests increase active traffic; no RSS reduction, fingerprint
 resistance, bulk-tunnel throughput gain or universal completion rate is claimed.
 Root, Node/runner and integration race/vet pass. The opt-in H2 packet-loss
 completion failure is explicitly separate from those passing regressions.
+
+
+## Protected artifact qualification — 2026-10-23
+
+[Raw evidence and comparison](../docs/validation/2026-10-23-protection.md) now cover
+Garble application-code/literal obfuscation and UPX packing. The complete local
+matrix contains 36 archives: 20 packed and 16 explicit platform exceptions that
+retain obfuscated binaries. Every archive passed checksum/header/build-record
+validation. Four final Linux amd64 components passed actual-artifact functional
+checks; nine additional Linux Node targets passed QEMU version smoke checks.
+These local working-tree artifacts are not a newly published release.
+
+On Go 1.23.12 with GOMAXPROCS=2, the Node changes from 5.79 MiB plain to 2.30 MiB
+packed. Across six 2 MiB-output footprint runs/profile, observed maximum RSS changes
+from 13.38 to 14.79 MiB; all 18 resource runs pass the original 32 MiB gate. Median
+fresh-process version startup changes from 2.254 to 48.651 ms (30 samples/profile,
+filesystem caches retained). Idle/recovered windows observe no CPU-tick, traffic,
+write or diagnostic-log increments. This does not establish zero power consumption.
+
+Packed H1/H2 severe-link transfers complete in 30.126/43.937 seconds. The plain H2
+comparison fails at 75 seconds and remains in the evidence; the full comparison
+correctly exits 1. There is only one severe-link run per profile/HTTP mode, without
+netem packet loss, so these timings do not establish a throughput/latency benefit
+from packing. Actual packed Controller/Node backlog, restart and duplicate-execution
+checks pass with ten results; actual packed Chisel verifies a 256 KiB transfer.
+Native Windows/macOS protection jobs are configured but have not run for this local
+change. Signing, legacy-device qualification and commercial production readiness
+remain separate work.
+
+## TLS and early-record experiments — 2026-10-24
+
+The optional modern build adds `chrome-133-h1` for both Node HTTPS transports and
+Chisel WSS. It changes a pinned Chrome 133 ClientHello template to HTTP/1.1 only;
+it is not an exact browser fingerprint. Legacy builds retain standard-library TLS.
+Certificate rejection, canceled silent handshakes, forward/reverse tunnels and
+four-outage recovery are tested. Proxies and client certificates are not supported
+by the experimental profile; there is no silent fallback to native TLS.
+
+At this initial measurement, a separate framing prototype borrowed the bounded early-padding idea from AnyTLS,
+with at most eight framed data blocks and 1024 framing/padding bytes per direction.
+It ran over real TLS in a byte-integrity/record-length fixture, added no idle sends,
+and was not integrated into the Node/Chisel application protocols or compatible with
+the AnyTLS wire protocol. No GFW success rate or improved classifier resistance is
+claimed. [Design and reproduction](../docs/traffic-obfuscation.md) and
+[raw comparison](../docs/validation/2026-10-24-transport.md) distinguish these scopes.
+
+`management/validation/go.mod` prevents archived historical source snapshots from
+being discovered as active packages by the root module's `go test ./...`; the
+archived protection evidence and its checksums remain unchanged.
+
+## Integrated shaping and TLS profiles — 2026-10-24
+
+`bounded-v1` now wraps actual Node control/upload HTTPS and Chisel WSS in both
+ends. The version prefix is encrypted and coalesced with the first data frame;
+confirmation rides the first application response, without another handshake RTT.
+The enabled TLS listener accepts ordinary HTTP/1.1 clients too; shaped clients
+never fall back silently. The wire receive ceiling remains 1024 bytes per direction for bounded-v1
+compatibility; the final sender uses at most 256 bytes including prefix, framing
+and padding, with at most 64 padding bytes per frame. Framing stops after eight
+nonempty frames. Short writes are no longer split into tiny initial records. No cover traffic,
+queue, pacing worker or per-stream framing was added.
+
+`chrome-133` preserves uTLS's pinned template ALPN/ALPS. The server selects h1;
+a server selecting h2 is explicitly rejected. This is not a current Chrome or
+full-browser-stack claim. The older modified `chrome-133-h1` remains available.
+Native shaping retains Go 1.23 compatibility and standard-library mTLS.
+
+Boundary tests include every early byte interrupted by a temporary read deadline,
+HTTP keep-alive reuse, malformed lengths and total budgets, unsupported versions,
+partial frame writes, strict certificate verification, unexpected ALPN, plaintext
+server rejection, Node credential/admin separation, blocked upload cancellation,
+restart without replay, and real forward/reverse WSS recovery. TLS termination
+must occur in Tack; ordinary HTTP reverse proxies cannot parse this framing.
+
+`benchmark-transport.py` now measures three modes using external Node/Chisel
+processes. The Node severe fixture retains the 75-second completion requirement;
+Chisel separately measures three recovery-triggered outages and a 1 KiB echo.
+Chisel's cadence is not the Node fixture's four-second fixed cadence. Both use
+600 ms added RTT and 8 KiB/s per direction per connection. No kernel packet-loss
+or real cross-border classification result is inferred from these measurements.
+
+The first integrated trials retained the 1 KiB send budget and exposed two real
+75-second failures. A progress-only retry window missed the case with no first
+ACK. The final policy also uses a validated upload probe to bound subsequent
+transport-failure retries for 20 seconds; HTTP overload, invalid certificates,
+complete malformed responses and body-limit errors cannot renew that window.
+Fully unresponsive links retain the ordinary exponentially backed-off schedule.
+These failures are retained in the integrated report, not removed from evidence.
+
+[Final integrated evidence](../docs/validation/2026-10-24-obfuscation.md) contains
+27 passing process reports: three modes, three rounds, Node footprint/severe-link
+and Chisel recovery. One additional Chisel startup bind failure is retained in the
+raw third trial; all nine Chisel cases were remeasured after a fixture-only port
+reservation fix, using unchanged application binaries. The derived final summary
+identifies both sources and does not rewrite the failed raw trial.
+
+With the combined profile, median idle/maximum observed Node RSS is
+11.35/15.88 MiB, and Chisel is 12.99/14.06 MiB. Median severe Node completion is
+34.89 seconds versus 27.62 seconds native; this is a measured cost, not a speedup.
+All short idle windows observe zero CPU-tick, traffic and write increments.
+Three mode workers shared the host; the report documents the measurement scope,
+raw timings, source and binary hashes, independent wire experiment and CLI smoke.
+
+## Persistent personalized ClientHello — 2026-10-24
+
+`personalized-v1` adds an immutable client seed, generated and atomically persisted
+once. Node control/upload share it; Chisel takes an explicit identity-file path.
+Reconnections reload no files and rotate no identity. TLS randomness and ephemeral
+keys remain fresh; malformed persistent identities fail closed. The versioned
+recipe varies supported cipher/extension structure and ordering without introducing
+new extensions or claiming a genuine browser fingerprint.
+
+[Evidence and numerical report](../docs/validation/2026-10-24-personalized.md)
+record 32 distinct ordered templates after GREASE normalization, stable reloads,
+fresh ClientRandom/X25519 keys, 64 TLS 1.3 and 32 TLS 1.2 verified handshakes,
+certificate/ALPN/cancellation checks, and protocol/Node/browser/Chisel race and vet.
+This normalization preserves ordering; it is not JA4 or a classifier evaluation.
+
+All 27 process reports pass. Combined mode median idle/maximum RSS is
+12.16/15.50 MiB for Node and 13.20/14.28 MiB for Chisel. Node severe-link times are
+74.31, 31.89 and 35.65 seconds: the first is near the 75-second limit and remains
+visible in the report. All short idle windows observe zero traffic, CPU-tick and
+write increments. No throughput improvement or real-world censorship success rate
+is inferred. The older protected/fixed-template archives remain unchanged.
