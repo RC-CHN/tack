@@ -128,6 +128,7 @@ func provision(args []string) error {
 	f.StringVar(nodePath, "agent-config", "", "deprecated alias for -node-config")
 	f.StringVar(ca, "agent-ca", "", "deprecated alias for -node-ca")
 	busybox := f.String("busybox", "", "optional node-side BusyBox absolute path")
+	tunnelPath := f.String("tunnel-config", "", "optional local JSON file with this node's embedded Chisel configuration")
 	dev := f.Bool("allow-insecure-loopback", false, "development HTTP on loopback")
 	if err := f.Parse(args); err != nil {
 		return err
@@ -140,6 +141,16 @@ func provision(args []string) error {
 	}
 	if _, _, err := p.HTTPClient(*server, "", *dev); err != nil {
 		return err
+	}
+	var tunnel *p.TunnelConfig
+	if *tunnelPath != "" {
+		tunnel = new(p.TunnelConfig)
+		if err := p.ReadJSON(*tunnelPath, tunnel); err != nil {
+			return err
+		}
+		if _, _, err := p.HTTPClient(tunnel.Server, "", *dev); err != nil {
+			return fmt.Errorf("tunnel server: %w", err)
+		}
 	}
 	a, _ := filepath.Abs(*configPath)
 	b, _ := filepath.Abs(*nodePath)
@@ -174,6 +185,7 @@ func provision(args []string) error {
 		return err
 	}
 	nodeConfig := p.NodeConfig{Server: *server, NodeID: *node, Token: token, StateDir: *stateDir, WorkDir: *workDir, StatePersistence: *persistence, CAFile: *ca, BusyBox: *busybox, AllowInsecureLoopback: *dev}
+	nodeConfig.Tunnel = tunnel
 	if err := p.WriteJSON(*nodePath, nodeConfig); err != nil {
 		return err
 	}

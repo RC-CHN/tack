@@ -40,6 +40,9 @@ type Node struct {
 }
 
 func New(config p.NodeConfig) (*Node, error) {
+	if config.Tunnel != nil {
+		return nil, errors.New("tunnel configuration requires the unified tack-node binary built from the repository root")
+	}
 	if err := shaping.Check(config.TrafficShaping); err != nil {
 		return nil, err
 	}
@@ -144,6 +147,15 @@ func New(config p.NodeConfig) (*Node, error) {
 
 // Run is a foreground worker. It never installs services or selects deployment paths.
 func (a *Node) Run(parent context.Context) (runErr error) {
+	return a.RunWithService(parent, nil)
+}
+
+// RunWithService runs an embedded service after local state recovery, while
+// holding the Node lock. It does not wait for the controller to be reachable.
+// The service must remain running until cancellation and release its resources
+// before returning. A fatal service error stops the Node; temporary connection
+// failures should be retried by the service itself.
+func (a *Node) RunWithService(parent context.Context, service func(context.Context) error) (runErr error) {
 	if a.connections.isClosed() {
 		return errors.New("node has stopped; create a new Node to restart")
 	}
@@ -154,10 +166,14 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 	defer unlock()
 	ctx, stop := context.WithCancel(parent)
 	var workers sync.WaitGroup
+	var serviceErr error // read only after workers.Wait
 	defer func() {
 		stop()
 		a.connections.close()
 		workers.Wait()
+		if serviceErr != nil {
+			runErr = errors.Join(runErr, serviceErr)
+		}
 		a.client.CloseIdleConnections()
 		a.uploadClient.CloseIdleConnections()
 	}()
@@ -263,6 +279,20 @@ func (a *Node) Run(parent context.Context) (runErr error) {
 	}
 	if err := persist(); err != nil {
 		return err
+	}
+	if service != nil {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			err := service(ctx)
+			if ctx.Err() == nil {
+				if err == nil {
+					err = errors.New("embedded service stopped unexpectedly")
+				}
+				serviceErr = err
+				stop()
+			}
+		}()
 	}
 	if err := a.negotiate(ctx); err != nil {
 		if ctx.Err() != nil {

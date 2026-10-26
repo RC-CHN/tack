@@ -17,6 +17,7 @@ require (
 	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
 	tack.local/management/protocol v0.0.0
+	tack.local/management/node v0.0.0
 	tack.local/testfixtures v0.0.0
 	tack.local/transport/browser v0.0.0
 )

@@ -55,6 +55,7 @@ func (l *Logger) Fork(prefix string, args ...interface{}) *Logger {
 	//slip the parent prefix at the front
 	args = append([]interface{}{l.prefix}, args...)
 	ll := NewLogger(fmt.Sprintf("%s: "+prefix, args...))
+	ll.SetOutput(l.logger.Writer())
 	//store link to parent settings too
 	ll.Info = l.Info
 	if l.info != nil {

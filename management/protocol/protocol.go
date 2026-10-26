@@ -192,22 +192,34 @@ type TaskPage struct {
 }
 
 type NodeConfig struct {
-	Server                string `json:"server"`
-	NodeID                string `json:"node_id"`
-	Token                 string `json:"token"`
-	StateDir              string `json:"state_dir"`
-	WorkDir               string `json:"work_dir"`
-	StatePersistence      string `json:"state_persistence,omitempty"`
-	CAFile                string `json:"ca_file,omitempty"`
-	TLSProfile            string `json:"tls_profile,omitempty"`
-	TLSIdentityFile       string `json:"tls_identity_file,omitempty"`
-	TrafficShaping        string `json:"traffic_shaping,omitempty"`
-	BusyBox               string `json:"busybox,omitempty"`
-	HeartbeatSeconds      int    `json:"heartbeat_seconds,omitempty"`
-	LeaseSeconds          int    `json:"lease_seconds,omitempty"`
-	PollSeconds           int    `json:"poll_seconds,omitempty"`
-	AllowInsecureLoopback bool   `json:"allow_insecure_loopback,omitempty"`
-	MaxPendingResults     int    `json:"max_pending_results,omitempty"`
-	MaxPendingResultBytes int    `json:"max_pending_result_bytes,omitempty"`
-	UploadBytesPerSecond  int    `json:"upload_bytes_per_second,omitempty"`
+	Tunnel                *TunnelConfig `json:"tunnel,omitempty"`
+	Server                string        `json:"server"`
+	NodeID                string        `json:"node_id"`
+	Token                 string        `json:"token"`
+	StateDir              string        `json:"state_dir"`
+	WorkDir               string        `json:"work_dir"`
+	StatePersistence      string        `json:"state_persistence,omitempty"`
+	CAFile                string        `json:"ca_file,omitempty"`
+	TLSProfile            string        `json:"tls_profile,omitempty"`
+	TLSIdentityFile       string        `json:"tls_identity_file,omitempty"`
+	TrafficShaping        string        `json:"traffic_shaping,omitempty"`
+	BusyBox               string        `json:"busybox,omitempty"`
+	HeartbeatSeconds      int           `json:"heartbeat_seconds,omitempty"`
+	LeaseSeconds          int           `json:"lease_seconds,omitempty"`
+	PollSeconds           int           `json:"poll_seconds,omitempty"`
+	AllowInsecureLoopback bool          `json:"allow_insecure_loopback,omitempty"`
+	MaxPendingResults     int           `json:"max_pending_results,omitempty"`
+	MaxPendingResultBytes int           `json:"max_pending_result_bytes,omitempty"`
+	UploadBytesPerSecond  int           `json:"upload_bytes_per_second,omitempty"`
+}
+
+// TunnelConfig configures the Chisel client embedded in the unified Node.
+// The tunnel credential is independent of the management token.
+type TunnelConfig struct {
+	Server           string   `json:"server"`
+	Auth             string   `json:"auth"`
+	Fingerprint      string   `json:"fingerprint"`
+	Remotes          []string `json:"remotes"`
+	CAFile           string   `json:"ca_file,omitempty"`
+	KeepAliveSeconds *int     `json:"keep_alive_seconds,omitempty"`
 }
