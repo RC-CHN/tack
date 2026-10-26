@@ -15,6 +15,8 @@ import (
 	"github.com/jpillora/chisel/share/cos"
 	"github.com/jpillora/chisel/share/settings"
 	"golang.org/x/crypto/ssh"
+	"tack.local/management/protocol/shaping"
+	"tack.local/management/protocol/tlsprofile"
 )
 
 func (c *Client) connectionLoop(ctx context.Context) error {
@@ -95,13 +97,22 @@ func (c *Client) connectionOnce(ctx context.Context) (connected bool, err error)
 		NetDialContext:   c.config.DialContext,
 	}
 	//optional proxy
+	if !tlsprofile.Native(c.config.TLS.Profile) || shaping.Enabled(c.config.TLS.TrafficShaping) {
+		d.NetDialTLSContext, err = tlsprofile.DialTransport(c.config.TLS.Profile, c.config.TLS.TrafficShaping, c.config.DialContext, c.tlsConfig, c.tlsIdentity)
+		if err != nil {
+			return false, err
+		}
+	}
 	if p := c.proxyURL; p != nil {
 		if err := c.setProxy(p, &d); err != nil {
 			return false, err
 		}
 	}
-	wsConn, _, err := d.DialContext(ctx, c.server, c.config.Headers)
+	wsConn, response, err := d.DialContext(ctx, c.server, c.config.Headers)
 	if err != nil {
+		if response != nil && response.Body != nil {
+			response.Body.Close()
+		}
 		return false, err
 	}
 	conn := cnet.NewWebSocketConn(wsConn)

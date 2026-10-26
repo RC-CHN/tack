@@ -20,6 +20,7 @@ import (
 	"tack.local/management/control"
 	"tack.local/management/node"
 	p "tack.local/management/protocol"
+	"tack.local/management/protocol/shaping"
 )
 
 func TestOutputHelper(t *testing.T) {
@@ -90,15 +91,31 @@ func newNetworkFixtureHTTP2Timeout(t *testing.T, wrap func(http.Handler) http.Ha
 	server.EnableHTTP2 = http2
 	server.Config.ReadTimeout = 20 * time.Second
 	server.Config.WriteTimeout = writeTimeout
-	server.StartTLS()
+	shape := os.Getenv("TACK_TRAFFIC_SHAPING")
+	var certificate []byte
+	if shaping.Enabled(shape) {
+		if http2 {
+			t.Fatal("shaping fixture requires HTTP/1.1")
+		}
+		seed := httptest.NewTLSServer(nil)
+		certificate = seed.Certificate().Raw
+		server.Listener = shaping.TLSListener(server.Listener, seed.TLS)
+		seed.Close()
+		server.Config.Handler = shaping.ConfigureServer(server.Config, handler)
+		server.Start()
+		server.URL = strings.Replace(server.URL, "http://", "https://", 1)
+	} else {
+		server.StartTLS()
+		certificate = server.Certificate().Raw
+	}
 	t.Cleanup(server.Close)
 	admin := httptest.NewServer(api.AdminHandler())
 	t.Cleanup(admin.Close)
 	ca := filepath.Join(t.TempDir(), "ca.pem")
-	if err := os.WriteFile(ca, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: server.Certificate().Raw}), 0600); err != nil {
+	if err := os.WriteFile(ca, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certificate}), 0600); err != nil {
 		t.Fatal(err)
 	}
-	return &networkFixture{nodeServer: server, statePath: statePath, t: t, api: api, admin: admin, config: c, nodeConfig: p.NodeConfig{Server: server.URL, NodeID: "node-a", Token: c.Nodes[0].Token, StateDir: t.TempDir(), WorkDir: t.TempDir(), CAFile: ca, MaxPendingResults: 2}}
+	return &networkFixture{nodeServer: server, statePath: statePath, t: t, api: api, admin: admin, config: c, nodeConfig: p.NodeConfig{Server: server.URL, NodeID: "node-a", Token: c.Nodes[0].Token, StateDir: t.TempDir(), WorkDir: t.TempDir(), CAFile: ca, MaxPendingResults: 2, TLSProfile: os.Getenv("TACK_TLS_PROFILE"), TrafficShaping: shape}}
 }
 func (f *networkFixture) request(method, path string, input, output any) {
 	f.t.Helper()

@@ -19,6 +19,7 @@ import (
 	"github.com/jpillora/chisel/share/settings"
 	"github.com/jpillora/requestlog"
 	"golang.org/x/crypto/ssh"
+	"tack.local/management/protocol/shaping"
 )
 
 // Config is the configuration for the chisel service
@@ -176,6 +177,9 @@ func (s *Server) StartContext(ctx context.Context, host, port string) error {
 		o := requestlog.DefaultOptions
 		o.TrustProxy = true
 		h = requestlog.WrapWith(h, o)
+	}
+	if shaping.Enabled(s.config.TLS.TrafficShaping) {
+		h = shaping.ConfigureServer(s.httpServer.Server, h)
 	}
 	return s.httpServer.GoServe(ctx, l, h)
 }

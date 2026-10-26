@@ -199,6 +199,9 @@ type NodeConfig struct {
 	WorkDir               string `json:"work_dir"`
 	StatePersistence      string `json:"state_persistence,omitempty"`
 	CAFile                string `json:"ca_file,omitempty"`
+	TLSProfile            string `json:"tls_profile,omitempty"`
+	TLSIdentityFile       string `json:"tls_identity_file,omitempty"`
+	TrafficShaping        string `json:"traffic_shaping,omitempty"`
 	BusyBox               string `json:"busybox,omitempty"`
 	HeartbeatSeconds      int    `json:"heartbeat_seconds,omitempty"`
 	LeaseSeconds          int    `json:"lease_seconds,omitempty"`

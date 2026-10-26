@@ -16,18 +16,29 @@ require (
 	golang.org/x/crypto v0.55.0
 	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
+	tack.local/management/protocol v0.0.0
 	tack.local/testfixtures v0.0.0
+	tack.local/transport/browser v0.0.0
 )
 
 replace tack.local/testfixtures => ./test/fixtures
 
+replace tack.local/management/protocol => ./management/protocol
+
+replace tack.local/transport/browser => ./transport/browser
+
+replace tack.local/management/node => ./management/node
+
 require (
 	github.com/andrew-d/go-termutil v0.0.0-20150726205930-009166a695a2 // indirect
+	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jpillora/ansi v1.0.3 // indirect
+	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/posener/complete v1.2.3 // indirect
+	github.com/refraction-networking/utls v1.8.2 // indirect
 	github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce // indirect
 	github.com/txthinking/runnergroup v0.0.0-20210608031112-152c7c4432bf // indirect
 	golang.org/x/sys v0.47.0 // indirect

@@ -8,12 +8,15 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	"tack.local/management/node/runner"
 	p "tack.local/management/protocol"
+	"tack.local/management/protocol/shaping"
 	"tack.local/management/protocol/telemetry"
+	"tack.local/management/protocol/tlsprofile"
 )
 
 type journal struct {
@@ -37,6 +40,15 @@ type Node struct {
 }
 
 func New(config p.NodeConfig) (*Node, error) {
+	if err := shaping.Check(config.TrafficShaping); err != nil {
+		return nil, err
+	}
+	if err := tlsprofile.Check(config.TLSProfile); err != nil {
+		return nil, err
+	}
+	if (!tlsprofile.Native(config.TLSProfile) || shaping.Enabled(config.TrafficShaping)) && !strings.HasPrefix(config.Server, "https://") {
+		return nil, errors.New("TLS profiles and shaping require HTTPS")
+	}
 	if !p.ValidID(config.NodeID) || len(config.Token) < 32 {
 		return nil, errors.New("valid node_id and token are required")
 	}
@@ -104,9 +116,28 @@ func New(config p.NodeConfig) (*Node, error) {
 		return nil, err
 	}
 	uploadClient.Timeout = time.Duration(p.ResultTimeoutSeconds+15) * time.Second
+	var tlsIdentity *tlsprofile.Identity
+	if tlsprofile.NeedsIdentity(config.TLSProfile) {
+		path := config.TLSIdentityFile
+		if path == "" {
+			path = filepath.Join(config.StateDir, "tls-identity.json")
+		}
+		tlsIdentity, err = tlsprofile.LoadIdentity(path)
+		if err != nil {
+			return nil, err
+		}
+	} else if config.TLSIdentityFile != "" {
+		return nil, errors.New("tls_identity_file requires a personalized TLS profile")
+	}
 	connections := newConnectionSet()
 	connections.attach(client)
 	connections.attach(uploadClient)
+	for _, c := range []*http.Client{client, uploadClient} {
+		if err := tlsprofile.ConfigureTransport(c.Transport.(*http.Transport), config.TLSProfile, config.TrafficShaping, tlsIdentity); err != nil {
+			connections.close()
+			return nil, err
+		}
+	}
 	meter := telemetry.New()
 	return &Node{connections: connections, uploadClient: uploadClient, meter: meter, writeJSON: meter.WriteJSON, config: config, client: client, origin: origin, instance: instance, runner: runner.Runner{WorkDir: config.WorkDir, BusyBox: config.BusyBox}, Logf: log.Printf}, nil
 }

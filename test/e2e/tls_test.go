@@ -68,6 +68,29 @@ func TestMTLS(t *testing.T) {
 	}
 }
 
+// Shaping must preserve client-certificate authentication and ordinary clients
+// on the same enabled TLS listener, even in builds without the browser module.
+func TestShapedMTLSAndOrdinaryClient(t *testing.T) {
+	for _, shape := range []string{"off", "bounded-v1"} {
+		t.Run(shape, func(t *testing.T) {
+			certs, err := newTestTLSConfig()
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer certs.Close()
+			certs.serverTLS.TrafficShaping = "bounded-v1"
+			certs.clientTLS.TrafficShaping = shape
+			port := availablePort()
+			teardown := simpleSetup(t, &chserver.Config{TLS: *certs.serverTLS, Auth: "test:secret"}, &chclient.Config{TLS: *certs.clientTLS, Auth: "test:secret", Remotes: []string{port + ":$FILEPORT"}})
+			defer teardown()
+			got, err := post("http://localhost:"+port, "shaped-mtls")
+			if err != nil || got != "shaped-mtls!" {
+				t.Fatal(got, err)
+			}
+		})
+	}
+}
+
 func TestTLSMissingClientCert(t *testing.T) {
 	tlsConfig, err := newTestTLSConfig()
 	if err != nil {

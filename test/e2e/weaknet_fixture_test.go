@@ -16,6 +16,10 @@ import (
 )
 
 func TestTunnelRecoversAcrossImpairedTransport(t *testing.T) {
+	tunnelRecoversAcrossImpairedTransport(t, nil)
+}
+
+func tunnelRecoversAcrossImpairedTransport(t *testing.T, tlsConf *tlsConfig) {
 	for _, reverse := range []bool{false, true} {
 		name := "forward"
 		if reverse {
@@ -26,7 +30,11 @@ func TestTunnelRecoversAcrossImpairedTransport(t *testing.T) {
 			defer origin.Close()
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			server, err := chserver.NewServer(&chserver.Config{Reverse: reverse})
+			serverConfig := &chserver.Config{Reverse: reverse}
+			if tlsConf != nil {
+				serverConfig.TLS = *tlsConf.serverTLS
+			}
+			server, err := chserver.NewServer(serverConfig)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -51,7 +59,13 @@ func TestTunnelRecoversAcrossImpairedTransport(t *testing.T) {
 			if reverse {
 				remote = "R:" + remote
 			}
-			client, err := chclient.NewClient(&chclient.Config{Server: "http://" + link.Addr(), Fingerprint: server.GetFingerprint(), Remotes: []string{remote}, MaxRetryCount: -1, MinRetryInterval: 50 * time.Millisecond, MaxRetryInterval: 200 * time.Millisecond})
+			clientConfig := &chclient.Config{Server: "http://" + link.Addr(), Fingerprint: server.GetFingerprint(), Remotes: []string{remote}, MaxRetryCount: -1, MinRetryInterval: 50 * time.Millisecond, MaxRetryInterval: 200 * time.Millisecond}
+			if tlsConf != nil {
+				clientConfig.Server = "https://" + link.Addr()
+				clientConfig.TLS = *tlsConf.clientTLS
+				clientConfig.TLS.ServerName = "localhost"
+			}
+			client, err := chclient.NewClient(clientConfig)
 			if err != nil {
 				t.Fatal(err)
 			}

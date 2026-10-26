@@ -27,6 +27,8 @@ import (
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/proxy"
 	"golang.org/x/sync/errgroup"
+	"tack.local/management/protocol/shaping"
+	"tack.local/management/protocol/tlsprofile"
 )
 
 // Config represents a client configuration
@@ -48,32 +50,42 @@ type Config struct {
 
 // TLSConfig for a Client
 type TLSConfig struct {
-	SkipVerify bool   `opts:"name=tls-skip-verify,short=-" help:"Skip server TLS certificate verification of chain and host name (if TLS is used for transport connections to server). If set, client accepts any TLS certificate presented by the server and any host name in that certificate. This only affects transport https (wss) connection. Chisel server's public key may be still verified (see --fingerprint) after inner connection is established."`
-	CA         string `opts:"name=tls-ca,short=-" help:"An optional root certificate bundle used to verify the chisel server. Only valid when connecting to the server with \"https\" or \"wss\". By default, the operating system CAs will be used."`
-	Cert       string `opts:"name=tls-cert,short=-" help:"a path to a PEM encoded certificate matching the provided private key. The certificate must have client authentication enabled (mutual-TLS)."`
-	Key        string `opts:"name=tls-key,short=-" help:"a path to a PEM encoded private key used for client authentication (mutual-TLS)."`
-	ServerName string `opts:"-"`
+	TrafficShaping string `opts:"name=traffic-shaping,short=-" help:"TLS stream shaping: off (default) or bounded-v1. Requires verified HTTPS/WSS and a shaping-enabled Tack server; no silent fallback."`
+	Profile        string `opts:"name=tls-profile,short=-" help:"TLS handshake profile: native (default), personalized-v1, chrome-133, or chrome-133-h1. Non-native profiles require the browser build, verified HTTPS/WSS, HTTP/1.1 negotiation and a direct connection."`
+	IdentityFile   string `opts:"name=tls-identity-file,short=-" help:"Absolute path to the persistent ClientHello identity, required by personalized-v1. Created once if absent; reused across reconnects and restarts. Parent directory must exist."`
+	SkipVerify     bool   `opts:"name=tls-skip-verify,short=-" help:"Skip server TLS certificate verification of chain and host name (if TLS is used for transport connections to server). If set, client accepts any TLS certificate presented by the server and any host name in that certificate. This only affects transport https (wss) connection. Chisel server's public key may be still verified (see --fingerprint) after inner connection is established."`
+	CA             string `opts:"name=tls-ca,short=-" help:"An optional root certificate bundle used to verify the chisel server. Only valid when connecting to the server with \"https\" or \"wss\". By default, the operating system CAs will be used."`
+	Cert           string `opts:"name=tls-cert,short=-" help:"a path to a PEM encoded certificate matching the provided private key. The certificate must have client authentication enabled (mutual-TLS)."`
+	Key            string `opts:"name=tls-key,short=-" help:"a path to a PEM encoded private key used for client authentication (mutual-TLS)."`
+	ServerName     string `opts:"-"`
 }
 
 // Client represents a client instance
 type Client struct {
 	*cio.Logger
-	config    *Config
-	computed  settings.Config
-	sshConfig *ssh.ClientConfig
-	tlsConfig *tls.Config
-	proxyURL  *url.URL
-	server    string
-	connCount cnet.ConnCount
-	stop      func()
-	eg        *errgroup.Group
-	tunnel    *tunnel.Tunnel
+	config      *Config
+	computed    settings.Config
+	sshConfig   *ssh.ClientConfig
+	tlsConfig   *tls.Config
+	tlsIdentity *tlsprofile.Identity
+	proxyURL    *url.URL
+	server      string
+	connCount   cnet.ConnCount
+	stop        func()
+	eg          *errgroup.Group
+	tunnel      *tunnel.Tunnel
 }
 
 // NewClient creates a new client instance
 func NewClient(c *Config) (*Client, error) {
+	if err := shaping.Check(c.TLS.TrafficShaping); err != nil {
+		return nil, err
+	}
+	if err := tlsprofile.Check(c.TLS.Profile); err != nil {
+		return nil, err
+	}
 	//apply default scheme
-	if !strings.HasPrefix(c.Server, "http") {
+	if !strings.Contains(c.Server, "://") {
 		c.Server = "http://" + c.Server
 	}
 	u, err := url.Parse(c.Server)
@@ -82,6 +94,9 @@ func NewClient(c *Config) (*Client, error) {
 	}
 	//swap to websockets scheme
 	u.Scheme = strings.Replace(u.Scheme, "http", "ws", 1)
+	if (!tlsprofile.Native(c.TLS.Profile) || shaping.Enabled(c.TLS.TrafficShaping)) && (u.Scheme != "wss" || c.TLS.SkipVerify || c.Proxy != "") {
+		return nil, errors.New("TLS profiles and shaping require verified HTTPS/WSS and no proxy")
+	}
 	//apply default port
 	if !regexp.MustCompile(`:\d+$`).MatchString(u.Host) {
 		if u.Scheme == "wss" {
@@ -193,6 +208,14 @@ func NewClient(c *Config) (*Client, error) {
 		Timeout:         settings.EnvDuration("SSH_TIMEOUT", 30*time.Second),
 	}
 	//prepare client tunnel
+	if tlsprofile.NeedsIdentity(c.TLS.Profile) {
+		client.tlsIdentity, err = tlsprofile.LoadIdentity(c.TLS.IdentityFile)
+		if err != nil {
+			return nil, err
+		}
+	} else if c.TLS.IdentityFile != "" {
+		return nil, errors.New("tls-identity-file requires a personalized TLS profile")
+	}
 	client.tunnel = tunnel.New(tunnel.Config{
 		Logger:    client.Logger,
 		Inbound:   true, //client always accepts inbound

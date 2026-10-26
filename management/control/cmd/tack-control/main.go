@@ -18,6 +18,7 @@ import (
 	"tack.local/management/control"
 	p "tack.local/management/protocol"
 	"tack.local/management/protocol/rotatelog"
+	"tack.local/management/protocol/shaping"
 )
 
 func main() {
@@ -33,8 +34,15 @@ func run() error {
 	adminListen := flag.String("admin-listen", "127.0.0.1:8081", "administrator listener (literal loopback only)")
 	cert := flag.String("tls-cert", "", "TLS certificate file")
 	key := flag.String("tls-key", "", "TLS key file")
+	shape := flag.String("traffic-shaping", "off", "Node TLS listener shaping: off or bounded-v1 (HTTP/1.1)")
 	logs := rotatelog.Flags(flag.CommandLine)
 	flag.Parse()
+	if err := shaping.Check(*shape); err != nil {
+		return err
+	}
+	if shaping.Enabled(*shape) && (*cert == "" || *key == "") {
+		return fmt.Errorf("traffic shaping requires TLS certificate and key")
+	}
 	if *version {
 		fmt.Println(p.BuildVersion)
 		return nil
@@ -109,7 +117,7 @@ func run() error {
 	errorsCh := make(chan error, 2)
 	go func() {
 		if *cert != "" {
-			errorsCh <- srv.ListenAndServeTLS(*cert, *key)
+			errorsCh <- shaping.ListenAndServeTLS(srv, *cert, *key, *shape)
 		} else {
 			errorsCh <- srv.ListenAndServe()
 		}
