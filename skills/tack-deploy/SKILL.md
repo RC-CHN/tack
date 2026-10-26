@@ -5,7 +5,7 @@ description: Deploy, register, update or remove this repository's hosted Tack co
 
 # Tack deployment
 
-Use `tack-control` for the hosted control plane, `tack-node` for the customer runtime and `tack` for operator commands. Chisel names refer to the separate tunnel component.
+Use `tack-control` for the hosted control plane, `tack-node` for the customer runtime and `tack` for operator commands. The customer runtime embeds Chisel: deploy one binary and one foreground service for command execution and tunneling. The hosted Chisel server remains a separate service.
 
 Keep Controller hosting under the operator's control. Customer devices receive only their own Node configuration and authorized binaries. Node is a foreground worker; all installation, path selection and boot persistence are external deployment concerns.
 
@@ -21,7 +21,7 @@ Inspect OS, CPU, endianness and float ABI where relevant, kernel, process superv
 
 Select and record independently:
 
-- Executable paths for Node, Chisel and optional BusyBox.
+- Executable path for the unified Node and optional external BusyBox; the customer does not need a standalone Chisel client.
 - Configuration/credential path and owning account.
 - Task state directory and whether it survives reboot, power loss and firmware upgrades.
 - Temporary task work directory, log destination and storage/write limits.
@@ -32,16 +32,20 @@ Paths are decisions for this target, not global defaults. Prefer an existing app
 
 ## Provision and verify
 
-Generate node credentials on the operator side with `tack provision`. Transfer only the selected node configuration over the authorized access channel. Never copy the Controller configuration, administrator token, shared registration secret, signing key or general-purpose Chisel server account to a customer node. Do not print credentials into logs or place them in command arguments. Apply filesystem permissions or Windows ACLs for the selected account.
+Generate node credentials on the operator side with `tack provision`. For both capabilities, supply `-tunnel-config FILE` with that node's tunnel origin, scoped tunnel credential, verified SSH fingerprint and explicitly selected remotes; see the repository's [unified guide](../../docs/unified-node.md). Transfer only the selected node configuration over the authorized access channel. Never copy the Controller configuration, administrator token, shared registration secret, signing key or general-purpose Chisel server account to a customer node. Do not reuse the management token as a tunnel password. Apply filesystem permissions or Windows ACLs for the selected account; credentials belong in files, not command arguments or logs.
 
-Use matching, verified artifacts. Distinguish development binaries from protected commercial releases. The Node release policy is obfuscation plus packing where supported; missing protected artifacts are a release gap, not permission to call a plain binary protected. Record cross-compilation separately from native/device validation.
+Use matching, verified artifacts. Read [runtime compatibility and selection](../../docs/legacy-compatibility.md), collect OS/kernel/CPU facts on the target, then run `scripts/select-node-artifact.py` on the operator host against a verified release manifest. Select one Modern or Linux Legacy binary; both contain `management` and `embedded-chisel` capabilities. The Go 1.23 management-only worker is not a substitute. Legacy amd64 has passed a CentOS 6 kernel VM check; vendor storage, other architectures and reboot behavior still need target validation. Windows requires Windows 10 / Server 2016 or newer; there is no Win7 fallback.
 
-Prepare the selected state and work directories externally. Node/Controller routine diagnostics are disabled by default; fatal errors still reach stderr. For troubleshooting, explicitly select `-log-stderr` with bounded supervisor capture or `-log-file PATH -log-max-bytes N -log-files COUNT` (defaults: 4 MiB per file, 4 files total). Do not install an unbounded `>> logfile` launch command. Chisel output needs bounded supervisor capture. Then run the Node in the foreground. Confirm that the correct node appears on the private management API and that one harmless, explicitly targeted command returns its result. The Node may create its runtime journal and task files, but must not install itself or alter startup configuration.
+Stage the selected executable and run its version command before replacement. Modern uses packing where supported; Legacy retains obfuscation without UPX because the tested packed loader crashes on the qualified old kernel. Record this explicit exception from `BUILD.json`; a missing protected artifact is not permission to call a plain binary protected. A confirmed startup compatibility problem may justify selecting the same release's Legacy artifact externally. Network, credential, certificate, ACL or disk errors do not trigger runtime downgrade or disabled verification. The Node must not download, unpack or replace itself. Record cross-compilation separately from native/device validation.
+
+Prepare the selected state and work directories externally. Node/Controller routine diagnostics are disabled by default, including the embedded Chisel client; fatal errors still reach stderr. For troubleshooting, explicitly select `-log-stderr` with bounded supervisor capture or `-log-file PATH -log-max-bytes N -log-files COUNT` (defaults: 4 MiB per file, 4 files total). Do not install an unbounded `>> logfile` launch command. Run the unified Node in the foreground and verify both a harmless targeted command and a transfer through an authorized tunnel endpoint. A visible Node or open local port alone does not prove tunnel connectivity. The Node must not install itself or alter startup configuration. Tunnel configuration currently changes by updating its config and restarting the Node under the task-drain policy.
 
 After the foreground check, generate and install only the startup definition appropriate to the target. Keep its name and stop/uninstall path explicit. Capture the actual configuration and test restart through the chosen supervisor. Validate reboot persistence only within an authorized maintenance window; otherwise report it as unverified. Unsupported platform behavior should lead to a documented alternative or a clear limitation, not repeated invasive boot modifications.
 
 ## Upgrade and remove
 
+Modern and Legacy artifacts of the same release share the current state format. Keep the entire state/configuration, drain running commands, stop the previous instance and verify foreground shell/tunnel behavior after switching. A runtime-profile switch is not a downgrade to an older storage format. See the compatibility guide for the tested bidirectional pending-result recovery path.
+
 Upgrade the Controller before Nodes and use matching CLI binaries. Drain the queue before the first v3 Node handshake: migration fences older tasks and uncertain work may become `unknown`; check side effects before resubmitting. Retain the complete Node state directory, including identity, journal, `replay.json`, `results/` and recovery files, across binary replacement. Node storage v4 migrates v3 inline results automatically; older Nodes cannot read v4 state, so swapping only binaries is not a valid downgrade. Back up Controller state with the complete `.history` (including `released`) and `.uploads` directories. Stop or drain current work according to the deployment's task policy, stage and verify the new executable, switch paths using the platform's supported mechanism, and retain a rollback artifact. Windows may require stopping the process before replacement. Revalidate connectivity and a targeted command after upgrade.
 
-For removal, stop and disable the specific startup entry, revoke that node credential on the Controller, and remove only files owned by this deployment. Keep or export task records according to the user's retention instruction. Report remaining node-side files and any unverified reboot behavior.
+For removal, stop and disable the specific startup entry, revoke that node's management credential and its separate tunnel authorization, and remove only files owned by this deployment. Handle established tunnel connections according to the hosted relay's policy; removing a management token alone does not revoke a Chisel account. Keep or export task records according to the user's retention instruction. Report remaining node-side files and any unverified reboot behavior.

@@ -1,5 +1,7 @@
 # Tack validation record
 
+Latest: [2026-10-26 Legacy compatibility validation](../docs/validation/2026-10-26-legacy.md) covers the unified Go 1.23 artifact, real CentOS 6 kernel, runtime replacement and resource gates. The [initial unified Node validation](../docs/validation/2026-10-26-unified.md) records the exact Modern packed artifact and integration checks. Older sections below describe the management-only builds tested at those dates.
+
 Recorded on 2026-10-23 for the initial management implementation. This records local checks; it is not a claim that hosted CI or every target device has passed.
 
 The module tests, race checks, vet, HTTPS integration and all 13 cross-build configurations below were rerun successfully after the Tack rename. Native builds of `tack-control`, `tack-node` and `tack` passed; CLI smoke checks verified both the new `-node-config`/`-node-ca` flags and their legacy aliases. The renamed `tack-deploy` skill metadata and local documentation links also passed validation.

@@ -2,10 +2,11 @@
 
 This directory contains Tack's independent control, node and protocol modules. `tack-control` is hosted by the operator, `tack` is the operator CLI, and `tack-node` runs on customer machines. There is no Web UI. The node is a foreground process: deployment paths, service installation and boot persistence are entirely external.
 
-The accepted requirements and remaining stages are in [the design](../docs/tack-design.md). Use the repository [deployment skill](../skills/tack-deploy/SKILL.md) to adapt installation to a customer machine. The current binaries are a development baseline, not the obfuscated, packed or hardware-key-protected commercial release.
+The accepted requirements and remaining stages are in [the design](../docs/tack-design.md). Use the repository [deployment skill](../skills/tack-deploy/SKILL.md) to adapt installation to a customer machine. The release builder obfuscates and attempts packing of the unified client; hardware-backed credentials and signed commercial releases remain incomplete.
 
 ## Implemented behavior
 
+- One customer executable and foreground process combining the management worker and Chisel client; see [configuration and compatibility](../docs/unified-node.md).
 - Separate Node and administrator HTTP handlers and listeners; the administrator listener is restricted to literal loopback addresses.
 - Per-node credentials, explicit node selection, durable task queue, cancellation, bounded final stdout/stderr and exit status.
 - Bounded active queue, disk-backed completed history, paginated task summaries and reserved result capacity.
@@ -18,7 +19,7 @@ The accepted requirements and remaining stages are in [the design](../docs/tack-
 - Durable, offset-based output upload with digest verification and retry; separate control/upload connection pools.
 - Private `tack metrics` output for link failures, request durations, process resources, state writes and output backlog.
 
-Remaining work includes certificate enrollment/rotation, tenants and RBAC, online revocation, streaming output, operator-controlled history deletion, Chisel process supervision, native old-platform validation and the protected release pipeline. No automatic changes are made to existing Chisel configuration.
+Remaining work includes certificate enrollment/rotation, tenants and RBAC, online revocation, streaming output, operator-controlled history deletion, centrally updated tunnel configuration and native old-platform validation. Tunnel configuration is currently read at Node startup; no existing standalone Chisel installation is changed automatically.
 
 ## Build
 
@@ -28,10 +29,10 @@ Run from the repository root with a compatible Go toolchain:
 mkdir -p build/tack
 (cd management/control && go build -trimpath -o ../../build/tack/tack-control ./cmd/tack-control)
 (cd management/control && go build -trimpath -o ../../build/tack/tack ./cmd/tack)
-(cd management/node && go build -trimpath -o ../../build/tack/tack-node ./cmd/tack-node)
+GOTOOLCHAIN=go1.26.3 CGO_ENABLED=0 go build -trimpath -o build/tack/tack-node ./cmd/tack-node
 ```
 
-The controller requires Go 1.25 or newer. Node and protocol declare Go 1.23 and use only the standard library. Legacy builds must explicitly select the compatible toolchain, e.g. `GOTOOLCHAIN=go1.23.12 CGO_ENABLED=0`; setting `go 1.23` alone does not select an old runtime. Root Chisel has its own separate toolchain and dependencies.
+The unified Node is built from the root module. Releases provide a Go 1.26.3 Modern build and a Go 1.23.12 Linux Legacy build using the pinned compatibility adapter; both contain command execution and Chisel. See [artifact selection, supported boundaries and rollback](../docs/legacy-compatibility.md). The Legacy amd64 artifact has passed functional tests on a CentOS 6 kernel in QEMU; other devices need their own acceptance checks. Building `management/node/cmd/tack-node` still produces a management-only development worker that rejects tunnel configuration and must not replace the unified release.
 
 Tack modules use `tack.local/management/...` with relative `replace` directives. This is a local module namespace, not a download address; build from this checkout. Chisel's upstream module path remains attached to the tunnel component.
 
@@ -39,7 +40,7 @@ Tack modules use `tack.local/management/...` with relative `replace` directives.
 
 Replace the old management executables with `tack-control`, `tack-node` and `tack`, and update the external startup definitions to their selected paths. Keep the same configuration files, node identities and state directories. The new binaries read existing configuration and journals and retain the version 1 endpoint `/v1/agent/sync` and `agent.lock`. Protocol v3 writes a versioned Node journal and replay watermark; see the upgrade limits below before rolling binaries back. Do not delete or move the journal merely to rename the software.
 
-New provisioning uses `-node-config` and `-node-ca`. The CLI still accepts `-agent-config` and `-agent-ca` as deprecated aliases. The deployment skill is now `tack-deploy`. The tunnel executable remains `chisel`.
+New provisioning uses `-node-config` and `-node-ca`. The CLI still accepts `-agent-config` and `-agent-ca` as deprecated aliases. The deployment skill is now `tack-deploy`. `chisel` remains available for the hosted tunnel server and standalone compatibility use; the customer client is embedded in `tack-node`.
 
 ## Provision and start the Controller
 
@@ -85,6 +86,7 @@ Additional configuration fields:
 
 | Field | Meaning |
 | --- | --- |
+| `tunnel` | Embedded Chisel client configuration; `tack provision -tunnel-config FILE` copies a node-specific tunnel JSON object into the generated Node config. See [the unified guide](../docs/unified-node.md). Omit only for management-only operation. |
 | `state_dir` | Exclusive state directory for one node; contains identity, lock, task journal, replay checkpoint and pending `results/` files |
 | `work_dir` | Task-specific temporary directories; may be on a different writable volume |
 | `state_persistence` | `durable` (default) or `volatile`, declared by the deployment operator |
@@ -221,7 +223,7 @@ For an overnight reconnect soak, set `TACK_SOAK_SECONDS=86400` and `-timeout=25h
 
 Controller history is disk-backed and automatically reclaims confirmed results. Tests cover count/byte/age retention, full legacy-journal migration, lost acknowledgements, recovered temporary results, and stale Controller snapshots after per-task records have been pruned. Never delete a replay checkpoint to reclaim space. Native Windows handle counts, CentOS 6/embedded behavior, disk-full/power-loss recovery and 24–72 hour device soaks are separate acceptance work.
 
-The separate management CI covers these modules, a Go 1.23.12 Node build/test job and an architecture compilation matrix. Cross-compilation is recorded separately from native OS/kernel/device testing.
+CI covers these modules, the unified Modern/Legacy dependency graphs, architecture builds and final-artifact gates. The Legacy gate adds a real 2.6.32 kernel VM, bidirectional pending-result recovery during runtime replacement, and both HTTP resource/weak-link checks. Cross-compilation remains separate from native OS/kernel/device validation; the old-kernel VM is not vendor storage or reboot qualification.
 
 For **peak-load measurements of separate release processes** on a Linux host,
 extract matching `tack-node` and `tack-control` binaries into a private directory

@@ -5,7 +5,7 @@
 | Component | Command | Source |
 | --- | --- | --- |
 | Hosted control plane | `tack-control` | [management/control](management/control) |
-| Customer node runtime | `tack-node` | [management/node](management/node) |
+| Customer node runtime: commands and embedded tunnel | `tack-node` | [cmd/tack-node](cmd/tack-node) |
 | Operator CLI | `tack` | [management/control/cmd/tack](management/control/cmd/tack) |
 | Deployment skill | `tack-deploy` | [SKILL.md](skills/tack-deploy/SKILL.md) |
 | Tunnel client/server | `chisel` | Root Go module; [tunnel guide](docs/chisel.md) |
@@ -22,15 +22,15 @@
 
 The first-stage development baseline supports independent node credentials, HTTPS communication, a private administrator listener, per-node task queues, output limits, execution journaling, timeout and cancellation. The link extension adds configurable long heartbeats with immediate command delivery over HTTPS long polling, independent resumable output uploads and private metrics. Commands can use direct execution or an explicitly selected shell, with a configured BusyBox fallback for POSIX tasks.
 
-The node runs in the foreground. Deployment chooses executable, configuration, state and work paths, and configures startup externally. This allows read-only NAS roots, router overlays and other device-specific layouts without embedding installation policy in the runtime.
+The customer runtime is one executable and one foreground process: `tack-node` embeds the Chisel client and management worker. Configure its `tunnel` section to run both; no separate Chisel client executable or service is needed. Deployment chooses configuration, state and work paths and configures startup externally. See [the unified client guide](docs/unified-node.md).
 
-Windows and Linux are targets; CentOS 6 and ARM/MIPS devices require their own compatibility validation. Cross-compilation is recorded separately from native execution. Certificate enrollment/rotation, customer RBAC, Chisel supervision, bundled BusyBox and protected commercial releases remain later-stage work.
+Windows and Linux are targets. The same unified client has Modern and Linux Legacy artifacts; the Legacy artifact has passed shell/tunnel checks on a real CentOS 6 kernel in QEMU. ARM/MIPS devices and vendor storage still need their own validation. See [compatibility and artifact selection](docs/legacy-compatibility.md), including the Legacy packing exception and Windows minimum version. Certificate enrollment/rotation, customer RBAC, dynamic tunnel configuration, bundled BusyBox and signed commercial releases remain later-stage work.
 
 ## Repository layout
 
 Tack's independent Go modules live under `management/control`, `management/node`, `management/protocol` and `management/integration`. They use the local module namespace `tack.local/management/...` and relative replacements, so they build from this checkout without a new remote repository or module registry.
 
-The root Go module, tunnel packages and existing tunnel release workflow belong to Chisel. Building at the repository root builds `chisel`; build the Tack commands using the management guide. Chisel installation links and published images in the [tunnel guide](docs/chisel.md) supply the tunnel component.
+The root module builds `chisel` with `go build .` and the unified customer client with `go build ./cmd/tack-node`. The hosted Chisel server remains separate from `tack-control`; both serve the one customer process. Upstream Chisel downloads do not include Tack command execution.
 
 ## Upstream and license
 

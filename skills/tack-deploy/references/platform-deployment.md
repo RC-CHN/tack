@@ -10,6 +10,8 @@ Inspect the selected mount's `ro/rw` and `noexec` options. Node and BusyBox bina
 
 ## Choosing startup
 
+Before choosing startup, select the unified artifact from externally collected kernel/CPU facts. CentOS 6 x86 uses the Linux Legacy package; a Go 1.23 management-only worker is not equivalent. Legacy amd64 has a real 2.6.32-kernel VM test, while ARM/MIPS/vendor storage remain device-specific. Record `runtime_profile`, archive hash, capabilities and the Legacy obfuscation-without-UPX exception. See [compatibility and fallback](../../../docs/legacy-compatibility.md). The helper runs on the operator host; no Python or package manager is required on the customer.
+
 | Environment | Candidate approach | Conditions to verify |
 | --- | --- | --- |
 | systemd host | Explicit named service with absolute ExecStart | Run account, state/work access, mount dependencies, restart backoff and log retention |

@@ -8,14 +8,30 @@ unchanged; these changes do not publish a new version.
 
 | Component | Go | Garble |
 | --- | --- | --- |
-| Node | 1.23.12 | v0.14.2 |
-| Controller, operator CLI, Chisel | 1.26.3 | v0.17.0 |
+| Modern unified Node, Controller, operator CLI, Chisel | 1.26.3 | v0.17.0 |
+| Linux Legacy unified Node | 1.23.12 | v0.14.2 |
+
+The release Node is built from root `./cmd/tack-node` and contains both the
+management worker and Chisel client. Its `BUILD.json` lists `management` and
+`embedded-chisel` capabilities. Garble and UPX transform the complete linked
+binary. The Linux Legacy release uses the same entrypoint with the pinned
+`go.legacy.mod` adapter. The management-only module remains a development entrypoint.
+Earlier footprint/protection measurements below used
+that management-only binary and must not be presented as unified-client results.
+
+Legacy deliberately skips UPX and records an obfuscated platform exception:
+UPX 5.0.2 amd64 loaders exited 139 on the real CentOS 6 2.6.32 kernel, including
+a packed Go 1.23 input. The final obfuscated unified Legacy artifact passed TLS,
+shell, tunnel and shutdown checks on that kernel. Other Legacy targets also
+retain obfuscation until their packed loaders have old-kernel qualification.
+See [compatibility, dependency provenance and selection](legacy-compatibility.md).
 
 UPX is pinned to **5.0.2**, with SHA-256-pinned official installer archives for
 Linux amd64/arm64 and Windows amd64 build hosts. A local qualification found that
 UPX 5.2.1 produced a SIGTRAP before Go startup for the static Legacy Node built
 with Garble v0.13.0, for both NRV and LZMA; 5.0.2 ran the same input successfully
-20/20 times. Do not automatically upgrade the packer without rerunning the final
+20/20 times on the modern host; that result did not establish old-kernel support.
+Do not automatically upgrade the packer without rerunning the final
 artifact tests. Garble v0.14.2 continues Go 1.23 support and includes toolchain and
 reflection compatibility fixes.
 
@@ -34,7 +50,10 @@ python3 -B scripts/build-release.py --version 0.1.0-rc.4 --output dist/protected
 python3 -B scripts/verify-release.py dist/protected --extract-node /tmp/protected-node
 ```
 
-`--native-only` and `--components tack-node` are useful for local comparisons.
+`--native-only`, `--components tack-node` and `--node-runtime modern|legacy|both`
+are useful for local comparisons. Runtime selection defaults to `both`; the
+complete matrix has 46 archives. `verify-release.py --node-runtime legacy`
+extracts the Legacy Node explicitly, avoiding an overwrite by the Modern variant.
 `--require-clean` rejects a dirty checkout or partial matrix for publication.
 macOS can install Garble with `--without-upx` and run the `obfuscated` profile;
 the complete release matrix is packaged on Linux. Tools are installed into the
@@ -48,6 +67,12 @@ hash/size, packing outcome, and validation level. `compile-and-format` means the
 target header was checked; `native-version-smoke` adds execution on the build
 host. Neither establishes legacy-kernel or device reliability. ARM/MIPS and
 Windows ARM64 need their own native qualification.
+
+`scripts/smoke-unified.py` verifies the exact final Linux artifacts using verified
+TLS: one Node completes a shell task and tunnel transfer, continues command
+execution during a tunnel-server outage, reconnects without changing its PID,
+and releases its listener on shutdown. It also checks default diagnostics remain
+empty. Run it with `--bin-dir DIR --report REPORT.json` after extracting artifacts.
 
 Successful packing requires executable-header validation, `upx -t`, and an exact
 decompression round trip. Native artifacts must also execute their version
@@ -89,7 +114,10 @@ unchanged 32 MiB RSS gate. The independent-process CPU/RSS fixtures exclude Cont
 
 CI validates native protected artifacts on Linux/Windows and native obfuscated
 CLI artifacts on macOS. Linux also tests the packed Node's footprint and recovery.
-Tag releases repeat these gates on the exact Node inside the final release archive.
+`qualify-legacy.py` verifies both variants, Legacy shell/tunnel lifecycle, both
+directions of pending-result state replacement, the real old kernel, and Legacy
+resource/intermittent-link gates under both HTTP versions. Tag releases repeat
+these checks on the exact artifacts inside the final release archives.
 Small measured regressions are acceptable; correctness or recovery failures block
 publication. Local measurement evidence is in the [protection qualification](validation/2026-10-23-protection.md).
 
