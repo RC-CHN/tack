@@ -4,7 +4,6 @@ package integration_test
 
 import (
 	"bytes"
-	"debug/buildinfo"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -47,21 +46,13 @@ func TestNodeLowFootprint(t *testing.T) {
 	}
 	binary := os.Getenv("TACK_NODE_BINARY")
 	if binary == "" {
-		t.Fatal("TACK_NODE_BINARY must name a normal tack-node build")
+		t.Fatal("TACK_NODE_BINARY must name a non-race tack-node build")
 	}
 	binary, err = filepath.Abs(binary)
 	if err != nil {
 		t.Fatal(err)
 	}
-	info, err := buildinfo.ReadFile(binary)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, setting := range info.Settings {
-		if setting.Key == "-race" && setting.Value == "true" {
-			t.Fatal("resource gates require a Node built without -race")
-		}
-	}
+	info := nodeBuild(t, binary)
 	hzText, err := exec.Command("getconf", "CLK_TCK").Output()
 	if err != nil {
 		t.Fatal(err)
@@ -205,18 +196,21 @@ func TestNodeLowFootprint(t *testing.T) {
 	// a qualification pass; duration, RSS limit and toolchain are embedded in it.
 	defer func() {
 		report := struct {
-			Format      string           `json:"format"`
-			Passed      bool             `json:"passed"`
-			HTTP2       bool             `json:"http2"`
-			Seconds     int              `json:"seconds_per_phase"`
-			ClockHz     float64          `json:"clock_ticks_per_second"`
-			MaxRSS      uint64           `json:"rss_limit_bytes"`
-			NodeGo      string           `json:"node_go_version"`
-			OutputBytes int              `json:"output_bytes_per_task"`
-			RecoveryMS  float64          `json:"recovery_to_three_results_ms"`
-			ShutdownMS  float64          `json:"shutdown_ms"`
-			Phases      []footprintPhase `json:"phases"`
-		}{"tack-footprint-v1", !t.Failed(), h2, seconds, hz, maxRSS, info.GoVersion, len(stdout) + len(stderr), recoveryMS, shutdownMS, phases}
+			Format         string           `json:"format"`
+			Passed         bool             `json:"passed"`
+			HTTP2          bool             `json:"http2"`
+			TLSProfile     string           `json:"tls_profile"`
+			TrafficShaping string           `json:"traffic_shaping"`
+			Seconds        int              `json:"seconds_per_phase"`
+			ClockHz        float64          `json:"clock_ticks_per_second"`
+			MaxRSS         uint64           `json:"rss_limit_bytes"`
+			NodeGo         string           `json:"node_go_version"`
+			Build          nodeBuildInfo    `json:"node_build"`
+			OutputBytes    int              `json:"output_bytes_per_task"`
+			RecoveryMS     float64          `json:"recovery_to_three_results_ms"`
+			ShutdownMS     float64          `json:"shutdown_ms"`
+			Phases         []footprintPhase `json:"phases"`
+		}{"tack-footprint-v1", !t.Failed(), h2, f.nodeConfig.TLSProfile, f.nodeConfig.TrafficShaping, seconds, hz, maxRSS, info.GoVersion, info, len(stdout) + len(stderr), recoveryMS, shutdownMS, phases}
 		b, e := json.MarshalIndent(report, "", "  ")
 		if e != nil {
 			t.Error(e)

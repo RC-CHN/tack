@@ -4,7 +4,6 @@ package integration_test
 
 import (
 	"bytes"
-	"debug/buildinfo"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -38,15 +37,7 @@ func TestNodeSevereLink(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	build, err := buildinfo.ReadFile(binary)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, s := range build.Settings {
-		if s.Key == "-race" && s.Value == "true" {
-			t.Fatal("Node must not use race instrumentation")
-		}
-	}
+	build := nodeBuild(t, binary)
 	h2 := os.Getenv("TACK_RESOURCE_HTTP2") == "1"
 	first := make(chan struct{})
 	gate := make(chan struct{})
@@ -237,7 +228,8 @@ func TestNodeSevereLink(t *testing.T) {
 	report := map[string]any{
 		"format": "tack-severe-link-v1", "passed": !t.Failed(), "completed": completed,
 		"budget_seconds": seconds, "elapsed_seconds": elapsed, "http2": h2,
-		"node_go": build.GoVersion, "node_binary": binary, "max_rss_bytes": maxRSS, "max_fds": maxFD,
+		"tls_profile": f.nodeConfig.TLSProfile, "traffic_shaping": f.nodeConfig.TrafficShaping,
+		"node_go": build.GoVersion, "node_build": build, "node_binary": binary, "max_rss_bytes": maxRSS, "max_fds": maxFD,
 		"start": startSample, "end": endSample, "samples": samples,
 		"network_start": startNetwork, "network_end": endNetwork,
 		"output_bytes": 32*1024 + len("separate stderr"), "progress_bytes": progress,

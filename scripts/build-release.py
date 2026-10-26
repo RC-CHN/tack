@@ -14,6 +14,8 @@ import tempfile
 import time
 import zipfile
 
+from release_support import GARBLE, OBFUSCATION_SCOPE, UPX_VERSION, build_env, protect, sha256, tool, verify_target, version_output
+
 ROOT = Path(__file__).resolve().parents[1]
 MODERN = "go1.26.3"
 LEGACY = "go1.23.12"
@@ -72,6 +74,10 @@ def main():
     parser.add_argument("--version", required=True)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--native-only", action="store_true", help="local packaging smoke test only")
+    parser.add_argument("--protection", choices=("plain", "obfuscated", "packed"), default="packed")
+    parser.add_argument("--tools", type=Path, default=ROOT / "bin/build-tools")
+    parser.add_argument("--components", nargs="+", choices=("tack-node", "tack", "tack-control", "chisel"))
+    parser.add_argument("--require-clean", action="store_true", help="required for publication")
     args = parser.parse_args()
     if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?", args.version):
         parser.error("expected a semantic release version without a tag prefix")
@@ -80,6 +86,14 @@ def main():
     if any(output.iterdir()):
         parser.error("output directory must be empty; existing artifacts are never overwritten")
     commit = command("git", "rev-parse", "HEAD")
+    dirty = bool(command("git", "status", "--porcelain"))
+    if args.require_clean and (dirty or args.native_only or args.components):
+        parser.error("publication requires a clean source tree and the complete target matrix")
+    sources = command("git", "ls-files", "--cached", "--others", "--exclude-standard").splitlines()
+    inputs = {name: sha256(ROOT / name) for name in sorted(set(sources))
+              if (ROOT / name).is_file() and not name.startswith("management/validation/")
+              and (name.endswith((".go", ".mod", ".sum", ".py", ".sh")))}
+    source_hash = hashlib.sha256(json.dumps(inputs, sort_keys=True).encode()).hexdigest()
     epoch = int(command("git", "show", "-s", "--format=%ct", "HEAD"))
     native_os = command("go", "env", "GOHOSTOS", env={**os.environ, "GOTOOLCHAIN": "local"})
     native_arch = command("go", "env", "GOHOSTARCH", env={**os.environ, "GOTOOLCHAIN": "local"})
@@ -90,10 +104,22 @@ def main():
          [("linux", "amd64", ""), ("linux", "arm64", ""), ("windows", "amd64", "")]),
         ("chisel", ".", ".", MODERN, NODE_TARGETS),
     ]
-    manifest = {"version": args.version, "commit": commit, "source_date_epoch": epoch,
-                "native_only": args.native_only, "artifacts": []}
+    manifest = {"format": "tack-release-v2", "version": args.version, "commit": commit,
+                "source_date_epoch": epoch, "source_dirty": dirty, "source_sha256": source_hash,
+                "native_only": args.native_only, "requested_protection": args.protection, "artifacts": []}
+    suffix = ".exe" if os.name == "nt" else ""
+    tools = args.tools.resolve()
+    checked_tools = {}
+    if args.protection == "packed":
+        checked_tools["upx"] = tool(tools / ("upx" + suffix), "upx " + UPX_VERSION, "--version")
     with tempfile.TemporaryDirectory(prefix="tack-release-") as temp:
         for component, module, package, toolchain, targets in components:
+            if args.components and component not in args.components:
+                continue
+            garble_dir, garble_version = GARBLE[toolchain]
+            garble = tools / garble_dir / ("garble" + suffix)
+            if args.protection != "plain" and garble_dir not in checked_tools:
+                checked_tools[garble_dir] = tool(garble, "mvdan.cc/garble " + garble_version, "version")
             for goos, goarch, arm in targets:
                 if args.native_only and (goos, goarch) != (native_os, native_arch):
                     continue
@@ -102,28 +128,55 @@ def main():
                     label += "-softfloat"
                 executable = component + (".exe" if goos == "windows" else "")
                 binary = Path(temp) / executable
-                env = dict(os.environ, GOTOOLCHAIN=toolchain, CGO_ENABLED="0", GOOS=goos,
-                           GOARCH=goarch, GOARM=arm or "5", GOMIPS="softfloat", GOMIPS64="softfloat")
+                env = build_env(toolchain, goos, goarch, arm)
+                if command("go", "env", "GOVERSION", env=env) != toolchain:
+                    raise RuntimeError("Go toolchain does not match the pinned version")
                 symbol = ("github.com/jpillora/chisel/share.BuildVersion" if component == "chisel"
                           else "tack.local/management/protocol.BuildVersion")
-                subprocess.run(["go", "build", "-trimpath", "-ldflags", f"-s -w -X {symbol}={args.version}",
-                                "-o", str(binary), package], cwd=ROOT / module, env=env, check=True)
+                flags = ["-trimpath", "-ldflags", f"-s -w -X {symbol}={args.version}"]
+                compiler = ["go"] if args.protection == "plain" else [str(garble), "-literals"]
+                subprocess.run(compiler + ["build"] + flags + ["-o", str(binary), package],
+                               cwd=ROOT / module, env=env, check=True)
+                verify_target(binary, goos, goarch)
                 info = command("go", "version", "-m", str(binary), env=env)
-                if toolchain not in info or f"GOOS={goos}" not in info or f"GOARCH={goarch}" not in info or "CGO_ENABLED=0" not in info:
+                if args.protection == "plain" and (toolchain not in info or f"GOOS={goos}" not in info
+                                                   or f"GOARCH={goarch}" not in info or "CGO_ENABLED=0" not in info):
                     raise RuntimeError(f"unexpected build metadata for {component}/{goos}/{label}")
-                if (goos, goarch) == (native_os, native_arch):
-                    flag = "--version" if component == "chisel" else "-version"
-                    version = command(str(binary), flag)
-                    if args.version not in version:
-                        raise RuntimeError(f"incorrect version stamp: {version}")
+                if args.protection != "plain" and ("GOOS=" in info or "\tmod\t" in info):
+                    raise RuntimeError("obfuscated executable still contains Go build metadata")
+                native = (goos, goarch) == (native_os, native_arch)
+                if native:
+                    version_output(binary, component, args.version)
+                packing = {"attempted": False, "status": "disabled"}
+                actual = args.protection
+                if args.protection == "packed":
+                    packing = protect(binary, tools / ("upx" + suffix), native,
+                                      component, args.version, goos, goarch)
+                    if packing["status"] != "packed":
+                        actual = "obfuscated"
+                native_version = version_output(binary, component, args.version) if native else None
+                record = {"format": "tack-build-v1", "component": component, "version": args.version,
+                          "source_commit": commit, "source_dirty": dirty, "source_sha256": source_hash,
+                          "go_version": toolchain, "os": goos, "arch": goarch, "arm": arm,
+                          "mips_float": "softfloat" if goarch.startswith("mips") else None,
+                          "cgo_enabled": False, "race": False, "protection": actual,
+                          "sha256": sha256(binary), "bytes": binary.stat().st_size,
+                          "build_flags": flags, "garble_flags": [] if actual == "plain" else ["-literals"],
+                          "garble_seed": "default (derived from build inputs)",
+                          "gogarble": OBFUSCATION_SCOPE, "packing": packing,
+                          "validation": "native-version-smoke" if native else "compile-and-format",
+                          "native_version": native_version,
+                          "tools": {"garble": checked_tools.get(garble_dir), "upx": checked_tools.get("upx")}}
                 extension = ".zip" if goos == "windows" else ".tar.gz"
                 name = f"{component}_{args.version}_{goos}_{label}{extension}"
                 files = {executable: (binary.read_bytes(), 0o755),
                          "LICENSE": ((ROOT / "LICENSE").read_bytes(), 0o644),
-                         "README.md": ((ROOT / "management/README.md").read_bytes(), 0o644)}
+                         "README.md": ((ROOT / "management/README.md").read_bytes(), 0o644),
+                         "BUILD.json": ((json.dumps(record, indent=2) + "\n").encode(), 0o644)}
                 archive(output / name, files, epoch)
                 manifest["artifacts"].append({"file": name, "component": component,
-                                             "os": goos, "arch": label, "toolchain": toolchain})
+                                             "os": goos, "arch": label, "toolchain": toolchain,
+                                             "archive_sha256": sha256(output / name), "build": record})
                 print(f"Verified {name}", flush=True)
     if not manifest["artifacts"]:
         raise RuntimeError("no artifacts produced")
